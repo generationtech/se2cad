@@ -216,3 +216,23 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local generated output (do not commit unless a unit and the human architect authorize it)
+/out/
+/generated/
+/tmp/
+
+# SolidWorks editor junk (canonical SE2CAD-authored parts are not blanket-ignored)
+~$*.sldprt
+~$*.sldasm
+*.sldprt.bak
+*.sldasm.bak
+
+# Third-party / proprietary asset safety net — not a license.
+# See docs/technical/adr/ADR-004_THIRD_PARTY_ASSET_BOUNDARY.md
+*.mwm
+*.hkt
+*.fbx
+*.dds
+**/KeenModSDK/
+**/SpaceEngineers/Content/

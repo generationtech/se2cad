@@ -1,0 +1,30 @@
+---
+description: SE2CAD third-party asset boundary — no Keen/game/SDK binaries; Apache-2.0 does not relicense others' assets.
+alwaysApply: true
+---
+
+# SE2CAD third-party assets
+
+This is a public repository. Apache-2.0 applies to SE2CAD-owned code and documentation only. It does not relicense Space Engineers, Keen Software House, Microsoft, SolidWorks/Dassault, Blender, or other third-party assets.
+
+## Do not commit
+
+- Space Engineers game assets
+- Keen ModSDK FBX files
+- MWM models, textures, or extracted proprietary geometry
+- SolidWorks content not created for SE2CAD
+- Redistributable-status-unknown third-party binaries
+
+SE2CAD may contain code and metadata that locates, identifies, parses, or transforms assets from a user's legitimate local installation where that is lawful and in scope.
+
+## Derived geometry
+
+Do not assume CAD output is publicly redistributable because SE2CAD generated it or because this repo is Apache-2.0. Distributing canonical parts derived from Keen assets requires an explicit human licensing decision.
+
+User-authored blueprint fixtures may be committed when provenance is recorded. Game/SDK geometry must not be embedded in those fixtures.
+
+## Stop
+
+If redistribution rights are uncertain, stop and ask the human architect. Do not add the file.
+
+Authoritative policy: [ADR-004](docs/technical/adr/ADR-004_THIRD_PARTY_ASSET_BOUNDARY.md).

@@ -1,0 +1,39 @@
+---
+description: SE2CAD bounded-unit discipline — one unit per session; select from STATE; change only what the objective affects; stop after report.
+alwaysApply: true
+---
+
+# SE2CAD development
+
+## Session shape
+
+Execute exactly one bounded unit, then stop. Never start the next unit in the same session.
+
+## Selection
+
+1. Read [SE2CAD_STATE.md](docs/technical/governance/SE2CAD_STATE.md) first. It is the only live status.
+2. Take the single next executable unit from STATE.
+3. Read that unit's full definition in [SE2CAD_PLAN.md](docs/technical/governance/SE2CAD_PLAN.md).
+4. Read [SE2CAD_PROGRAM.md](docs/technical/governance/SE2CAD_PROGRAM.md) and only the architecture/specification documents that unit touches.
+
+[SE2CAD_PLAN.md](docs/technical/governance/SE2CAD_PLAN.md) defines units. It carries no live status. Do not choose work from the plan alone.
+
+## Ratchet
+
+Follow the sequence in [SE2CAD_ENGINEERING_PROCESS.md](docs/technical/governance/SE2CAD_ENGINEERING_PROCESS.md): read state, understand the unit, implement only that objective, verify with evidence, perform a distinct quality/security assessment, remediate and reverify, update STATE with what actually happened, stop and report.
+
+A pasteable session prompt lives in [docs/cursor/SE2CAD_RATCHET.md](docs/cursor/SE2CAD_RATCHET.md).
+
+## Change discipline
+
+Point to existing authoritative documents. Do not create parallel explanations that can drift.
+
+Update only the documentation, contracts, tests, metadata, and implementation that the current bounded objective actually affects. Scope remains the engineering objective, not an arbitrary file list. Do not perform unrelated cleanup, repository restructuring, renaming, or refactoring while executing a unit.
+
+Do not invent development units, phases, roadmaps, or planning artifacts while executing a unit. If the approved objective appears to require new planning or architectural work, stop and ask the human architect.
+
+Prefer precise repository reading over loading broad unrelated context.
+
+## Evidence
+
+Do not mark a unit DEV-COMPLETE or QUALIFIED without the evidence that unit's completion criteria require. Do not update status prospectively.

@@ -1,0 +1,36 @@
+---
+description: SE2CAD core authority — repository is durable truth; human architect owns architecture, scope, and git publication.
+alwaysApply: true
+---
+
+# SE2CAD core
+
+The repository is durable engineering truth. Conversation history is not. A fresh session must read repository state, not rely on prior chat.
+
+## Authority
+
+The human architect exclusively owns architecture changes, project scope, technology-selection changes, plan unit sequencing or creation/removal, significant tradeoffs, licensing, third-party publishing, and all git commit, tag, push, release, and deployment actions.
+
+Within one explicitly authorized bounded unit, an agent may inspect the repo, change files the unit requires, add tests, verify, assess, remediate verified defects, and update durable state.
+
+## Stop conditions
+
+Stop and report to the human architect if correct work needs an architectural decision, meaningful scope expansion, a new plan unit, or a licensing/provenance judgment.
+
+Also stop and report if:
+
+- repository documentation and implementation conflict in a way that changes the design;
+- two materially different implementations are both defensible and choosing between them requires a significant architectural or technology tradeoff;
+- a quality/security finding requires a design change rather than a local fix.
+
+Do not silently change architecture. Do not expand scope because adjacent work looks useful. Do not invent roadmap units while executing a unit.
+
+## Publication
+
+Do not commit, tag, push, publish, or release unless the human architect explicitly asks in that session.
+
+## Authority documents
+
+- How work is done: [docs/technical/governance/SE2CAD_ENGINEERING_PROCESS.md](docs/technical/governance/SE2CAD_ENGINEERING_PROCESS.md)
+- Why the initial program exists: [docs/technical/governance/SE2CAD_PROGRAM.md](docs/technical/governance/SE2CAD_PROGRAM.md)
+- Live status (only here): [docs/technical/governance/SE2CAD_STATE.md](docs/technical/governance/SE2CAD_STATE.md)

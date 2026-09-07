@@ -1,0 +1,38 @@
+---
+description: SE2CAD quality and security — untrusted inputs, safe I/O, distinct assessment, evidence standard, no false validation claims.
+alwaysApply: true
+---
+
+# SE2CAD quality and security
+
+After functional work, change posture and perform a distinct quality/security assessment scaled to the unit's risk. Then remediate verified findings and reverify. See [SE2CAD_ENGINEERING_PROCESS.md](docs/technical/governance/SE2CAD_ENGINEERING_PROCESS.md).
+
+## Evidence standard
+
+AI reasoning identifies hypotheses; evidence establishes findings.
+
+A suspected defect or vulnerability remains a hypothesis until established by one or more of: deterministic tool output; a test or reproduction; observed behavior; or an unambiguous traced reading of implementation against an explicit contract or trust boundary.
+
+Prefer: hypothesis → verification → confirmed or disproven → remediation → regression protection.
+
+Do not report an unverified hypothesis as a confirmed finding. Do not describe a missing or incomplete assessment as a clean assessment. Remediate confirmed findings. Re-run functional verification after remediation. Add regression protection where practical.
+
+If remediation requires an architectural change, technology-selection change, or weakening of an established boundary, stop and ask the human architect. Do not silently redesign the system under the label of a security fix.
+
+## Treat external inputs as untrusted
+
+Blueprints, paths, and user-supplied XML are untrusted. Parse defensively. Do not use unsafe XML features (external entities, arbitrary entity expansion). Reject or fail closed on malformed input. Do not silently skip unsupported blocks unless the unit explicitly defines that behavior.
+
+## Safe execution
+
+Validate and normalize filesystem paths. Do not overwrite arbitrary files. Do not leak temp files. Do not build shell commands from untrusted strings. Treat SolidWorks COM automation as a privileged backend: no unexpected document destruction, no writes outside the unit's designated outputs.
+
+## Determinism and tests
+
+Prefer deterministic generation and tests that prove behavior (parse result, transform, artifact contract), not incidental implementation details.
+
+## Validation claims
+
+DEV-COMPLETE and QUALIFIED have different evidence bars ([SE2CAD_ENGINEERING_PROCESS.md](docs/technical/governance/SE2CAD_ENGINEERING_PROCESS.md)). Do not claim SolidWorks, Space Engineers, or other external validation that was not performed. A unit that names external validation cannot become QUALIFIED without that evidence.
+
+Do not describe planned architecture as implemented capability.
