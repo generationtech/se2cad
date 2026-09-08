@@ -59,7 +59,7 @@ Space Engineers definitions include materially different geometry classes.
 
 ## Reference frames
 
-The transform engine and the library must share one origin/axis contract. That contract is written in S2C-4.1.1 and must agree with S2C-3.1.1. Do not invent a second frame inside the SolidWorks backend.
+The transform engine and the library must share one origin/axis contract. The converter-side frame, axes, units, origin, handedness, and rotation construction are recorded in [BLUEPRINT_CONVERTER_ARCHITECTURE.md](BLUEPRINT_CONVERTER_ARCHITECTURE.md). S2C-4.1.1 writes the library-side record so it agrees with that contract. Do not invent a second frame inside the SolidWorks backend.
 
 Large Grid cell pitch is 2500 mm, consumed from the single named constant established with the catalog (S2C-2.1.1).
 

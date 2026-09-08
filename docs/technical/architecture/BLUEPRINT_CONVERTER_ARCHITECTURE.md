@@ -65,9 +65,64 @@ The catalog must not store machine-specific paths or proprietary mesh/texture re
 
 Coordinate and orientation transformation is an independent subsystem. It finishes before the SolidWorks backend is invoked.
 
-Large Grid cell pitch is 2500 mm, from the single catalog/dimensional constant. Do not copy the literal through converter code.
+Public entrypoints: `se2cad.transform.rotation_from_forward_up`, `se2cad.transform.cell_center_mm`, and `se2cad.ir.build_canonical_blueprint`.
 
-Space Engineers orientation is expressed as Forward and Up. The exact basis mapping to the library reference frame is established with evidence in S2C-3.1.1. If it cannot be proven, stop and ask.
+Large Grid cell pitch is 2500 mm, from the single catalog/dimensional constant `LARGE_GRID_CELL_PITCH_MM`. Do not copy the literal through converter code.
+
+### Proven Space Engineers direction vectors
+
+These are Space Engineers facts, not SE2CAD inventions. Current local `VRage.Math.xml` documents `Quaternion.GetForward` as `(0,0,-1)`, `GetRight` as `(1,0,0)`, and `GetUp` as `(0,1,0)`. Current local `VRage.Math.dll` still contains `Base6Directions.LeftDirections` as the published 36-entry table. Keen published `Vector3` / `Vector3I` / `Base6Directions` / `MyBlockOrientation` / `Matrix.CreateWorld` corroborate the same mapping.
+
+| Direction | SE vector |
+| --- | --- |
+| Forward | `(0, 0, -1)` |
+| Backward | `(0, 0, 1)` |
+| Left | `(-1, 0, 0)` |
+| Right | `(1, 0, 0)` |
+| Up | `(0, 1, 0)` |
+| Down | `(0, -1, 0)` |
+
+The world/grid basis is right-handed: Right × Up = Backward = `+Z`.
+
+Forward + Up define a block orientation. The third axis is the ordinary cross product: **Right = Forward × Up**. That is the same construction as Keen `Matrix.CreateWorld` / `Quaternion.CreateFromForwardUp`, which compute `Right = Up × Backward` with `Backward = -Forward`. `GetCross` is an alias of `GetLeft(up, forward)` and is **not** a reason to reverse that product.
+
+`Base6Directions.IsValidBlockOrientation` accepts a pair iff the two direction vectors are orthogonal. That is **24** legal orientations (6 forwards × 4 perpendicular ups). Same-axis and opposite-axis pairs are invalid and must fail closed.
+
+### Canonical SE2CAD frame
+
+SE2CAD engineering choice, geometry-independent, suitable for all four initial 1×1×1 armor types. Not a SolidWorks-specific decision. The block-library unit authors solids against this frame; it does not define cube/slope/corner geometry here.
+
+| Canonical local axis | Meaning |
+| --- | --- |
+| +X | block Right |
+| +Y | block Up |
+| +Z | block Backward (so local −Z is block Forward) |
+
+Identity serialization default Forward/Up therefore produces the identity rotation.
+
+Units are millimetres. Grid/world +X/+Y/+Z are the Space Engineers axes above.
+
+### Origin / cell translation
+
+Keen `GridIntegerToWorld` multiplies the integer cell by grid pitch and applies the grid world matrix, with no half-cell add. `WorldToGridInteger` is `Round(local / GridSize)`. Current local `Sandbox.Game.dll` still exports `GridIntegerToWorld`, `WorldToGridInteger`, `GridSizeHalf`, and `GridSizeHalfVector`. Published AABB construction is `[Min * GridSize − GridSizeHalf, Max * GridSize + GridSizeHalf]`.
+
+Therefore a 1×1×1 block at `Min = (i, j, k)` is **centered** at `(i, j, k) * LARGE_GRID_CELL_PITCH_MM`. `Min = (0, 0, 0)` is centered at the canonical origin. Signs are preserved: negative Z remains negative.
+
+For these 1×1×1 CubeTopology blocks, occupancy is a single cell. Orientation does not change the Min-cell anchor; it only rotates the local frame about that center. Multi-cell occupancy is not generalized here.
+
+### Matrix / vector convention
+
+SE2CAD stores a 3×3 orthonormal **integer** rotation `R` and a millimetre translation `t`.
+
+- Column vectors. `v_world = R v_local`.
+- Columns of `R` are the world images of local +X, +Y, +Z: **Right, Up, Backward**.
+- Entries are −1, 0, or 1. Composition is ordinary matrix multiply, integer arithmetic only.
+- Determinant is `+1` (right-handed, no reflection).
+- VRage/XNA stores the same basis vectors as **rows** and uses row-vector multiply `v' = v M`. The physical rotation is the same; the SE2CAD array is the transpose of that VRage 3×3 layout.
+
+A homogeneous 4×4 is not required for this discrete placement: `(R, t)` is the rigid transform a later CAD backend applies.
+
+Deferred to the block-library / SolidWorks units: solid recipes, part documents, insertion API, and any backend-specific matrix packing. Those units must consume this contract rather than invent a second frame.
 
 ## SolidWorks backend
 

@@ -36,4 +36,4 @@ Large Grid cell pitch is 2500 mm. That value lives in one named constant. Applic
 - Parser, catalog, IR, and transforms can be tested without SolidWorks.
 - Additional CAD backends can consume the same IR.
 - The SolidWorks backend applies transforms; it does not own SE orientation semantics.
-- Exact Forward/Up basis mapping is established with evidence in S2C-3.1.1, not guessed in this ADR.
+- Exact Forward/Up basis mapping was established with evidence in S2C-3.1.1. The contract lives in [BLUEPRINT_CONVERTER_ARCHITECTURE.md](../architecture/BLUEPRINT_CONVERTER_ARCHITECTURE.md).

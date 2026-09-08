@@ -1,7 +1,8 @@
 """SE2CAD library surface.
 
 S2C-1.2.1 exposes the blueprint parser. S2C-2.1.1 exposes the definition
-catalog. IR, transforms, and CAD backends are later units.
+catalog. S2C-3.1.1 exposes the CAD-neutral IR and placement transforms.
+CAD backends are later units.
 """
 
 from se2cad.catalog import (
@@ -16,6 +17,12 @@ from se2cad.catalog import (
     SupportStatus,
     UnknownSubtypeError,
     load_default_catalog,
+)
+from se2cad.ir import (
+    CanonicalBlock,
+    CanonicalBlueprint,
+    CanonicalGrid,
+    build_canonical_blueprint,
 )
 from se2cad.parser import (
     BlueprintParseError,
@@ -32,10 +39,28 @@ from se2cad.parser import (
     parse_blueprint,
     parse_blueprint_xml,
 )
+from se2cad.transform import (
+    IDENTITY_ROTATION,
+    SE_DIRECTION_VECTORS,
+    InvalidOrientationError,
+    MillimetrePosition,
+    RotationMatrix,
+    TransformError,
+    cell_center_mm,
+    direction_vector,
+    is_valid_orientation,
+    legal_orientations,
+    rotation_from_forward_up,
+)
 
 __all__ = [
+    "IDENTITY_ROTATION",
     "LARGE_GRID_CELL_PITCH_MM",
+    "SE_DIRECTION_VECTORS",
     "BlueprintParseError",
+    "CanonicalBlock",
+    "CanonicalBlueprint",
+    "CanonicalGrid",
     "CatalogEntry",
     "CatalogError",
     "CatalogValidationError",
@@ -45,17 +70,27 @@ __all__ = [
     "GridCoordinate",
     "GridSize",
     "InvalidFieldError",
+    "InvalidOrientationError",
     "MalformedXmlError",
+    "MillimetrePosition",
     "MissingRequiredFieldError",
     "ObservedDefinition",
     "ParsedBlock",
     "ParsedBlueprint",
     "ParsedGrid",
     "RecipeKind",
+    "RotationMatrix",
     "SupportStatus",
+    "TransformError",
     "UnknownSubtypeError",
     "UnsupportedBlueprintError",
+    "build_canonical_blueprint",
+    "cell_center_mm",
+    "direction_vector",
+    "is_valid_orientation",
+    "legal_orientations",
     "load_default_catalog",
     "parse_blueprint",
     "parse_blueprint_xml",
+    "rotation_from_forward_up",
 ]

@@ -53,7 +53,7 @@ The runtime converter does not care how a canonical part was created. It asks th
 ## Established decisions
 
 1. **CAD-neutral IR** between parsing and backends. No SolidWorks COM or API types in the IR.
-2. **Independent transform engine.** Placement is fully calculated before the SolidWorks backend runs. Large Grid cell pitch is **2500 mm** and must be one named constant.
+2. **Independent transform engine.** Placement is fully calculated before the SolidWorks backend runs. Large Grid cell pitch is **2500 mm** and must be one named constant. The proven SE2CAD coordinate/orientation contract is in [BLUEPRINT_CONVERTER_ARCHITECTURE.md](BLUEPRINT_CONVERTER_ARCHITECTURE.md).
 3. **Transform placement, not mate reconstruction.** A ship with hundreds or thousands of blocks must not create an equivalent mate network.
 4. **Reusable canonical parts** for supported block types. Geometry-strategy names (`native_procedural`, `sdk_mesh_direct`, `sdk_mesh_manifold`, `hand_authored`, `unsupported`) are architectural vocabulary. The initial program covers only `native_procedural` for four Large Grid armor types.
 5. **Blender is not on the runtime path.** Blender may later be an optional library-build tool for complex TriangleMesh parts. Runtime remains `converter → canonical block library`.

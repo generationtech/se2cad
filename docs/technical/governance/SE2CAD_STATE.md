@@ -9,15 +9,15 @@ Unit definitions (no live status): [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 Initial program: four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
 
-The program is not complete. A single-grid Large Grid blueprint parser and a four-entry Large Grid armor catalog exist. No IR, transform engine, block library, or SolidWorks backend exists in the tree.
+The program is not complete. A single-grid Large Grid blueprint parser, a four-entry Large Grid armor catalog, a CAD-neutral IR, and an exact placement transform engine exist. No block library or SolidWorks backend exists in the tree.
 
-Public capability text in [README.md](../../../README.md) matches this: conversion is not implemented.
+Public capability text in [README.md](../../../README.md) matches this: CAD conversion is not implemented.
 
 ## Next executable unit
 
-**S2C-3.1.1 — Canonical IR and exact placement transforms**
+**S2C-4.1.1 — Library contract, reference frames, and native armor recipes**
 
-Information only. Do not start it in the same session that completed S2C-2.1.1.
+Information only. Do not start it in the same session that completed S2C-3.1.1.
 
 ## Unit status
 
@@ -27,7 +27,7 @@ Information only. Do not start it in the same session that completed S2C-2.1.1.
 | S2C-1.1.1 | QUALIFIED | Operator-supplied `bp.sbc` registered unmodified at the specified path; `PROVENANCE.md` present; deterministic inspection recorded below; human architect confirmed this is the intended `se2cad-test1` object; distinct assessment recorded below; no verified findings requiring remediation. |
 | S2C-1.2.1 | QUALIFIED | Python parser and tests exist; qualified acceptance fixture extracts expected subtype/position/orientation values; unsafe and unsupported XML is rejected; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
 | S2C-2.1.1 | QUALIFIED | Packaged JSON catalog and loader exist; four Large Grid armor subtypes resolve to distinct SE2CAD geometry IDs; unknown/malformed/duplicate catalog data fails closed; acceptance fixture 24 blocks resolve; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
-| S2C-3.1.1 | PLANNED | Not started. |
+| S2C-3.1.1 | QUALIFIED | CAD-neutral IR and integer transform engine exist; 24 fixture blocks convert through parser+catalog; all 24 legal Forward/Up orientations are unique right-handed integer rotations; invalid pairs fail closed; distinct assessment recorded below; no verified findings requiring remediation after test-scan false positives were corrected. External validation was not required. |
 | S2C-4.1.1 | PLANNED | Not started. |
 | S2C-4.2.1 | PLANNED | Not started. |
 | S2C-5.1.1 | PLANNED | Not started. |
@@ -82,6 +82,16 @@ Observed definition facts and SE2CAD mapping decisions are stored in separate JS
 
 Verification: `PYTHONPATH=src python3 -m unittest discover -s tests -v` — 58 tests, OK after remediation. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` was unchanged before and after this unit. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or game-content trees were added. Parser modules under `src/se2cad/parser/` were not modified.
 
+### 2026-09-07 — S2C-3.1.1
+
+Executed the next unit named by STATE. Did not start S2C-4.1.1. Did not commit, tag, push, or release.
+
+Implemented a CAD-neutral IR (`src/se2cad/ir/`) and a separate integer transform engine (`src/se2cad/transform/`). Public entrypoints: `build_canonical_blueprint`, `rotation_from_forward_up`, `cell_center_mm`. Rotation is a 3×3 orthonormal integer matrix (column-vector convention). Translation uses `LARGE_GRID_CELL_PITCH_MM` only.
+
+Space Engineers direction vectors, handedness, Forward/Up construction, and Min-to-cell-center mapping were established from current local assemblies before the mapping was implemented. Details are under “S2C-3.1.1 coordinate evidence” below. The durable contract is in [BLUEPRINT_CONVERTER_ARCHITECTURE.md](../architecture/BLUEPRINT_CONVERTER_ARCHITECTURE.md).
+
+Verification: `PYTHONPATH=src python3 -m unittest discover -s tests -v` — 85 tests, OK. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` was unchanged before and after this unit. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or game-content trees were added. Parser modules under `src/se2cad/parser/` and catalog data under `src/se2cad/catalog/` were not modified. No SolidWorks, geometry-solid, or library-storage code.
+
 ## Resolved technology selections
 
 These are human-architect technology selections recorded as live decisions. They are not architectural ADRs and were not invented as a new planning artifact.
@@ -98,7 +108,6 @@ These are not invitations to decide them inside an unrelated unit.
 - Whether canonical SLDPRT documents live in-tree or in a generated local cache.
 - How users configure SolidWorks, and optionally a local game or SDK install path, when a unit needs that.
 - Numeric position/orientation tolerances for S2C-6.1.1 (recorded when that unit produces evidence).
-- Exact Space Engineers Forward/Up basis mapping to the library reference frame (established with evidence in S2C-3.1.1; stop and ask if it cannot be proven).
 
 ## Known blockers
 
@@ -193,6 +202,63 @@ SE2CAD engineering decisions recorded in the catalog, not as Keen facts:
 - `LARGE_GRID_CELL_PITCH_MM = 2500` (architecture-established millimetre form of Keen `Large="2.5"` metres)
 
 Acceptance fixture resolution: all 24 parsed blocks resolve. Geometry-ID counts match subtype counts: `large_armor_block` 9, `large_armor_slope` 12, `large_armor_corner` 2, `large_armor_corner_inv` 1. Those counts live in tests, not catalog code.
+
+## S2C-3.1.1 coordinate evidence
+
+**Local Space Engineers evidence** (install root `/home/ken/.local/share/Steam/steamapps/common/SpaceEngineers`, Steam appid `244850`, buildid `24675677`, last updated 2026-09-05):
+
+- Current `Bin64/VRage.Math.xml` documents `Quaternion.GetForward` as `(0,0,-1)`, `GetRight` as `(1,0,0)`, and `GetUp` as `(0,1,0)`.
+- Same file still documents `Base6Directions.LeftDirections` as “Pre-calculated left directions for given forward (index / 6) and up (index % 6)” and `MyBlockOrientation.TransformDirection` with the published summaries.
+- Current `Bin64/VRage.Math.dll` contains `IntDirections`, `LeftDirections`, `CreateFromForwardUp`, `GetMatrix`, `MyBlockOrientation`, and `CreateWorld`. The 36-byte `LeftDirections` table at file offset 389746 is exactly the published Keen table.
+- Current `Bin64/VRage.Game.xml` still exports `IMyCubeGrid.GridIntegerToWorld` / `WorldToGridInteger`.
+- Current `Bin64/Sandbox.Game.dll` still contains `GridIntegerToWorld`, `WorldToGridInteger`, `GridSizeHalf` (6), and `GridSizeHalfVector` (3).
+
+**Internet / Keen published-source corroboration** (not a substitute for the local evidence):
+
+- `Vector3` / `Vector3I`: Forward `(0,0,-1)`, Backward `(0,0,1)`, Left `(-1,0,0)`, Right `(1,0,0)`, Up `(0,1,0)`, Down `(0,-1,0)`.
+- `Base6Directions.GetDirection` lookup tables independently recover those vectors. `IsValidBlockOrientation` is orthogonality (24 legal pairs).
+- `MyBlockOrientation.GetMatrix` calls `Matrix.CreateWorld(Zero, Forward, Up)`.
+- `CreateWorld` / `CreateFromForwardUp`: `Backward = -Forward`, `Right = Up × Backward = Forward × Up`.
+- `GridIntegerToWorld`: `gridCoords * GridSize` then world-matrix transform. `WorldToGridInteger`: `Round(local / GridSize)`. AABB: `[Min * GridSize − GridSizeHalf, Max * GridSize + GridSizeHalf]`.
+
+**SE2CAD engineering choices** (not Keen facts):
+
+- Canonical local block frame: +X Right, +Y Up, +Z Backward (identity Forward/Up = identity rotation).
+- Column-vector algebra `v_world = R v_local`; columns of `R` are Right, Up, Backward. This is the transpose of VRage/XNA row storage of the same basis.
+- Units millimetres; 1×1×1 translation `Min * LARGE_GRID_CELL_PITCH_MM` with no half-cell add.
+- Integer 3×3 + millimetre translation rather than a homogeneous 4×4 or Euler angles.
+
+No axis or handedness question remained unresolved. No human-architect convention confirmation was required.
+
+Acceptance fixture IR: 24 instances. Geometry-ID counts match catalog resolution. Representative positions: `(0,0,0)→(0,0,0)`, `(1,0,0)→(2500,0,0)`, `(0,0,1)→(0,0,2500)`, `(0,0,-1)→(0,0,-2500)`, `(5,2,-2)→(12500,5000,-5000)` mm.
+
+## Quality/security assessment (S2C-3.1.1)
+
+Hypotheses tested and outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Axis swap (X/Y/Z permutation) | Disproven. Direction vectors match local XML and Keen tables. Fixture `(1,0,0)`, `(0,1,0)`, `(0,0,1)` translate on the corresponding millimetre axes only. |
+| Sign inversion | Disproven. Negative-Z fixture cells remain negative. `Right × Up = Backward = +Z`. |
+| Accidental reflection | Disproven. All 24 legal rotations have determinant `+1`. Derived Left matches the local Keen `LeftDirections` table. |
+| Wrong matrix multiply convention | Disproven for the documented contract. `apply((1,0,0))` is Right, `(0,1,0)` is Up, `(0,0,1)` is Backward. |
+| Wrong Forward/Up cross-product order | Disproven. Right is `Forward × Up`. Reversing it would make Left and det `−1`; the Keen Left table test would fail. |
+| Duplicate orientation mapping | Disproven. 24 legal pairs produce 24 distinct matrices. |
+| Invalid orientation silently accepted | Disproven. Same-axis and opposite-axis pairs raise `InvalidOrientationError`. |
+| Half-cell translation error | Disproven. `Min=(0,0,0)` maps to `(0,0,0)` mm, not `1250`. No `1250` or `0.5` in transform/IR source. |
+| Floating-point drift | Disproven. Rotation and translation use integer arithmetic only. Tests assert `int` entries. |
+| Parser/catalog identity loss | Disproven. Acceptance IR keeps exact `subtype_id`, `geometry_id`, `Min`, Forward/Up, and source index. |
+| CAD/SolidWorks leakage into IR | Disproven. IR/transform imports are stdlib plus parser/catalog/transform types. No SolidWorks, COM, Blender, or part-file imports. |
+| Pitch literal duplicated | Disproven. Transform/IR source has no `2500`. Translation imports `LARGE_GRID_CELL_PITCH_MM`. |
+| Mapping based only on stale Internet source | Disproven. Local current XML/DLL tables were inspected first; Keen source was corroboration. |
+| Parser/catalog architecture changed or later units started | Disproven. `src/se2cad/parser/` and `src/se2cad/catalog/` were not modified. No solids, SLDPRT, mates, or S2C-4.1.1 library recipes. |
+| Unrelated refactoring | Disproven. Changes are IR, transform, tests, package exports, and the architecture contract this unit was required to write. |
+
+Remediated: neutrality tests initially treated “no SolidWorks” docstring prose as type leakage. Tests now check imports, not exclusionary wording. Product code did not change for that finding. Tests re-run after remediation: 85 OK.
+
+Accepted residual risk: `RotationMatrix` is a value type and can be constructed directly; the conversion path always goes through `rotation_from_forward_up`. VRage stores the same basis as rows; a later backend must use this column-vector contract, not silently reuse VRage `Mij` layout.
+
+Not claimed: SolidWorks validation, in-game visual re-check, or multi-cell occupancy transforms.
 
 ## Quality/security assessment (S2C-2.1.1)
 
