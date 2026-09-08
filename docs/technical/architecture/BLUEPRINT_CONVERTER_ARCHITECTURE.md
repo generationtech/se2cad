@@ -128,7 +128,15 @@ Solid recipes and the library-side record that agrees with this frame: [BLOCK_LI
 
 First CAD backend, isolated behind a boundary. Core parser, catalog, IR, and transforms must not import SolidWorks types.
 
-Placement method: apply the calculated transform to each inserted component. Do not reconstruct fixed Space Engineers block placement with mates.
+The backend package is `se2cad.solidworks`. All pywin32 / COM code stays inside that package and is imported only when a SolidWorks session is requested. Importing `se2cad`, `se2cad.parser`, `se2cad.catalog`, `se2cad.ir`, `se2cad.transform`, or `se2cad.library` on Linux must not require pywin32. Requesting the backend where COM, pywin32, or SolidWorks is unavailable is a clear backend-availability failure.
+
+Execution model (human-architect, S2C-4.2.1): the Windows process runs the needed SE2CAD stages locally. Windows is not a remote worker. Linux-to-Windows remoting is out of scope. See [ADR-003](../adr/ADR-003_SOLIDWORKS_BACKEND.md).
+
+API lengths are metres. Recipe millimetres are converted only inside the backend, explicitly. The backend consumes the qualified canonical frame and must not apply a corrective rotation or offset to make a part “look right”.
+
+Generated canonical part files use deterministic names from `geometry_id` (`large_armor_block.SLDPRT`, …) and must stay under the configured generated root. A part locator may be bound only after generate, validate, save, and reopen succeed. The locator’s logical identity is not a Windows absolute path and is not stored in the catalog.
+
+Placement method: apply the calculated transform to each inserted component. Do not reconstruct fixed Space Engineers block placement with mates. Assembly insertion is a later unit.
 
 ## Initial-program limits
 

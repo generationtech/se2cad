@@ -1,7 +1,7 @@
 """Canonical block library: reference frame and native armor recipes.
 
 S2C-4.1.1. Independent of SolidWorks, Blender, and game-install scanning.
-Lookup is by catalog geometry identity. Part documents are a later unit.
+Lookup is by catalog geometry identity. Authoritative locators stay unbound.
 """
 
 from se2cad.library.errors import LibraryError, UnknownGeometryError

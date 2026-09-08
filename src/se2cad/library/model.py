@@ -100,7 +100,8 @@ class PlacementSemantics:
     """How a later backend inserts the canonical solid.
 
     No extra offset: the S2C-3.1.1 instance transform is the placement.
-    The part locator is unbound until a later unit produces CAD documents.
+    Authoritative records leave the part locator unbound. A backend may
+    bind a logical identity only after generate, validate, save, and reopen.
     """
 
     insert_at_cell_center: bool

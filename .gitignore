@@ -222,6 +222,9 @@ __marimo__/
 /generated/
 /tmp/
 
+# Uncommitted Windows-local backend config (may contain machine paths)
+/se2cad.local.json
+
 # SolidWorks editor junk (canonical SE2CAD-authored parts are not blanket-ignored)
 ~$*.sldprt
 ~$*.sldasm

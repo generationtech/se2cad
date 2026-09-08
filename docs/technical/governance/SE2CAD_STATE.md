@@ -9,15 +9,15 @@ Unit definitions (no live status): [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 Initial program: four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
 
-The program is not complete. A single-grid Large Grid blueprint parser, a four-entry Large Grid armor catalog, a CAD-neutral IR, an exact placement transform engine, and native-procedural recipes for the four Large Grid armor solids exist. No SolidWorks backend or canonical `.SLDPRT` set exists in the tree.
+The program is not complete. A single-grid Large Grid blueprint parser, a four-entry Large Grid armor catalog, a CAD-neutral IR, an exact placement transform engine, native-procedural recipes for the four Large Grid armor solids, and a Windows-local SolidWorks backend exist. Generated canonical `.SLDPRT` files are not in the tree. Assembly generation is not implemented.
 
-Public capability text in [README.md](../../../README.md) matches this: CAD conversion is not implemented.
+Public capability text in [README.md](../../../README.md) matches this: assembly conversion is not implemented; live SolidWorks 2026 qualification of the four parts is recorded only here.
 
 ## Next executable unit
 
 **S2C-4.2.1 — Produce reusable SolidWorks canonical parts**
 
-Information only. Do not start it in the same session that completed S2C-4.1.1.
+DEV-COMPLETE. QUALIFIED is blocked: this Linux host still has no SolidWorks 2026 session. Do not start S2C-5.1.1. Resume S2C-4.2.1 in the Windows VM and run the integration test with `SE2CAD_SOLIDWORKS_INTEGRATION=1`. Skipped integration tests are not qualification evidence.
 
 ## Unit status
 
@@ -29,8 +29,8 @@ Information only. Do not start it in the same session that completed S2C-4.1.1.
 | S2C-2.1.1 | QUALIFIED | Packaged JSON catalog and loader exist; four Large Grid armor subtypes resolve to distinct SE2CAD geometry IDs; unknown/malformed/duplicate catalog data fails closed; acceptance fixture 24 blocks resolve; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
 | S2C-3.1.1 | QUALIFIED | CAD-neutral IR and integer transform engine exist; 24 fixture blocks convert through parser+catalog; all 24 legal Forward/Up orientations are unique right-handed integer rotations; invalid pairs fail closed; distinct assessment recorded below; no verified findings requiring remediation after test-scan false positives were corrected. External validation was not required. |
 | S2C-4.1.1 | QUALIFIED | Library records and four native-procedural recipes exist; catalog geometry IDs resolve 1:1; recipes consume the qualified S2C-3.1.1 frame and `LARGE_GRID_CELL_PITCH_MM`; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
-| S2C-4.2.1 | PLANNED | Not started. |
-| S2C-5.1.1 | PLANNED | Not started. |
+| S2C-4.2.1 | DEV-COMPLETE | Windows-local backend implemented; human architecture decisions recorded; Linux suite 130 tests OK (1 integration skipped). No live SolidWorks 2026 run. No `.SLDPRT` generated or committed. QUALIFIED remains blocked on Windows VM execution. |
+| S2C-5.1.1 | PLANNED | Not started. Do not start until S2C-4.2.1 is QUALIFIED. |
 | S2C-6.1.1 | PLANNED | Not started. |
 
 ## Session history
@@ -102,6 +102,24 @@ The durable library-side contract is in [BLOCK_LIBRARY_ARCHITECTURE.md](../archi
 
 Verification: `PYTHONPATH=src python3 -m unittest discover -s tests -v` — 103 tests, OK after remediation. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` was unchanged before and after this unit. No `.mwm`, `.fbx`, `.dds`, `.hkt`, `.sldprt`, or game-content trees were added. Parser modules under `src/se2cad/parser/`, catalog data under `src/se2cad/catalog/`, IR under `src/se2cad/ir/`, and transforms under `src/se2cad/transform/` were not modified.
 
+### 2026-09-07 — S2C-4.2.1 blocked before implementation
+
+Executed the next unit named by STATE. Did not implement a SolidWorks backend, bind `part_locator`, emit `.SLDPRT`, add COM/remoting dependencies, or start S2C-5.1.1. Did not commit, tag, push, or release.
+
+Inspected the qualified library contract, this Linux host, and current official SolidWorks 2026 API capability. Completing the unit requires human decisions that STATE already listed as open. Those decisions are now on the critical path; they were not settled here.
+
+Verification: no `src/se2cad` product modules were added or modified by this session. No `.sldprt` was created. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` was not used as an input and was not modified. Details are under “S2C-4.2.1 environment and API evidence” below.
+
+### 2026-09-07 — S2C-4.2.1 implementation after human architecture decisions
+
+Resumed the blocked unit after the human architect resolved the OS split, clone model, blueprint transport, Windows execution model, pywin32 authorization, remoting exclusion, generated-artifact policy, generated-root configuration, locator contract, and ADR-004 publication boundary. Did not start S2C-5.1.1. Did not commit, tag, push, or publish.
+
+Recorded those decisions in [ADR-003](../adr/ADR-003_SOLIDWORKS_BACKEND.md), [ARCHITECTURE_OVERVIEW.md](../architecture/ARCHITECTURE_OVERVIEW.md), [BLUEPRINT_CONVERTER_ARCHITECTURE.md](../architecture/BLUEPRINT_CONVERTER_ARCHITECTURE.md), and [BLOCK_LIBRARY_ARCHITECTURE.md](../architecture/BLOCK_LIBRARY_ARCHITECTURE.md). Implemented `se2cad.solidworks`: CAD-neutral config/naming/units/plans/pipeline plus a Windows-only COM adapter. Authoritative library `part_locator` values remain unbound. Catalog JSON was not modified.
+
+This Linux host still has no SolidWorks 2026 session, Wine prefix, pywin32, or reachable Windows VM (`virsh list --all` empty; `VBoxManage list vms` empty; no Windows SSH host). Official 2026 help pages remain JS-rendered; COM argument lists were taken from official method-page existence plus static/CodeStack signatures, not from a live typelib. No `.SLDPRT` was generated.
+
+Verification: `PYTHONPATH=src python3 -m unittest discover -s tests -v` — 130 tests, 1 skipped (`SE2CAD_SOLIDWORKS_INTEGRATION` unset), OK after one wording-false-positive remediation. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. No `.mwm`, `.fbx`, `.dds`, `.hkt`, `.sldprt`, or game-content trees added. Parser, catalog data, IR, transform, and recipe geometry were not changed.
+
 ## Resolved technology selections
 
 These are human-architect technology selections recorded as live decisions. They are not architectural ADRs and were not invented as a new planning artifact.
@@ -109,19 +127,31 @@ These are human-architect technology selections recorded as live decisions. They
 | Decision | Resolution | Recorded |
 | --- | --- | --- |
 | Implementation language | Python | S2C-1.2.1. Confirmed by the human architect for this unit. |
+| SolidWorks COM interop | pywin32, Windows-only optional extra (`solidworks`) | S2C-4.2.1. Confirmed by the human architect. |
+| SolidWorks execution | Windows-local in-process COM in the SolidWorks VM; no remoting | S2C-4.2.1. Confirmed by the human architect. |
+| Generated canonical SLDPRT home | Configurable local generated root; not committed; not catalog paths | S2C-4.2.1. Confirmed by the human architect. |
 
 ## Open questions
 
 These are not invitations to decide them inside an unrelated unit.
 
-- CLI / entrypoint shape.
-- Whether canonical SLDPRT documents live in-tree or in a generated local cache.
-- How users configure SolidWorks, and optionally a local game or SDK install path, when a unit needs that.
+- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI.
+- How a later unit configures an optional local game or SDK install path when that unit needs it. The Windows SolidWorks path does not.
 - Numeric position/orientation tolerances for S2C-6.1.1 (recorded when that unit produces evidence).
+
+Resolved in S2C-4.2.1 and no longer open: generated SLDPRT location (local generated root); Linux-to-Windows invocation (out of scope; operator-managed clones and blueprint copy); SolidWorks configuration for this unit (`SE2CAD_GENERATED_ROOT` / `se2cad.local.json` / optional part-template env); in-process Windows COM vs remoting (COM, no remoting); pywin32 as a Windows-only optional dependency.
 
 ## Known blockers
 
-None recorded as BLOCKED.
+**S2C-4.2.1 QUALIFIED** is blocked because this Linux agent host cannot open SolidWorks 2026. Implementation is DEV-COMPLETE. Qualification requires an operator run inside the Windows VM against the synchronized repository clone:
+
+```
+set SE2CAD_GENERATED_ROOT=<local generated directory>
+set SE2CAD_SOLIDWORKS_INTEGRATION=1
+PYTHONPATH=src python -m unittest tests.test_solidworks_integration -v
+```
+
+Skipped integration tests are not qualification evidence. Do not start S2C-5.1.1.
 
 ## S2C-1.1.1 fixture inspection
 
@@ -269,6 +299,150 @@ Internet / published-source corroboration (not a substitute for the topology tab
 - Part locator unbound. No extra insert offset.
 
 No Corner/InvCorner evidence gap required a stop. The shapes are CubeTopology constructive tables, not proprietary mesh extracts.
+
+## S2C-4.2.1 environment and API evidence
+
+Inspection-only. No SolidWorks session was started. No part documents were written.
+
+**Qualified contracts already sufficient for geometry.** `part_locator` is `None` on all four records. Recipes already specify `axis_aligned_box`, `right_triangular_prism` (YZ triangle extruded on X), `tetrahedron`, and `box_minus_tetrahedron`. `CANONICAL_LOCAL_FRAME` is +X Right, +Y Up, +Z Backward, origin at cell center, millimetres, envelope `±LARGE_GRID_CELL_PITCH_MM/2`. A later backend must consume that frame; it must not invent a second one.
+
+**This host cannot run SolidWorks.** Observed 2026-09-07 on `kenix` (Linux Mint 22.1 / Ubuntu noble, kernel 6.8.0-138-generic, Python 3.12.3):
+
+| Check | Result |
+| --- | --- |
+| `SLDWORKS` / `wine` / SolidWorks binaries | Not on `PATH`. No Wine prefix. No `~/.wine` SolidWorks tree. |
+| Environment | No `SOLID*`, `SLD*`, `SWX*`, `WIN32*`, or `WINE*` variables. |
+| Python COM | `win32com` and `pythoncom` are not installed. `pyproject.toml` has no runtime dependencies. |
+| Local VMs | User-session `virsh list --all` is empty. `virt-manager` is running. `VBoxManage list vms` is empty. No `.qcow2`/`.vdi`/`.vmdk` under the operator home. |
+| Remoting | SSH config has only `github-homelab`. No Windows hostname, SMB/CIFS mount, or SolidWorks listener. Local listeners are DNS/CUPS plus libvirt DNS on `192.168.122.1`. |
+| mDNS | Printer, AV, and Cast devices only. No SolidWorks or Windows workstation advertisement. |
+
+Official SolidWorks 2026 client products are Windows 10/11 64-bit ([system requirements](https://www.solidworks.com/support/system-requirements)). There is no supported Linux or Wine runtime.
+
+**Official 2026 API can construct these four solids natively** (help pages exist; several are JS-rendered so method remarks were taken from the 2026 method titles plus older published API behavior):
+
+| Need | Official 2026 API |
+| --- | --- |
+| New part | `ISldWorks.INewDocument2` / `NewDocument` |
+| Box / prism | `IFeatureManager.FeatureExtrusion2` after a sketch |
+| Temporary box body | `IModeler.CreateBodyFromBox3` |
+| Faces → body | `IModeler.ICreateBodyFromFaces3` |
+| Persist a body | `IPartDoc.CreateFeatureFromBody3` |
+| Boolean cut (InvCorner) | `IBody2.Operations2` (current help still documents this path) |
+| Save | `IModelDoc.SaveAs3` |
+| Envelope | `IPartDoc.GetPartBox` |
+| Volume / CoM | `ISldWorks.GetMassProperties2` / `IMassProperty` |
+| Body inventory | `IPartDoc.GetBodies2` (`swBodyType_e`; `IComponent2.GetBodies2` is obsolete in 2026, superseded by `GetBodies3`) |
+
+COM entry is `SldWorks.Application` (version-independent) or a versioned `SldWorks.Application.N`. Geometry methods take metres, not millimetres. Document Manager API is file/metadata only; it cannot create FeatureManager solids and needs a subscription license key. It is not a substitute for a live SolidWorks session.
+
+Smallest backend that can satisfy the unit, **after** the human decisions: a Windows-only COM adapter behind a CAD-neutral boundary; FeatureManager extrusions for box and slope; tetrahedron by `CreateBodyFromFaces3` or equivalent native loft/bound-from-recipe vertices; InvCorner as box minus that tetrahedron; validate one solid body, envelope, volume, origin, then `SaveAs3` + reopen; bind `part_locator` only after a successful save. No Keen mesh import. No new coordinate frame. Ordinary tests stay free of SolidWorks.
+
+That design was **not** implemented. Choosing it, or any alternative, is the human decision this unit is blocked on.
+
+**Decision required now (one contract, several coupled choices):**
+
+1. Permanent home of generated canonical `.SLDPRT` (in-tree vs generated local cache vs caller-supplied directory). Binding `part_locator` is in this unit’s scope.
+2. Linux → Windows SolidWorks 2026 invocation (none exists on this host).
+3. Configuration of SolidWorks executable/template paths and any execution endpoint.
+4. Automation architecture: in-process Windows COM vs a new remoting/worker stack vs operator-run scripts vs Document Manager (rejected for geometry).
+5. Whether `pywin32` or another remoting dependency may be added. That is a new runtime technology relative to the current stdlib-only package.
+
+**Why required now.** S2C-4.2.1 is the first unit that must materialize SolidWorks documents. The recipes are qualified. There is no configured SolidWorks environment, no output-location policy, and no authorized dependency or remoting design. Implementing any of those to “make the unit work” would silently settle architecture.
+
+**Viable alternatives and consequences:**
+
+| Alternative | Consequence |
+| --- | --- |
+| A. Human supplies a Windows SolidWorks 2026 host and an invocation/config contract; parts written to a designated generated directory; optional Windows-only COM extra; locators bound after save | Smallest design that can still become QUALIFIED. Adds an explicit Windows worker/dependency. Does not invent remoting if the worker runs on the SolidWorks machine. |
+| B. Commit generated `.SLDPRT` in-tree after a human licensing/publication decision | Makes lookup simple and offline. Conflicts with the still-open location question and ADR-004 residual redistribution review. Agent must not commit them. |
+| C. Mock-only adapter on Linux, leave locators unbound, mark DEV-COMPLETE | Allowed by the plan’s development-evidence bar, but does not produce the four parts, cannot QUALIFY, and still forces an adapter-shape and output-path choice. Rejected here because those choices are the open decisions. |
+| D. Document Manager or mesh import | Document Manager cannot author these solids. Mesh import violates the native-recipe and Keen-asset boundaries. |
+| E. Wine, DCOM-to-an-unknown-LAN-host, or a new RPC/gRPC worker invented in this unit | Unsupported or a substantial undeclared technology. No endpoint exists to discover. |
+
+**Recommendation.** Adopt A: keep Linux tests stdlib-only; add a Windows-only COM adapter behind the existing CAD-neutral boundary; generate into a local cache (the repo already gitignores `/generated/` and `/out/`); configure the SolidWorks session and output root by environment or an uncommitted local config, not a CLI (CLI shape remains open); do not invent remoting in this unit — run the worker on the machine that has SolidWorks 2026; treat in-tree publication of `.SLDPRT` as a later human decision. Resume S2C-4.2.1 after that contract is written into STATE.
+
+The human architect adopted A on 2026-09-07. Implementation followed that contract. Live typelib inspection and a real SolidWorks 2026 run remain outstanding for QUALIFIED.
+
+## S2C-4.2.1 implementation evidence
+
+Human decisions recorded in ADR-003 and the architecture documents named in the 2026-09-07 implementation session. Backend package: `src/se2cad/solidworks/`.
+
+| Topic | Contract implemented |
+| --- | --- |
+| Package boundary | COM/pywin32 only in `com_session.py`, `com_construct.py`, `com_validate.py`, `generate.py`. Imported lazily from `generate_canonical_parts`. Top-level `se2cad` does not import the backend. |
+| Configuration | `SE2CAD_GENERATED_ROOT` or uncommitted `se2cad.local.json`. Optional `SE2CAD_SOLIDWORKS_PART_TEMPLATE`. No machine path in catalog JSON. |
+| Artifact names | `large_armor_block.SLDPRT`, `large_armor_slope.SLDPRT`, `large_armor_corner.SLDPRT`, `large_armor_corner_inv.SLDPRT` |
+| Locator | `LogicalPartIdentity` vs runtime `BoundPartLocator`. Bind only after generate/validate/save/reopen. Library records stay `part_locator=None`. |
+| Units | `mm_to_metres` is `/ 1000`. Recipes stay millimetres. API lengths metres. Local length tolerance `1e-6` m; CoM `1e-3` m. Not S2C-6.1.1. |
+| Construction | Box and slope: `FeatureExtrusion2` mid-plane. Corner: recipe faces knitted via `CreatePlanarSurface2` / `CreateTrimmedSheet5` / `CreateBodyFromFaces2`. InvCorner: `CreateBodyFromBox3` minus that tetrahedron via `IBody2.Operations2`. |
+| Pipeline without SE/SDK | `resolve_recipes_from_blueprint` on `fixtures/acceptance/four-block-armor-asymmetric/bp.sbc` resolves 24 IR blocks and the four recipes. Proven on Linux. Not yet proven inside the Windows VM. |
+
+**API evidence used for COM calls** (official 2026 pages exist but are JS-rendered; signatures from those titles plus static/CodeStack sources). Live typelib was not inspected.
+
+| Method | Evidence |
+| --- | --- |
+| `SldWorks.Application` / `gencache.EnsureDispatch` | Long-standing COM ProgID; 2026 client is Windows-only |
+| `GetUserPreferenceStringValue(swDefaultTemplatePart)` + `NewDocument` | Official/new-document samples; avoids a hardcoded template path |
+| `FeatureExtrusion2` (20 args; `swEndCondMidPlane=6`; depths metres) | Official 2026 method page exists; 20-arg VBA samples; `swEndCondMidPlane` documented as 6 |
+| `SketchManager.CreateCornerRectangle` / `InsertSketch` / `Insert3DSketch` / `CreateLine` | Published FeatureManager sketch samples; 3D-sketch lines use model metres |
+| `IModeler.CreateBodyFromBox3` (9 doubles: center, axis, size; metres) | Official 2026 page exists; CodeStack create-box-body |
+| `IModeler.CreatePlanarSurface2` + `ISurface.CreateTrimmedSheet5` | Official 2026 CreatePlanarSurface2 page; CodeStack multi-extrude (`0.00001` m trim) |
+| `IModeler.CreateBodyFromFaces2` | Official 2026 `ICreateBodyFromFaces3` / CreateBodyFromFaces2 pages; CodeStack fill-hole |
+| `IBody2.Operations2` + `IPartDoc.CreateFeatureFromBody3` | Official Operations2 page; CADSharp/CreateFeatureFromBody3 samples |
+| `GetBodies2`, `GetPartBox`, `Extension.CreateMassProperty` | Official 2026 validation method pages named in the inspection session |
+| `Extension.SaveAs`, `OpenDoc6`, `CloseDoc` | Official save/open/close; save is rejected unless the file exists afterwards |
+
+Windows environment from this session: not available. Python 3.12.3 on Linux Mint 22.1 / kernel 6.8.0-138-generic. `win32com` not installed.
+
+## Quality/security assessment (S2C-4.2.1 implementation)
+
+Hypotheses tested and outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Writes can escape the configured generated root | Disproven for the path helpers. `contained_destination` rejects `..`, nested segments, and `relative_to` failures. Tests cover separators and escapes. |
+| Unrelated files can be overwritten | Disproven. Overwrite is allowed only for the four exact canonical filenames. |
+| Machine-specific paths entered the catalog | Disproven. `large_grid_armor.json` unchanged; neutrality test forbids `/home/`, `C:\`, `.SLDPRT`. |
+| pywin32 leaks into CAD-neutral imports | Disproven. Parser/catalog/IR/transform/library and backend-neutral modules have no `win32com` imports. `import se2cad` succeeds on Linux. |
+| Linux suite became Windows-dependent | Disproven. 129 tests run here; the one integration test skips unless `SE2CAD_SOLIDWORKS_INTEGRATION=1`. |
+| mm/m conversion is implicit or inverted | Disproven. `mm_to_metres` is `/ 1000`; pitch 2500 mm → 2.5 m; half-extent 1.25 m. |
+| Backend invents a second frame or reinterprets recipes | Disproven for the plan layer. Vertices and faces are recipe values converted coordinate-wise. No corrective rotation. |
+| Surface/graphics or multi-body results can pass | Disproven in the validator. Exactly one solid and zero sheet bodies are required. |
+| Save can succeed without a file | Disproven. `save_as` checks `destination.is_file()`. |
+| Reopen validation can be skipped | Disproven. Locator bind requires generate, validate, save, and reopen. |
+| COM exceptions are swallowed | Disproven. Failures are wrapped as `SolidWorksComError` with the original exception chained. |
+| Documents stay open after failure | Remediated. Each part uses `try`/`finally` `CloseDoc`. Session exit closes remaining titles. SaveAs retitles the tracked document so close uses the post-save name. |
+| Stale ActiveDoc is reused | Disproven. Each part calls `NewDocument`. |
+| Game/SDK runtime dependency on Windows | Disproven in code. Pipeline uses the repo fixture and packaged catalog only. |
+| Cross-OS remoting was introduced | Disproven. No socket/RPC/SSH/DCOM/service code. |
+| Proprietary assets or generated SLDPRT were added | Disproven. No `.sldprt` exists in the tree. Fixture SHA-256 unchanged. |
+| A post-success environment probe could fail the run | Confirmed then remediated. `generate_canonical_parts` no longer calls `session_environment_report` after a successful four-part run. |
+| Pipeline neutrality test treated exclusionary wording as a scan | Confirmed then remediated. The test now checks imports and path tokens. |
+
+Accepted residual risk: COM argument lists were not proven against a live SolidWorks 2026 typelib. `CreateBodyFromBox3` array layout (center vs base-face) and `Operations2` arity have published variants; validation is intended to fail closed if the live API disagrees. QUALIFIED is not claimed.
+
+Not claimed: SolidWorks part production on this host, QUALIFIED, assembly generation, or publication of generated parts.
+
+## Quality/security assessment (S2C-4.2.1)
+
+Hypotheses tested and outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| A SolidWorks 2026 session is already available on this development host | Disproven. No binaries, Wine prefix, COM modules, env vars, VM disk, SSH/Windows host, or SolidWorks listener. Official 2026 clients are Windows-only. |
+| Recipes or the canonical frame must be changed to implement this unit | Disproven. The four construction kinds and `CANONICAL_LOCAL_FRAME` are sufficient. The stop is environment and output-location policy, not geometry. |
+| Document Manager or mesh import could avoid a live SolidWorks session | Disproven for this unit. Document Manager does not create FeatureManager solids. Keen FBX/MWM import is forbidden. |
+| A mock adapter could be added without settling architecture | Disproven as a silent path. Binding locators, choosing COM vs remoting, choosing an output root, and adding `pywin32` are the open decisions. |
+| Official 2026 API cannot natively build these four solids | Disproven as a blocker. `FeatureExtrusion2`, `CreateBodyFromBox3`, `ICreateBodyFromFaces3`, `CreateFeatureFromBody3`, `Operations2`, `GetPartBox`, mass-property APIs, `GetBodies2`, and `SaveAs3` exist in the 2026 help set. |
+| Implementation leaked past the decision boundary | Disproven. This session changed only this state file. No backend package, dependency, path, or `.sldprt` was added. |
+| Parser/catalog/IR/transform/library recipes were modified or S2C-5.1.1 started | Disproven. Those trees were not modified by this session. |
+
+Remediated: none. No product defect was introduced. The unit is BLOCKED, not DEV-COMPLETE.
+
+Accepted residual risk: several 2026 help pages are JavaScript-rendered and did not return full parameter remarks to this session. Method existence is evidenced by official 2026 URLs and titles; exact argument lists must be re-read on a machine that can render those pages, or against a live type library, before any COM call is written. API lengths are metres by long-standing COM convention; that conversion must be proven against a live session, not assumed as millimetres.
+
+Not claimed: SolidWorks part production, a chosen remoting design, in-tree `.SLDPRT` publication, or QUALIFIED.
 
 ## Quality/security assessment (S2C-4.1.1)
 

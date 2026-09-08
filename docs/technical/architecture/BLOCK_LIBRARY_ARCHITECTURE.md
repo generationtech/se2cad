@@ -34,7 +34,7 @@ The initial-program library record (`se2cad.library.LibraryRecord`) expresses:
 | Reference frame | Origin and axes the transform engine assumes |
 | Placement semantics | Insert at cell center; no extra offset |
 | Native solid recipe | Exact constructive geometry for later CAD authoring |
-| Part locator | Unbound until a later unit produces CAD documents |
+| Part locator | Unbound in authoritative records; a backend may bind a logical identity only after generate / validate / save / reopen |
 
 Strategy vocabulary (not an implementation checklist):
 
@@ -90,7 +90,7 @@ Large Grid cell pitch is 2500 mm, consumed from the single named constant establ
 
 Public entrypoints: `se2cad.library.lookup_recipe`, `se2cad.library.lookup_record`, and `se2cad.library.all_library_records`.
 
-Lookup is an exact, case-sensitive match of the catalog `geometry_id`. Unknown identities fail closed. Each of the four initial catalog geometry IDs resolves to exactly one `native_procedural` recipe. Part locators are unbound until a later unit produces CAD documents.
+Lookup is an exact, case-sensitive match of the catalog `geometry_id`. Unknown identities fail closed. Each of the four initial catalog geometry IDs resolves to exactly one `native_procedural` recipe. Authoritative library records keep `part_locator` unbound. A Windows-local SolidWorks backend may return a bound locator only after the canonical part has been generated, validated, saved, and reopened. That locator’s logical identity is the deterministic `geometry_id` filename (for example `large_armor_block.SLDPRT`). The physical path is runtime-only under the configured generated root and must not be written into catalog JSON. Generated `.SLDPRT` files are not source artifacts and are not committed or published.
 
 Recipes are SE2CAD constructive solids. Vertex signs are the cell-local ±1 cube corners from Keen `MyCubeGridDefinitions` topology edge tables for `Box`, `Slope`, `Corner`, and `InvCorner`. Those signs are Space Engineers topology facts. Scaling them by the catalog half-extent, and the construction vocabulary below, are SE2CAD engineering choices.
 

@@ -2,8 +2,8 @@
 
 S2C-1.2.1 exposes the blueprint parser. S2C-2.1.1 exposes the definition
 catalog. S2C-3.1.1 exposes the CAD-neutral IR and placement transforms.
-S2C-4.1.1 exposes the canonical block-library recipes. CAD backends are
-later units.
+S2C-4.1.1 exposes the canonical block-library recipes. The SolidWorks
+backend lives in ``se2cad.solidworks`` and is not imported here.
 """
 
 from se2cad.catalog import (
