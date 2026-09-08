@@ -9,15 +9,15 @@ Unit definitions (no live status): [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 Initial program: four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
 
-The program is not complete. A single-grid Large Grid blueprint parser, a four-entry Large Grid armor catalog, a CAD-neutral IR, an exact placement transform engine, native-procedural recipes for the four Large Grid armor solids, and a Windows-local SolidWorks backend exist. Generated canonical `.SLDPRT` files are not committed. Assembly generation is not implemented.
+The program is not complete. A single-grid Large Grid blueprint parser, a four-entry Large Grid armor catalog, a CAD-neutral IR, an exact placement transform engine, native-procedural recipes for the four Large Grid armor solids, a Windows-local SolidWorks backend, and transform-placed assembly generation exist. Generated canonical `.SLDPRT` and `.SLDASM` files are not committed. End-to-end comparison of the assembly against the observed Space Engineers object is not done.
 
-Public capability text in [README.md](../../../README.md) matches this: assembly conversion is not implemented; live SolidWorks 2026 qualification of the four parts is recorded only here.
+Public capability text in [README.md](../../../README.md) matches this: generated parts and assemblies are local cache; live SolidWorks 2026 qualification of the four parts and of transform-placed assembly generation is recorded only here.
 
 ## Next executable unit
 
-**S2C-5.1.1 — Transform-placed SolidWorks assembly generation**
+**S2C-6.1.1 — Qualify the four-block acceptance fixture**
 
-PLANNED. Prerequisite S2C-4.2.1 is QUALIFIED. Do not start S2C-5.1.1 in the session that qualified the parts.
+PLANNED. Prerequisite S2C-5.1.1 is QUALIFIED. Do not start S2C-6.1.1 in the session that qualified assembly generation.
 
 ## Unit status
 
@@ -30,10 +30,37 @@ PLANNED. Prerequisite S2C-4.2.1 is QUALIFIED. Do not start S2C-5.1.1 in the sess
 | S2C-3.1.1 | QUALIFIED | CAD-neutral IR and integer transform engine exist; 24 fixture blocks convert through parser+catalog; all 24 legal Forward/Up orientations are unique right-handed integer rotations; invalid pairs fail closed; distinct assessment recorded below; no verified findings requiring remediation after test-scan false positives were corrected. External validation was not required. |
 | S2C-4.1.1 | QUALIFIED | Library records and four native-procedural recipes exist; catalog geometry IDs resolve 1:1; recipes consume the qualified S2C-3.1.1 frame and `LARGE_GRID_CELL_PITCH_MM`; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
 | S2C-4.2.1 | QUALIFIED | Windows-local late-bound COM backend. Ordinary suite 145 tests OK (1 integration skipped). Live SW 2026 `RevisionNumber` 34.3.2 generated, validated, saved, closed, reopened, and revalidated all four canonical parts under the gitignored generated root. FeatureManager box + hypotenuse-plane `FeatureCut4` produces Corner and InvCorner. Library `part_locator` remains unbound. No generated parts committed. |
-| S2C-5.1.1 | PLANNED | Not started. |
+| S2C-5.1.1 | QUALIFIED | Ordinary suite 167 tests OK (2 integration skipped). Live SW 2026 `RevisionNumber` 34.3.2 inserted 24 fixture components from qualified SLDPRT files, applied IR ArrayData transforms, saved a native `se2cad-test1.SLDASM`, closed, reopened, and revalidated counts 9/12/2/1, representative translations/orientations, identity defaults, empty MateGroup, and generated-root containment. No generated assembly committed. |
 | S2C-6.1.1 | PLANNED | Not started. |
 
 ## Session history
+
+### 2026-09-08 — S2C-5.1.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-6.1.1. Did not commit, tag, push, or publish. Did not commit generated `.SLDPRT` or `.SLDASM`. Did not change the qualified IR transform contract, the canonical part frame, or the Windows-local COM/pywin32 stack. Did not introduce mates as a placement requirement or add remoting.
+
+Implemented CAD-neutral placement (`placements_from_ir`) and SolidWorks `ArrayData` packing (`solidworks_arraydata`) from the qualified S2C-3.1.1 `(R, t)`. Assembly writer inserts pre-opened canonical parts with `AddComponent5`, unfixes the auto-fixed first component, writes `Transform2.ArrayData` as `VARIANT(VT_ARRAY|VT_R8, 16-tuple)`, and saves a native SLDASM under the configured generated root. Missing parts, unknown geometry IDs, unsafe assembly identities, path escapes, component substitution, and non-empty MateGroup children fail closed.
+
+Official 2026 CreateTransform / ArrayData pages remain JS-rendered. Packing was taken from the published 16-double contract (X/Y/Z axis rows = component axes, translation metres, scale 1) plus live 34.3.2 CDispatch evidence. `IMathUtility.CreateTransform` server-faults on this late-bound session; a raw Python list write corrupts translation. Those calls are not used.
+
+Live reopen evidence (`SE2CAD_GENERATED_ROOT=generated`, revision 34.3.2):
+
+| Check | Result |
+| --- | --- |
+| Artifact | `generated/se2cad-test1.SLDASM` (80648 bytes after the post-remediation rerun) |
+| `GetType` | 2 (`swDocASSEMBLY`) |
+| Components | 24; geometry counts `large_armor_block` 9, `large_armor_slope` 12, `large_armor_corner` 2, `large_armor_corner_inv` 1 |
+| `(0,0,0)` | identity rotation; translation `(0,0,0)` m; part `large_armor_block.SLDPRT` |
+| `(1,0,0)` | translation `(2.5,0,0)` m |
+| `(0,0,-1)` Down/Forward | axes = qualified rotation columns; translation `(0,0,-2.5)` m |
+| `(1,1,0)` Down/Right | axes = qualified columns, not row-major; translation `(2.5,2.5,0)` m |
+| Omitted orientations | 15 identity matrices |
+| Save / close / reopen | Transform2 ArrayData unchanged |
+| Mates | `GetMates` None; MateGroup folder empty; no `AddMate` |
+| Substitution | each `GetPathName` basename matches the IR `geometry_id` filename |
+| Root | assembly and referenced parts under `C:\Users\ken\Documents\se2cad\generated` |
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 167 tests, 2 skipped, 0.220 s, OK. `SE2CAD_SOLIDWORKS_INTEGRATION=1` `unittest tests.test_solidworks_integration -v` — 2 tests, OK, 39.008 s first run; both tests OK again after remediations. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. `git check-ignore` reports the four parts and `se2cad-test1.SLDASM`. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed `.sldprt`/`.sldasm`.
 
 ### 2026-09-08 — S2C-4.2.1 QUALIFIED (Corner / InvCorner)
 
@@ -170,7 +197,7 @@ These are human-architect technology selections recorded as live decisions. They
 
 These are not invitations to decide them inside an unrelated unit.
 
-- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI.
+- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms.
 - How a later unit configures an optional local game or SDK install path when that unit needs it. The Windows SolidWorks path does not.
 - Numeric position/orientation tolerances for S2C-6.1.1 (recorded when that unit produces evidence).
 
@@ -178,7 +205,7 @@ Resolved in S2C-4.2.1 and no longer open: generated SLDPRT location (local gener
 
 ## Known blockers
 
-None for S2C-4.2.1. The next executable unit is S2C-5.1.1 (assembly generation). Do not start it from this qualification session.
+None for S2C-5.1.1. The next executable unit is S2C-6.1.1 (qualify the acceptance fixture end-to-end). Do not start it from this qualification session.
 
 ## S2C-1.1.1 fixture inspection
 
@@ -436,6 +463,32 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-5.1.1)
+
+Hypotheses tested after live 24-component assembly generation. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Row-major packing used instead of official X/Y/Z axis rows | Disproven. `solidworks_arraydata` writes rotation columns (component axes). Down/Right row-major differs and is rejected by test. Live ArrayData matched columns after save/reopen. |
+| Sign inversion or reflection | Disproven. Fixture rotations keep determinant `+1`. Negative-Z translation remains negative (`(0,0,-1)` → `(0,0,-2.5)` m). |
+| Translation treated as millimetres or given a half-cell offset | Disproven. Packing uses `mm_to_metres`; `(1,0,0)` → `2.5` m; origin is `(0,0,0)` m, not `1.25`. |
+| Wrong part selected for `geometry_id` | Disproven. Each component `GetPathName` basename must equal the IR filename. Counts 9/12/2/1. Unknown geometry IDs fail closed. |
+| Duplicate or missing components | Disproven. Insert and reopen both require exactly 24 matches; leftover unmatched IR placements fail. |
+| Transform applied in a second frame or with a corrective rotation | Disproven. Packing is `(R.columns, t_m, scale=1)` only. No extra offset or SE reinterpretation. |
+| Mates used for placement | Disproven. No `AddMate`/`CreateMate`. Auto-fixed first component is unfixed. Live `GetMates` is None; MateGroup has no children. |
+| Save/reopen loses placement | Disproven. Live reopen ArrayData matched the IR pack for identity, translation, Down/Forward, and Down/Right. |
+| Machine paths entered authoritative data | Disproven. Catalog JSON unchanged; neutrality test still forbids `/home/`, `C:\`, `.SLDPRT`. Library `part_locator` remains `None`. |
+| Generated artifacts entered Git | Disproven. `/generated/` gitignore; `check-ignore` reports the four parts and `se2cad-test1.SLDASM`. |
+| Documents leaked after failure | Disproven for the successful path. `generate_assembly_from_ir` closes the assembly and opened parts in `finally`; session exit closes remaining titles. |
+| Ordinary suite attaches to SolidWorks | Disproven. 167 tests, 2 skipped, 0.220 s with `SE2CAD_SOLIDWORKS_INTEGRATION` unset. |
+| `CreateTransform` is required | Disproven. Live 34.3.2 `CreateTransform` server-faults. Product code writes `Transform2.ArrayData` via `VT_ARRAY\|VT_R8`. |
+| Raw Python list is a valid ArrayData write | Disproven. Live list write corrupted translation (`1.15e-311`). Locked to VARIANT R8 tuple. |
+| IR/catalog/recipe contract changed | Disproven. Parser, catalog JSON, IR, transform engine, and recipe geometry were not modified. |
+
+Remediated: removed a no-op `try/except: raise` in `insert_placements`; renamed the integration assembly test so a combined live run generates parts before the assembly. Ordinary suite and live integration re-run after that. No remaining verified product defect.
+
+Not claimed: S2C-6.1.1 Space Engineers visual/end-to-end comparison, publication of generated CAD, or binding library `part_locator` into catalog/library records.
 
 ## Quality/security assessment (S2C-4.2.1 QUALIFIED Corner/InvCorner)
 

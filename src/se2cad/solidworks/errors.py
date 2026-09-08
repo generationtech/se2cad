@@ -27,3 +27,15 @@ class CanonicalPartValidationError(SolidWorksBackendError):
 
 class UnknownCanonicalPartError(SolidWorksBackendError):
     """No deterministic artifact identity exists for the given geometry_id."""
+
+
+class MissingCanonicalPartError(SolidWorksBackendError):
+    """A required generated canonical SLDPRT is absent from the generated root."""
+
+
+class AssemblyIdentityError(SolidWorksBackendError):
+    """The IR identity cannot be turned into a safe assembly filename."""
+
+
+class AssemblyValidationError(SolidWorksBackendError):
+    """A generated or reopened assembly failed component, transform, or mate checks."""

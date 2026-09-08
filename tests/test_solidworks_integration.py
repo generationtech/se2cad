@@ -67,6 +67,68 @@ class SolidWorksIntegrationTests(unittest.TestCase):
             self.assertEqual(result.after_reopen.sheet_body_count, 0)
             self.assertEqual(result.locator.identity.filename, result.locator.path.name)
 
+    def test_transform_placed_assembly_from_acceptance_fixture(self) -> None:
+        from collections import Counter
+
+        from se2cad.solidworks.assemble import generate_assembly
+        from se2cad.solidworks.transform_pack import (
+            arraydata_axes,
+            arraydata_translation_m,
+            solidworks_arraydata,
+        )
+        from se2cad.transform import IDENTITY_ROTATION, rotation_from_forward_up
+        from se2cad.parser import Direction
+
+        result = generate_assembly(FIXTURE_PATH, self.config)
+        self.assertEqual(result.identity, "se2cad-test1")
+        self.assertEqual(result.path.name, "se2cad-test1.SLDASM")
+        self.assertTrue(result.path.is_file())
+        self.assertTrue(result.path.is_relative_to(self.config.generated_root))
+        self.assertEqual(len(result.placements), 24)
+        self.assertEqual(len(result.after_save), 24)
+        self.assertEqual(len(result.after_reopen), 24)
+        self.assertEqual(
+            Counter(item.placement.geometry_id for item in result.after_reopen),
+            Counter(
+                {
+                    "large_armor_block": 9,
+                    "large_armor_slope": 12,
+                    "large_armor_corner": 2,
+                    "large_armor_corner_inv": 1,
+                }
+            ),
+        )
+
+        by_min = {
+            item.placement.grid_min: item for item in result.after_reopen
+        }
+        origin = by_min[(0, 0, 0)]
+        self.assertEqual(origin.placement.part_filename, "large_armor_block.SLDPRT")
+        self.assertTrue(origin.placement.rotation.is_identity())
+        self.assertEqual(arraydata_translation_m(origin.arraydata), (0.0, 0.0, 0.0))
+        self.assertEqual(arraydata_axes(origin.arraydata), IDENTITY_ROTATION.columns)
+
+        neighbor = by_min[(1, 0, 0)]
+        self.assertEqual(arraydata_translation_m(neighbor.arraydata), (2.5, 0.0, 0.0))
+
+        down_forward = by_min[(0, 0, -1)]
+        expected_df = rotation_from_forward_up(Direction.DOWN, Direction.FORWARD)
+        self.assertEqual(arraydata_axes(down_forward.arraydata), expected_df.columns)
+        self.assertEqual(arraydata_translation_m(down_forward.arraydata), (0.0, 0.0, -2.5))
+
+        down_right = by_min[(1, 1, 0)]
+        expected_dr = rotation_from_forward_up(Direction.DOWN, Direction.RIGHT)
+        self.assertEqual(arraydata_axes(down_right.arraydata), expected_dr.columns)
+        self.assertEqual(arraydata_translation_m(down_right.arraydata), (2.5, 2.5, 0.0))
+        self.assertEqual(
+            down_right.arraydata,
+            solidworks_arraydata(expected_dr, (2500, 2500, 0)),
+        )
+
+        for item in result.after_reopen:
+            self.assertEqual(item.part_path.name, item.placement.part_filename)
+            self.assertTrue(item.part_path.is_relative_to(self.config.generated_root))
+
 
 if __name__ == "__main__":
     unittest.main()

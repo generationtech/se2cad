@@ -122,7 +122,7 @@ SE2CAD stores a 3×3 orthonormal **integer** rotation `R` and a millimetre trans
 
 A homogeneous 4×4 is not required for this discrete placement: `(R, t)` is the rigid transform a later CAD backend applies.
 
-Solid recipes and the library-side record that agrees with this frame: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md). Deferred to later units: part documents, insertion API, and any backend-specific matrix packing. Those units must consume this contract rather than invent a second frame.
+Solid recipes and the library-side record that agrees with this frame: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md). The SolidWorks backend packs this same `(R, t)` into `IMathTransform.ArrayData` without a second frame.
 
 ## SolidWorks backend
 
@@ -136,7 +136,20 @@ API lengths are metres. Recipe millimetres are converted only inside the backend
 
 Generated canonical part files use deterministic names from `geometry_id` (`large_armor_block.SLDPRT`, …) and must stay under the configured generated root. A part locator may be bound only after generate, validate, save, and reopen succeed. The locator’s logical identity is not a Windows absolute path and is not stored in the catalog.
 
-Placement method: apply the calculated transform to each inserted component. Do not reconstruct fixed Space Engineers block placement with mates. Assembly insertion is a later unit.
+Placement method: apply the calculated transform to each inserted component. Do not reconstruct fixed Space Engineers block placement with mates.
+
+Generated assemblies use deterministic names from the IR identity subtype (`se2cad-test1.SLDASM`) and must stay under the configured generated root. The writer consumes already-generated canonical `.SLDPRT` files; it does not author or substitute parts, and it does not write locators into catalog or library records.
+
+SolidWorks `IMathTransform.ArrayData` is sixteen doubles. Official CreateTransform / ArrayData remarks (still the 2026 method-page contract) store:
+
+- `[0:3]`, `[3:6]`, `[6:9]`: component X, Y, Z axes in parent space
+- `[9:12]`: translation in metres
+- `[12]`: scale (`1`)
+- `[13:16]`: unused
+
+Those axes are the qualified rotation columns (local +X/+Y/+Z in world). Translation is `position_mm / 1000`. No transpose, no corrective rotation, no half-cell offset, no mate network.
+
+Live SolidWorks 2026 late-bound CDispatch (`RevisionNumber` 34.3.2) cannot call `IMathUtility.CreateTransform` (server fault, same class as the rejected IModeler array calls). The working write is `Transform2.ArrayData = VARIANT(VT_ARRAY|VT_R8, tuple-of-16)` after `AddComponent5` of a pre-opened part. A raw Python list corrupts translation. The first inserted component is auto-fixed; `Select(True)` plus `UnfixComponent` clears that Fixed state without adding placement mates. The assembly `MateGroup` folder remains empty. `OpenDoc(path, swDocASSEMBLY=2)` reopens a native `.SLDASM`.
 
 ## Initial-program limits
 

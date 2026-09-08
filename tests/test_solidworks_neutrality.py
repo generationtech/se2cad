@@ -26,6 +26,8 @@ BACKEND_NEUTRAL_MODULES = (
     SRC / "solidworks" / "availability.py",
     SRC / "solidworks" / "recipe_plan.py",
     SRC / "solidworks" / "pipeline.py",
+    SRC / "solidworks" / "placement.py",
+    SRC / "solidworks" / "transform_pack.py",
 )
 FORBIDDEN_IMPORTS = {"win32com", "pythoncom", "win32api", "win32com.client"}
 

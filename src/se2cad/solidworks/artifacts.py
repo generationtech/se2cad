@@ -4,10 +4,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import re
+
 from se2cad.library import lookup_recipe
-from se2cad.solidworks.errors import GeneratedRootError, UnknownCanonicalPartError
+from se2cad.solidworks.errors import (
+    AssemblyIdentityError,
+    GeneratedRootError,
+    UnknownCanonicalPartError,
+)
 
 CANONICAL_PART_SUFFIX = ".SLDPRT"
+CANONICAL_ASSEMBLY_SUFFIX = ".SLDASM"
+_ASSEMBLY_IDENTITY_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 
 _CANONICAL_GEOMETRY_IDS: tuple[str, ...] = (
     "large_armor_block",
@@ -41,6 +49,23 @@ def is_canonical_artifact_filename(filename: str) -> bool:
     return filename in {logical_part_filename(gid) for gid in _CANONICAL_GEOMETRY_IDS}
 
 
+def logical_assembly_filename(identity: str) -> str:
+    """Deterministic SLDASM filename from a blueprint identity subtype."""
+    if not identity or not _ASSEMBLY_IDENTITY_RE.fullmatch(identity):
+        raise AssemblyIdentityError(
+            f"cannot derive a safe assembly filename from identity {identity!r}"
+        )
+    return f"{identity}{CANONICAL_ASSEMBLY_SUFFIX}"
+
+
+def is_assembly_artifact_filename(filename: str) -> bool:
+    """True when filename is a single-segment SE2CAD assembly artifact name."""
+    if not filename.endswith(CANONICAL_ASSEMBLY_SUFFIX):
+        return False
+    stem = filename[: -len(CANONICAL_ASSEMBLY_SUFFIX)]
+    return bool(stem) and _ASSEMBLY_IDENTITY_RE.fullmatch(stem)
+
+
 def resolve_generated_root(root: Path) -> Path:
     """Resolve the generated root. The directory need not exist yet."""
     resolved = Path(root).expanduser().resolve()
@@ -55,6 +80,11 @@ def artifact_path_for(root: Path, geometry_id: str) -> Path:
     """Absolute destination path for one canonical part, inside the root."""
     filename = logical_part_filename(geometry_id)
     return contained_destination(root, filename)
+
+
+def assembly_path_for(root: Path, identity: str) -> Path:
+    """Absolute destination path for one generated assembly, inside the root."""
+    return contained_destination(root, logical_assembly_filename(identity))
 
 
 def contained_destination(root: Path, filename: str) -> Path:
@@ -86,10 +116,13 @@ def contained_destination(root: Path, filename: str) -> Path:
 
 
 def assert_overwrite_is_canonical(destination: Path) -> None:
-    """Permit overwrite only of an existing SE2CAD canonical artifact name."""
+    """Permit overwrite only of an existing SE2CAD-owned generated artifact."""
     if not destination.exists():
         return
-    if not is_canonical_artifact_filename(destination.name):
-        raise GeneratedRootError(
-            f"refusing to overwrite unrelated file {destination}"
-        )
+    if is_canonical_artifact_filename(destination.name):
+        return
+    if is_assembly_artifact_filename(destination.name):
+        return
+    raise GeneratedRootError(
+        f"refusing to overwrite unrelated file {destination}"
+    )

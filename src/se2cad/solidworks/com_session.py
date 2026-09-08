@@ -17,7 +17,9 @@ from se2cad.solidworks.errors import SolidWorksBackendUnavailableError, SolidWor
 # a live 34.3.2 session (GetUserPreferenceStringValue → Part.prtdot).
 _FALLBACK_CONSTANTS = {
     "swDefaultTemplatePart": 8,
+    "swDefaultTemplateAssembly": 9,  # live 34.3.2 → Assembly.asmdot
     "swDocPART": 1,
+    "swDocASSEMBLY": 2,  # live 34.3.2 GetType of NewDocument(asmdot)
     "swOpenDocOptions_Silent": 1,
     "swSaveAsCurrentVersion": 0,
     "swSaveAsOptions_Silent": 1,
@@ -31,6 +33,7 @@ _FALLBACK_CONSTANTS = {
     "swCreateFeatureBodyCheck": 1,
     "swCreateFeatureBodySimplify": 2,
     "SWBODYCUT": 1593,
+    "swAddComponentConfigOptions_CurrentSelectedConfig": 0,
 }
 
 
@@ -168,12 +171,43 @@ class SolidWorksSession:
             )
         return str(template)
 
+    def assembly_template(self) -> str:
+        try:
+            template = self.app.GetUserPreferenceStringValue(
+                int(self.constants.swDefaultTemplateAssembly)
+            )
+        except Exception as exc:
+            raise _wrap_com(
+                exc,
+                "GetUserPreferenceStringValue(swDefaultTemplateAssembly) failed",
+            ) from exc
+        if not template:
+            raise SolidWorksComError(
+                "SolidWorks default assembly template is empty"
+            )
+        return str(template)
+
     def new_part(self) -> Any:
         template = self.part_template()
         try:
             model = self.app.NewDocument(template, 0, 0.0, 0.0)
         except Exception as exc:
             raise _wrap_com(exc, f"NewDocument failed for template {template}") from exc
+        if model is None:
+            raise SolidWorksComError(f"NewDocument returned None for {template}")
+        title = self._title(model)
+        if title:
+            self._open_titles.append(title)
+        return model
+
+    def new_assembly(self) -> Any:
+        template = self.assembly_template()
+        try:
+            model = self.app.NewDocument(template, 0, 0.0, 0.0)
+        except Exception as exc:
+            raise _wrap_com(
+                exc, f"NewDocument failed for assembly template {template}"
+            ) from exc
         if model is None:
             raise SolidWorksComError(f"NewDocument returned None for {template}")
         title = self._title(model)
@@ -228,7 +262,24 @@ class SolidWorksSession:
         except Exception as exc:
             raise _wrap_com(exc, f"OpenDoc failed for {path}") from exc
         if model is None:
-            raise SolidWorksComError(f"OpenDoc6 returned None for {path}")
+            raise SolidWorksComError(f"OpenDoc returned None for {path}")
+        title = self._title(model)
+        if title:
+            self._open_titles.append(title)
+        return model
+
+    def open_assembly(self, path: Path) -> Any:
+        try:
+            model = com_get(
+                self.app,
+                "OpenDoc",
+                str(path),
+                int(self.constants.swDocASSEMBLY),
+            )
+        except Exception as exc:
+            raise _wrap_com(exc, f"OpenDoc failed for {path}") from exc
+        if model is None:
+            raise SolidWorksComError(f"OpenDoc returned None for {path}")
         title = self._title(model)
         if title:
             self._open_titles.append(title)

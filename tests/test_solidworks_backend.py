@@ -262,6 +262,19 @@ class AvailabilityTests(unittest.TestCase):
                     with self.assertRaises(SolidWorksBackendUnavailableError):
                         generate_canonical_parts()
 
+    def test_generate_assembly_fails_closed_when_backend_is_unavailable(self) -> None:
+        from se2cad.solidworks import generate_assembly
+
+        fixture = (
+            Path(__file__).resolve().parents[1]
+            / "fixtures/acceptance/four-block-armor-asymmetric/bp.sbc"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.dict(os.environ, {GENERATED_ROOT_ENV: tmp}):
+                with patch("se2cad.solidworks.availability._windows", return_value=False):
+                    with self.assertRaises(SolidWorksBackendUnavailableError):
+                        generate_assembly(fixture)
+
 
 class SessionAttachTests(unittest.TestCase):
     def test_attach_uses_running_instance_without_ensuredispatch(self) -> None:
@@ -318,7 +331,9 @@ class SessionAttachTests(unittest.TestCase):
 
         constants = _solidworks_constants(Empty())
         self.assertEqual(constants.swDefaultTemplatePart, 8)
+        self.assertEqual(constants.swDefaultTemplateAssembly, 9)
         self.assertEqual(constants.swDocPART, 1)
+        self.assertEqual(constants.swDocASSEMBLY, 2)
         self.assertEqual(constants.swOpenDocOptions_Silent, 1)
         self.assertEqual(constants.swSaveAsCurrentVersion, 0)
         self.assertEqual(constants.swSaveAsOptions_Silent, 1)
