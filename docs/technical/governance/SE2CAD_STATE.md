@@ -9,15 +9,15 @@ Unit definitions (no live status): [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 Initial program: four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
 
-The program is not complete. A single-grid Large Grid blueprint parser exists. No catalog, IR, transform engine, block library, or SolidWorks backend exists in the tree.
+The program is not complete. A single-grid Large Grid blueprint parser and a four-entry Large Grid armor catalog exist. No IR, transform engine, block library, or SolidWorks backend exists in the tree.
 
 Public capability text in [README.md](../../../README.md) matches this: conversion is not implemented.
 
 ## Next executable unit
 
-**S2C-2.1.1 — Catalog for the four Large Grid armor types**
+**S2C-3.1.1 — Canonical IR and exact placement transforms**
 
-Information only. Do not start it in the same session that completed S2C-1.2.1.
+Information only. Do not start it in the same session that completed S2C-2.1.1.
 
 ## Unit status
 
@@ -26,7 +26,7 @@ Information only. Do not start it in the same session that completed S2C-1.2.1.
 | S2C-0.1.1 | QUALIFIED | Bootstrap documents and rules exist; local links resolve; plan has no live status; no M1+ implementation; no proprietary game/SDK assets; distinct assessment recorded below; findings remediated. External validation was not required. |
 | S2C-1.1.1 | QUALIFIED | Operator-supplied `bp.sbc` registered unmodified at the specified path; `PROVENANCE.md` present; deterministic inspection recorded below; human architect confirmed this is the intended `se2cad-test1` object; distinct assessment recorded below; no verified findings requiring remediation. |
 | S2C-1.2.1 | QUALIFIED | Python parser and tests exist; qualified acceptance fixture extracts expected subtype/position/orientation values; unsafe and unsupported XML is rejected; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
-| S2C-2.1.1 | PLANNED | Not started. |
+| S2C-2.1.1 | QUALIFIED | Packaged JSON catalog and loader exist; four Large Grid armor subtypes resolve to distinct SE2CAD geometry IDs; unknown/malformed/duplicate catalog data fails closed; acceptance fixture 24 blocks resolve; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
 | S2C-3.1.1 | PLANNED | Not started. |
 | S2C-4.1.1 | PLANNED | Not started. |
 | S2C-4.2.1 | PLANNED | Not started. |
@@ -71,6 +71,16 @@ Implemented a stdlib `xml.etree.ElementTree` parser that reads an operator-selec
 Omitted-field defaults were established from local Space Engineers evidence plus published Keen/source corroboration before they were implemented. Details are under “S2C-1.2.1 omitted-field semantics” below.
 
 Verification: `PYTHONPATH=src python3 -m unittest discover -s tests -v` — 32 tests, OK. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` was unchanged before and after this unit. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or game-content trees were added. Did not commit, tag, push, or release. Did not start S2C-2.1.1.
+
+### 2026-09-07 — S2C-2.1.1
+
+Executed the next unit named by STATE. Did not start S2C-3.1.1. Did not commit, tag, push, or release.
+
+Authored a repository-resident JSON catalog and stdlib loader from current local Space Engineers definition evidence. Catalog lookup is exact/case-sensitive and independent of XML parsing, CAD transforms, and game-install scanning. Large Grid cell pitch is `LARGE_GRID_CELL_PITCH_MM` in `src/se2cad/catalog/constants.py`.
+
+Observed definition facts and SE2CAD mapping decisions are stored in separate JSON objects. Details are under “S2C-2.1.1 catalog evidence” below.
+
+Verification: `PYTHONPATH=src python3 -m unittest discover -s tests -v` — 58 tests, OK after remediation. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` was unchanged before and after this unit. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or game-content trees were added. Parser modules under `src/se2cad/parser/` were not modified.
 
 ## Resolved technology selections
 
@@ -151,6 +161,63 @@ Internet / published-source corroboration (not a substitute for the local eviden
 - Current Keen ModAPI docs still list both `ShouldSerialize*` methods on `MyObjectBuilder_CubeBlock`.
 
 XmlSerializer omits a field when `ShouldSerializeX()` is false; deserialization then uses the field initializer. That is the mapping implemented here.
+
+## S2C-2.1.1 catalog evidence
+
+Authoritative catalog: `src/se2cad/catalog/large_grid_armor.json`. Loader: `src/se2cad/catalog/`. Public entrypoints `load_default_catalog()`, `DefinitionCatalog.lookup(subtype_id)`, and `LARGE_GRID_CELL_PITCH_MM`.
+
+Local Space Engineers evidence used to author the four entries (not a runtime dependency):
+
+- Install root resolved from the operator Steam library: `/home/ken/.local/share/Steam/steamapps/common/SpaceEngineers` (same path as `~/.steam/steam/steamapps/common/SpaceEngineers`). Steam appid `244850`, buildid `24675677`, last updated 2026-09-05 19:38:41 UTC.
+- `Content/Data/CubeBlocks/CubeBlocks_Armor.sbc` (426778 bytes, mtime 2026-09-05). Each of the four subtype IDs occurs once in `Content/Data/CubeBlocks/`.
+- `Content/Data/Configuration.sbc` records `<CubeSizes Large="2.5" Small="0.5" />`.
+
+| SubtypeId | TypeId | CubeSize | Size | BlockTopology | CubeTopology |
+| --- | --- | --- | --- | --- | --- |
+| `LargeBlockArmorBlock` | `CubeBlock` | `Large` | 1×1×1 | `Cube` | `Box` |
+| `LargeBlockArmorSlope` | `CubeBlock` | `Large` | 1×1×1 | `Cube` | `Slope` |
+| `LargeBlockArmorCorner` | `CubeBlock` | `Large` | 1×1×1 | `Cube` | `Corner` |
+| `LargeBlockArmorCornerInv` | `CubeBlock` | `Large` | 1×1×1 | `Cube` | `InvCorner` |
+
+Internet / published-source corroboration (not a substitute for the local evidence):
+
+- Keen published `Configuration.sbc` still has `CubeSizes Large="2.5"`.
+- Keen ModAPI `MyCubeTopology` includes `Box`, `Slope`, `Corner`, and `InvCorner`.
+- Official wiki CubeBlock definition documents `BlockTopology` `Cube` (armor) versus `TriangleMesh`, and the same `CubeTopology` tokens.
+
+SE2CAD engineering decisions recorded in the catalog, not as Keen facts:
+
+- `geometry_id`: `large_armor_block`, `large_armor_slope`, `large_armor_corner`, `large_armor_corner_inv`
+- `recipe_kind`: `native_procedural` (architecture vocabulary; no solid is implemented here)
+- `support_status`: `supported`
+- `LARGE_GRID_CELL_PITCH_MM = 2500` (architecture-established millimetre form of Keen `Large="2.5"` metres)
+
+Acceptance fixture resolution: all 24 parsed blocks resolve. Geometry-ID counts match subtype counts: `large_armor_block` 9, `large_armor_slope` 12, `large_armor_corner` 2, `large_armor_corner_inv` 1. Those counts live in tests, not catalog code.
+
+## Quality/security assessment (S2C-2.1.1)
+
+Hypotheses tested and outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Subtype identity is case-folded or whitespace-normalized | Disproven. Lookup is exact `==` on the stored string. Tests reject `largeblockarmorblock`, `LARGEBLOCKARMORBLOCK`, padded, and mixed-case forms. Catalog source has no `casefold` / `lower` / `strip`. |
+| Duplicate subtype or geometry IDs are ambiguous | Disproven. Loader rejects duplicate `subtype_id` and duplicate `geometry_id`. |
+| Malformed catalog data is silently accepted | Confirmed then remediated. Missing required fields, bad JSON, unknown recipe/support tokens, and non-integer sizes already failed. Extra unknown fields (for example an observed `model` path) were ignored. Loader now rejects unexpected fields; regression test added. |
+| Observed Keen facts are stored as SE2CAD decisions | Disproven. JSON and domain types split `observed` from `se2cad`. Geometry IDs are not Keen subtype strings. |
+| Machine-specific paths were committed | Disproven. Packaged JSON has no `/home/`, `C:\`, Steam, or Space Engineers paths. Tests assert this. |
+| Proprietary asset references were committed | Disproven. Catalog records TypeId/SubtypeId/CubeSize/Size/topologies only. No `.mwm`, `.fbx`, `.dds`, or model paths. Extra-field rejection blocks smuggling a model path into schema v1. |
+| Catalog loader opens paths taken from blueprint content | Disproven. Default load uses `importlib.resources` for the packaged file. `load_catalog_file` is an explicit caller-supplied path for tests; parser output is never passed to it. |
+| A runtime game-install scan is required | Disproven. Tests pass without reading the Steam tree. Catalog modules do not mention Steam or `Content/Data`. |
+| Unnecessary dependency or database was introduced | Disproven. Stdlib `json` only. No SQLite. `pyproject.toml` still has no runtime dependencies. |
+| Catalog leaked into transforms/CAD or changed the parser | Disproven. Catalog imports are stdlib plus local catalog types. Parser tree `src/se2cad/parser/` has no catalog types and was not modified. No SolidWorks, COM, matrix, or SLDPRT code. |
+| Fixture counts were baked into catalog code | Disproven. Source grep of `src/se2cad/catalog/` found no `24`. |
+| Unrelated refactoring or S2C-3.1.1 started | Disproven. No IR, placement transforms, or coordinate-frame work. |
+
+Remediated: reject unexpected catalog JSON fields. Tests re-run after remediation: 58 OK.
+
+Accepted residual risk: `load_catalog_file` will read any file path the caller supplies. That API is for tests and explicit local samples, not the conversion path. Schema v1 is closed; adding a field requires a schema-version change.
+
+Not claimed: SolidWorks validation, Space Engineers runtime validation, or that `native_procedural` geometry exists.
 
 ## Quality/security assessment (S2C-1.2.1)
 
