@@ -14,9 +14,9 @@ SolidWorks is the initial CAD backend (SLDASM). The architecture keeps parsing, 
 
 The repository currently contains program definition, architecture, engineering governance, a single-grid Large Grid blueprint parser, a definition catalog for the four initial Large Grid armor subtypes, a CAD-neutral intermediate representation, an exact placement transform engine, native-procedural recipes for the four Large Grid armor solids, and a Windows-local SolidWorks backend that materializes those recipes as generated canonical part documents and places them into a generated assembly when SolidWorks 2026 is available.
 
-Generated `.SLDPRT` and `.SLDASM` files are local cache artifacts. They are not committed and are not published. Live SolidWorks 2026 qualification of the four parts and of transform-placed assembly generation is recorded only in program state. End-to-end comparison of the assembly against the observed Space Engineers object is not claimed here.
+Generated `.SLDPRT` and `.SLDASM` files are local cache artifacts. They are not committed and are not published. Live SolidWorks 2026 end-to-end qualification of the four-block acceptance fixture is recorded only in program state.
 
-The first executable program is a vertical slice: one Large Grid, one grid, and four armor subtypes (`LargeBlockArmorBlock`, `LargeBlockArmorSlope`, `LargeBlockArmorCorner`, `LargeBlockArmorCornerInv`) placed from a user-authored asymmetric blueprint fixture using reusable native CAD parts.
+The initial vertical-slice program — one Large Grid, one grid, and four armor subtypes (`LargeBlockArmorBlock`, `LargeBlockArmorSlope`, `LargeBlockArmorCorner`, `LargeBlockArmorCornerInv`) placed from a user-authored asymmetric blueprint fixture using reusable native CAD parts — is recorded as complete in program state.
 
 ## License and third-party assets
 

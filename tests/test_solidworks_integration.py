@@ -125,9 +125,42 @@ class SolidWorksIntegrationTests(unittest.TestCase):
             solidworks_arraydata(expected_dr, (2500, 2500, 0)),
         )
 
-        for item in result.after_reopen:
-            self.assertEqual(item.part_path.name, item.placement.part_filename)
-            self.assertTrue(item.part_path.is_relative_to(self.config.generated_root))
+        from se2cad.catalog import load_default_catalog
+        from se2cad.ir import build_canonical_blueprint
+        from se2cad.parser import parse_blueprint
+
+        ir = build_canonical_blueprint(parse_blueprint(FIXTURE_PATH), load_default_catalog())
+        save_by_index = {item.placement.source_index: item for item in result.after_save}
+        reopen_by_index = {
+            item.placement.source_index: item for item in result.after_reopen
+        }
+        self.assertEqual(len(save_by_index), 24)
+        self.assertEqual(len(reopen_by_index), 24)
+        omitted_identity = 0
+        for block in ir.grid.blocks:
+            saved = save_by_index[block.source_index]
+            reopened = reopen_by_index[block.source_index]
+            expected = solidworks_arraydata(
+                block.rotation, block.position_mm.as_tuple()
+            )
+            self.assertEqual(reopened.placement.geometry_id, block.geometry_id)
+            self.assertEqual(
+                reopened.placement.part_filename, f"{block.geometry_id}.SLDPRT"
+            )
+            self.assertEqual(reopened.part_path.name, reopened.placement.part_filename)
+            self.assertTrue(reopened.part_path.is_relative_to(self.config.generated_root))
+            self.assertEqual(
+                reopened.placement.grid_min,
+                (block.grid_min.x, block.grid_min.y, block.grid_min.z),
+            )
+            self.assertEqual(arraydata_axes(reopened.arraydata), block.rotation.columns)
+            self.assertEqual(reopened.arraydata, expected)
+            self.assertEqual(saved.arraydata, reopened.arraydata)
+            if not block.orientation_serialized:
+                omitted_identity += 1
+                self.assertTrue(block.rotation.is_identity())
+                self.assertEqual(arraydata_axes(reopened.arraydata), IDENTITY_ROTATION.columns)
+        self.assertEqual(omitted_identity, 15)
 
 
 if __name__ == "__main__":

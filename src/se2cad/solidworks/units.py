@@ -2,8 +2,10 @@
 
 SolidWorks COM geometry methods take metres. SE2CAD recipes are millimetres.
 This conversion is explicit and local to the SolidWorks backend. It does not
-change the qualified canonical frame and is not the S2C-6.1.1 tolerance
-contract.
+change the qualified canonical frame.
+
+S2C-6.1.1 compares SolidWorks ``ArrayData`` to the packed IR using
+``BACKEND_LENGTH_TOLERANCE_M``. IR ``(R, t)`` itself remains exact integers.
 """
 
 from __future__ import annotations

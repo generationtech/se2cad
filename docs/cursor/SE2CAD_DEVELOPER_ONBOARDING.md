@@ -2,7 +2,7 @@
 
 Responsibility: orientation and reading map. This document is not authoritative program state, architecture, or process.
 
-SE2CAD is an early-stage project. Conversion software is not implemented yet. Start with the documents below; do not ingest the entire repository on every session.
+SE2CAD is an early-stage project. Live capability is recorded only in [SE2CAD_STATE.md](../technical/governance/SE2CAD_STATE.md). Start with the documents below; do not ingest the entire repository on every session.
 
 ## Fresh development session
 
