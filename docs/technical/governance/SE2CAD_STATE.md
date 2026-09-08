@@ -9,15 +9,15 @@ Unit definitions (no live status): [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 Initial program: four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
 
-The program is not complete. A single-grid Large Grid blueprint parser, a four-entry Large Grid armor catalog, a CAD-neutral IR, an exact placement transform engine, native-procedural recipes for the four Large Grid armor solids, and a Windows-local SolidWorks backend exist. Generated canonical `.SLDPRT` files are not in the tree. Assembly generation is not implemented.
+The program is not complete. A single-grid Large Grid blueprint parser, a four-entry Large Grid armor catalog, a CAD-neutral IR, an exact placement transform engine, native-procedural recipes for the four Large Grid armor solids, and a Windows-local SolidWorks backend exist. Generated canonical `.SLDPRT` files are not committed. Assembly generation is not implemented.
 
 Public capability text in [README.md](../../../README.md) matches this: assembly conversion is not implemented; live SolidWorks 2026 qualification of the four parts is recorded only here.
 
 ## Next executable unit
 
-**S2C-4.2.1 — Produce reusable SolidWorks canonical parts**
+**S2C-5.1.1 — Transform-placed SolidWorks assembly generation**
 
-DEV-COMPLETE. QUALIFIED is blocked: this Linux host still has no SolidWorks 2026 session. Do not start S2C-5.1.1. Resume S2C-4.2.1 in the Windows VM and run the integration test with `SE2CAD_SOLIDWORKS_INTEGRATION=1`. Skipped integration tests are not qualification evidence.
+PLANNED. Prerequisite S2C-4.2.1 is QUALIFIED. Do not start S2C-5.1.1 in the session that qualified the parts.
 
 ## Unit status
 
@@ -29,11 +29,46 @@ DEV-COMPLETE. QUALIFIED is blocked: this Linux host still has no SolidWorks 2026
 | S2C-2.1.1 | QUALIFIED | Packaged JSON catalog and loader exist; four Large Grid armor subtypes resolve to distinct SE2CAD geometry IDs; unknown/malformed/duplicate catalog data fails closed; acceptance fixture 24 blocks resolve; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
 | S2C-3.1.1 | QUALIFIED | CAD-neutral IR and integer transform engine exist; 24 fixture blocks convert through parser+catalog; all 24 legal Forward/Up orientations are unique right-handed integer rotations; invalid pairs fail closed; distinct assessment recorded below; no verified findings requiring remediation after test-scan false positives were corrected. External validation was not required. |
 | S2C-4.1.1 | QUALIFIED | Library records and four native-procedural recipes exist; catalog geometry IDs resolve 1:1; recipes consume the qualified S2C-3.1.1 frame and `LARGE_GRID_CELL_PITCH_MM`; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
-| S2C-4.2.1 | DEV-COMPLETE | Windows-local backend implemented; human architecture decisions recorded; Linux suite 130 tests OK (1 integration skipped). No live SolidWorks 2026 run. No `.SLDPRT` generated or committed. QUALIFIED remains blocked on Windows VM execution. |
-| S2C-5.1.1 | PLANNED | Not started. Do not start until S2C-4.2.1 is QUALIFIED. |
+| S2C-4.2.1 | QUALIFIED | Windows-local late-bound COM backend. Ordinary suite 145 tests OK (1 integration skipped). Live SW 2026 `RevisionNumber` 34.3.2 generated, validated, saved, closed, reopened, and revalidated all four canonical parts under the gitignored generated root. FeatureManager box + hypotenuse-plane `FeatureCut4` produces Corner and InvCorner. Library `part_locator` remains unbound. No generated parts committed. |
+| S2C-5.1.1 | PLANNED | Not started. |
 | S2C-6.1.1 | PLANNED | Not started. |
 
 ## Session history
+
+### 2026-09-08 — S2C-4.2.1 QUALIFIED (Corner / InvCorner)
+
+Resumed S2C-4.2.1 from DEV-COMPLETE on the operator Windows 11 VM. Did not start S2C-5.1.1. Did not commit, tag, push, or publish. Did not commit generated `.SLDPRT`. Did not change recipes, the canonical frame, or the COM/pywin32 stack.
+
+Inspected the failed IModeler knit and 3D-sketch loft paths, official 2026 FeatureManager method pages (JS-rendered; signatures from published FeatureCut4 / InsertRefPlane lists), and live late-bound CDispatch. Rejected IModeler (`CreatePlanarSurface2` / `CreateBodyFromBox3` RPC_E_SERVERFAULT), `InsertProtrusionBlend2` (None with 3D sketches and with 2D+point), `FeatureExtrusion2` UpToVertex (None for T1 0–12), and `SelectByID2` (Callout type-mismatch). `SelectByID` and sketch-point `Select2` work.
+
+Chosen path: consume the qualified hypotenuse face (recipe `faces[-1]`) as three 3D-sketch points; `InsertRefPlane` coincident×3 (constraint 4, marks 0/1/2); oversized 2D rectangle on that plane; `FeatureCut4` 27-arg through-all. `Dir=True` keeps the apex half-space (Corner); `Dir=False` keeps the complement (InvCorner). Direction is computed from the recipe-face normal so winding is not hard-coded. Same FeatureManager session as box/slope. No boolean `Operations2`, no mesh import, no remoting.
+
+Live reopen evidence (`SE2CAD_GENERATED_ROOT=generated`, revision 34.3.2):
+
+| Artifact | Bytes | Solids | Sheets | BBox (m) | Volume (m³) | CoM (m) | Save/reopen |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `large_armor_block.SLDPRT` | 58873 | 1 | 0 | ±1.25³ | 15.625 | (0, 0, 0) | OK |
+| `large_armor_slope.SLDPRT` | 60010 | 1 | 0 | ±1.25³ | 7.8125 | (0, −1/3, −1/3)×1.25 | OK |
+| `large_armor_corner.SLDPRT` | 69962 | 1 | 0 | ±1.25³ | 2.6041667 | (0.625, −0.625, −0.625) | OK |
+| `large_armor_corner_inv.SLDPRT` | 75675 | 1 | 0 | ±1.25³ | 13.020833 | (−0.125, 0.125, 0.125) | OK |
+
+Volumes and CoM match the qualified recipes. Generated root `C:\Users\ken\Documents\se2cad\generated` is gitignored (`/generated/`). `.gitignore` check-ignore reports all four files. Library records still have `part_locator=None`.
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 145 tests, 1 skipped, OK. `SE2CAD_SOLIDWORKS_INTEGRATION=1` `unittest tests.test_solidworks_integration -v` — 1 test, OK, 20.091 s. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed `.sldprt`.
+
+### 2026-09-08 — S2C-4.2.1 Windows qualification (partial)
+
+Resumed S2C-4.2.1 on the operator Windows 11 VM with SolidWorks 2026 visible/running. Did not start S2C-5.1.1. Did not commit, tag, push, or publish. Did not commit generated `.SLDPRT`.
+
+Operator preflight: Python 3.14.7 x64; pywin32 312; `win32com.client.Dispatch("SldWorks.Application")` returns `CDispatch`; `RevisionNumber` = 34.3.2; SE2CAD installed editable with `pip install -e .[solidworks]`.
+
+The first ordinary Windows run was 130 tests, 2 failures, 1 skipped. Both failures were host assumptions from Linux DEV-COMPLETE, not a requirement that availability be False on Windows. Production `solidworks_backend_available()` correctly reports True when `sys.platform == "win32"` and pywin32 is present. Tests were changed to simulate Linux / missing pywin32 instead of reading the live host. `test_generate_fails_closed_when_backend_is_unavailable` now forces unavailability so the ordinary suite cannot attach to SolidWorks. Config tests isolate `SE2CAD_SOLIDWORKS_VISIBLE`.
+
+Live attach then failed on `gencache.EnsureDispatch` (GetTypeInfo / makepy cannot run). Remediated to late-bound `GetActiveObject` / `Dispatch` plus published enum fallbacks. `swDefaultTemplatePart=8` was confirmed live (`Part.prtdot`). `FeatureExtrusion2` on this 2026 CDispatch requires 23 arguments. `IModelDoc2.SaveAs` works; `Extension.SaveAs(..., None, ...)` type-mismatches ExportData. `CreateMassProperty` / `FirstFeature` / `RevisionNumber` are late-bound properties. `OpenDoc` is used for reopen after early-bound `OpenDoc6` rejected VARIANT error arguments.
+
+Box and slope succeeded through generate / validate / save / reopen into `generated/` (gitignored). Corner remains blocked: `IModeler.CreatePlanarSurface2` and `CreateBodyFromBox3` raise RPC_E_SERVERFAULT; `InsertProtrusionBlend2` with two 3D sketches returns None. InvCorner was not reached.
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 143 tests, 1 skipped, OK. Integration with `SE2CAD_SOLIDWORKS_INTEGRATION=1` still errors on Corner. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed `.sldprt`.
 
 ### 2026-09-07 — S2C-0.1.1
 
@@ -143,15 +178,7 @@ Resolved in S2C-4.2.1 and no longer open: generated SLDPRT location (local gener
 
 ## Known blockers
 
-**S2C-4.2.1 QUALIFIED** is blocked because this Linux agent host cannot open SolidWorks 2026. Implementation is DEV-COMPLETE. Qualification requires an operator run inside the Windows VM against the synchronized repository clone:
-
-```
-set SE2CAD_GENERATED_ROOT=<local generated directory>
-set SE2CAD_SOLIDWORKS_INTEGRATION=1
-PYTHONPATH=src python -m unittest tests.test_solidworks_integration -v
-```
-
-Skipped integration tests are not qualification evidence. Do not start S2C-5.1.1.
+None for S2C-4.2.1. The next executable unit is S2C-5.1.1 (assembly generation). Do not start it from this qualification session.
 
 ## S2C-1.1.1 fixture inspection
 
@@ -375,8 +402,8 @@ Human decisions recorded in ADR-003 and the architecture documents named in the 
 | Artifact names | `large_armor_block.SLDPRT`, `large_armor_slope.SLDPRT`, `large_armor_corner.SLDPRT`, `large_armor_corner_inv.SLDPRT` |
 | Locator | `LogicalPartIdentity` vs runtime `BoundPartLocator`. Bind only after generate/validate/save/reopen. Library records stay `part_locator=None`. |
 | Units | `mm_to_metres` is `/ 1000`. Recipes stay millimetres. API lengths metres. Local length tolerance `1e-6` m; CoM `1e-3` m. Not S2C-6.1.1. |
-| Construction | Box and slope: `FeatureExtrusion2` mid-plane. Corner: recipe faces knitted via `CreatePlanarSurface2` / `CreateTrimmedSheet5` / `CreateBodyFromFaces2`. InvCorner: `CreateBodyFromBox3` minus that tetrahedron via `IBody2.Operations2`. |
-| Pipeline without SE/SDK | `resolve_recipes_from_blueprint` on `fixtures/acceptance/four-block-armor-asymmetric/bp.sbc` resolves 24 IR blocks and the four recipes. Proven on Linux. Not yet proven inside the Windows VM. |
+| Construction | Box and slope: `FeatureExtrusion2` mid-plane. Corner and InvCorner: same cell box, then one FeatureManager through-all `FeatureCut4` on a 3-point reference plane through the qualified hypotenuse vertices. Corner keeps the apex half-space; InvCorner keeps the complement. |
+| Pipeline without SE/SDK | `resolve_recipes_from_blueprint` on `fixtures/acceptance/four-block-armor-asymmetric/bp.sbc` resolves 24 IR blocks and the four recipes. Proven on Linux and in the Windows integration run. |
 
 **API evidence used for COM calls** (official 2026 pages exist but are JS-rendered; signatures from those titles plus static/CodeStack sources). Live typelib was not inspected.
 
@@ -386,14 +413,77 @@ Human decisions recorded in ADR-003 and the architecture documents named in the 
 | `GetUserPreferenceStringValue(swDefaultTemplatePart)` + `NewDocument` | Official/new-document samples; avoids a hardcoded template path |
 | `FeatureExtrusion2` (20 args; `swEndCondMidPlane=6`; depths metres) | Official 2026 method page exists; 20-arg VBA samples; `swEndCondMidPlane` documented as 6 |
 | `SketchManager.CreateCornerRectangle` / `InsertSketch` / `Insert3DSketch` / `CreateLine` | Published FeatureManager sketch samples; 3D-sketch lines use model metres |
-| `IModeler.CreateBodyFromBox3` (9 doubles: center, axis, size; metres) | Official 2026 page exists; CodeStack create-box-body |
-| `IModeler.CreatePlanarSurface2` + `ISurface.CreateTrimmedSheet5` | Official 2026 CreatePlanarSurface2 page; CodeStack multi-extrude (`0.00001` m trim) |
-| `IModeler.CreateBodyFromFaces2` | Official 2026 `ICreateBodyFromFaces3` / CreateBodyFromFaces2 pages; CodeStack fill-hole |
-| `IBody2.Operations2` + `IPartDoc.CreateFeatureFromBody3` | Official Operations2 page; CADSharp/CreateFeatureFromBody3 samples |
+| `IModeler.CreateBodyFromBox3` / `CreatePlanarSurface2` | Official 2026 pages exist. **Rejected on live 2026 CDispatch:** RPC_E_SERVERFAULT. Not used for QUALIFIED parts. |
+| `InsertRefPlane` coincident×3 (constraint 4; Select2 marks 0,1,2) | Official 2026 `InsertRefPlane` page; live 2026-09-08: returns `Plane1` |
+| `FeatureCut4` 27 args; `swEndCondThroughAll=1`; Flip=False; Dir selects half-space | Official 2026 FeatureCut4 page (JS-rendered); published 27-arg list; live 2026-09-08: Flip=True returns None; Dir=True Corner; Dir=False InvCorner |
 | `GetBodies2`, `GetPartBox`, `Extension.CreateMassProperty` | Official 2026 validation method pages named in the inspection session |
 | `Extension.SaveAs`, `OpenDoc6`, `CloseDoc` | Official save/open/close; save is rejected unless the file exists afterwards |
 
 Windows environment from this session: not available. Python 3.12.3 on Linux Mint 22.1 / kernel 6.8.0-138-generic. `win32com` not installed.
+
+## S2C-4.2.1 Windows live evidence (2026-09-08)
+
+Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber` 34.3.2 (year − 1992 = 2026). `GetActiveObject("SldWorks.Application")` returns `win32com.client.CDispatch`. `win32com.client.constants` has no SolidWorks enums without makepy. `gencache.EnsureDispatch` fails (`GetTypeInfo` / cannot automate makepy).
+
+| Check | Result |
+| --- | --- |
+| Default part template preference 8 | `C:\ProgramData\SolidWorks\SOLIDWORKS 2026\templates\Part.prtdot` |
+| `FeatureExtrusion2` arity | 20–22 args: DISP_E_PARAMNOTOPTIONAL. 23 args: succeeds |
+| Right Plane 2D sketch mapping | sketch +X → model −Z; sketch +Y → model +Y; mid-plane extrude along X |
+| `IModelDoc2.SaveAs(path)` | succeeds; file exists afterwards |
+| `Extension.SaveAs` with Python `None` ExportData | DISP_E_TYPEMISMATCH on argument 4 |
+| `IModeler.CreatePlanarSurface2` / `CreateBodyFromBox3` | RPC_E_SERVERFAULT for list, tuple, `array.array`, and VARIANT arrays. `CastTo("IModeler")` cannot EnsureDispatch |
+| `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
+| Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
+| Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-4.2.1 QUALIFIED Corner/InvCorner)
+
+Hypotheses tested after live four-part generation. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Backend special-cases geometry IDs instead of recipe data | Disproven. `com_construct` branches on `SolidKind` only. Cut plane vertices are `tetra.faces[-1]` from the plan; keep-side is the unique unused vertex. |
+| Frame or origin drifted | Disproven. Reopen bbox is the qualified cell envelope ±1.25 m; CoM matches recipe-derived expected values. |
+| mm/metre conversion inverted or implicit | Disproven. Plans still use `mm_to_metres`; pitch 2500 mm → 2.5 m; volumes match `volume_times_6_mm3 / 6 / 1000³`. |
+| Extra solid or sheet bodies accepted | Disproven. Validator requires 1 solid and 0 sheets. Live reopen: 1/0 on all four parts. |
+| Surface-only or graphics substitute accepted | Disproven. Sheet count 0; mass volume is the qualified tetrahedron / complement, not zero. |
+| Failed or partial files accepted | Disproven. `SaveAs` requires the destination file; locator bind requires generate, validate, save, and reopen. Integration would fail without all four files. |
+| Stale ActiveDoc reused | Disproven. Each part calls `NewDocument`. |
+| Documents leaked after failure | Disproven for the successful run. `generate_one_canonical_part` closes in `finally`; session exit closes remaining titles. |
+| Overwrite of unrelated files | Disproven. Only the four canonical filenames may be overwritten. Destinations stayed under `generated/`. |
+| Generated artifacts entered Git | Disproven. `/generated/` gitignore; `check-ignore` reports all four `.SLDPRT`. |
+| Ordinary tests attach to the live host | Disproven. 145 tests, 1 skipped, 0.158 s without `SE2CAD_SOLIDWORKS_INTEGRATION`. |
+| Workaround introduced a second backend architecture | Disproven. Same Windows-local late-bound pywin32 COM + FeatureManager session. No remoting, no typelib/makepy requirement, no mesh import, no IModeler. |
+| IModeler or 3D-sketch loft became viable | Disproven again. Server fault / None return reproduced before the FeatureCut path was chosen. |
+| `FeatureCut4` Flip is required to choose the half-space | Disproven. Flip=True returns None; Dir selects the half-space. Locked to Flip=False. |
+
+Remediated: none after the live four-part run. No verified product defect remained.
+
+Not claimed: assembly generation, publication of generated parts, or binding library `part_locator` into catalog/library records.
+
+## Quality/security assessment (S2C-4.2.1 Windows qualification)
+
+Hypotheses tested and outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| The two ordinary-suite failures mean availability must be forced False | Disproven. Live Windows+pywin32 correctly reports True. The tests assumed a Linux / no-pywin32 runner. |
+| `test_solidworks_package_imports_without_pywin32` actually established missing pywin32 | Confirmed false, then remediated. Availability is now simulated; CAD-neutral import still runs on the real host. |
+| `test_generate_fails_closed_when_backend_is_unavailable` stays SolidWorks-free on Windows | Confirmed it did not establish unavailability. Remediated by patching `_windows`. |
+| `EnsureDispatch` is required to attach | Disproven. Operator `Dispatch` and live `GetActiveObject` attach. EnsureDispatch cannot run makepy. |
+| Writes escape the generated root during the live run | Disproven for the two saved parts. Destinations were `generated/large_armor_*.SLDPRT`. |
+| Generated parts were committed | Disproven. `/generated/` is gitignored. No `.sldprt` added to the committed tree. |
+| Ordinary suite launches SolidWorks | Disproven after remediation. 143 tests, 1 skipped, 0.159 s. |
+| Config tests are hermetic against `SE2CAD_SOLIDWORKS_VISIBLE` | Confirmed leak, then remediated. |
+| IModeler knit is a viable Corner path on this COM binding | Disproven. Server exception on CreatePlanarSurface2 / CreateBodyFromBox3. |
+| All four parts are QUALIFIED | Disproven. Integration still fails on Corner. Two parts are live evidence only. |
+
+Remediated: platform-independent availability tests; generate fail-closed isolation; late-bound attach and constants; `com_get` for CDispatch properties; 23-arg `FeatureExtrusion2`; `SaveAs` / `OpenDoc`; Right-plane slope mapping; config env isolation.
+
+Not remediated: Corner/InvCorner live solids. That remains the QUALIFIED blocker. Choosing a new construction technology (beyond FeatureManager / in-process pywin32 COM) would be an architectural decision and was not taken.
+
+Not claimed: QUALIFIED, assembly generation, or publication of generated parts.
 
 ## Quality/security assessment (S2C-4.2.1 implementation)
 

@@ -7,12 +7,81 @@ from pathlib import Path
 from typing import Any
 
 from se2cad.solidworks.availability import require_solidworks_backend
+from se2cad.solidworks.com_bind import com_get
 from se2cad.solidworks.config import SolidWorksBackendConfig
 from se2cad.solidworks.errors import SolidWorksBackendUnavailableError, SolidWorksComError
+
+# Late-bound CDispatch (SolidWorks 2026 / pywin32 312) cannot run makepy, so
+# win32com.client.constants has no SolidWorks enums. Values below are the
+# published API enumerations; swDefaultTemplatePart=8 was confirmed against
+# a live 34.3.2 session (GetUserPreferenceStringValue → Part.prtdot).
+_FALLBACK_CONSTANTS = {
+    "swDefaultTemplatePart": 8,
+    "swDocPART": 1,
+    "swOpenDocOptions_Silent": 1,
+    "swSaveAsCurrentVersion": 0,
+    "swSaveAsOptions_Silent": 1,
+    "swSolidBody": 0,
+    "swSheetBody": 1,
+    "swEndCondMidPlane": 6,
+    "swEndCondThroughAll": 1,
+    "swStartSketchPlane": 0,
+    "swRefPlaneReferenceConstraint_Coincident": 4,
+    "swCreateFacesBodyActionKnit": 1,
+    "swCreateFeatureBodyCheck": 1,
+    "swCreateFeatureBodySimplify": 2,
+    "SWBODYCUT": 1593,
+}
 
 
 def _wrap_com(exc: BaseException, message: str) -> SolidWorksComError:
     return SolidWorksComError(f"{message}: {exc}")
+
+
+class _SolidWorksConstants:
+    """Typelib constants when makepy exists; otherwise published fallbacks."""
+
+    def __init__(self, generated: Any = None) -> None:
+        self._generated = generated
+
+    def __getattr__(self, name: str) -> int:
+        if self._generated is not None:
+            try:
+                return int(getattr(self._generated, name))
+            except Exception:
+                pass
+        if name in _FALLBACK_CONSTANTS:
+            return _FALLBACK_CONSTANTS[name]
+        raise AttributeError(name)
+
+
+def _solidworks_constants(win32com_client: Any) -> _SolidWorksConstants:
+    return _SolidWorksConstants(getattr(win32com_client, "constants", None))
+
+
+def _attach_sldworks(win32com_client: Any) -> tuple[Any, bool]:
+    """Attach to a local SldWorks.Application.
+
+    Prefer the running instance. Use late-bound Dispatch. Do not require
+    gencache.EnsureDispatch: SolidWorks 2026 GetTypeInfo fails and makepy
+    cannot be automated.
+    """
+    try:
+        app = win32com_client.GetActiveObject("SldWorks.Application")
+        started = False
+    except Exception:
+        app = win32com_client.Dispatch("SldWorks.Application")
+        started = True
+    dynamic = getattr(win32com_client, "dynamic", None)
+    if dynamic is not None and hasattr(dynamic, "Dispatch"):
+        # A local makepy cache can make Dispatch return an early-bound
+        # wrapper. SolidWorks 2026 GetTypeInfo is incomplete; stay late-bound.
+        app = dynamic.Dispatch(app)
+    if app is None:
+        raise SolidWorksBackendUnavailableError(
+            "SldWorks.Application dispatch returned None"
+        )
+    return app, started
 
 
 @dataclass
@@ -46,13 +115,11 @@ class SolidWorksSession:
             raise _wrap_com(exc, "CoInitialize failed") from exc
 
         try:
-            try:
-                win32com.client.GetActiveObject("SldWorks.Application")
-                self.started_application = False
-            except Exception:
-                self.started_application = True
-            self.app = win32com.client.gencache.EnsureDispatch("SldWorks.Application")
-            self.constants = win32com.client.constants
+            self.app, self.started_application = _attach_sldworks(win32com.client)
+            self.constants = _solidworks_constants(win32com.client)
+        except SolidWorksBackendUnavailableError:
+            self._co_uninitialize()
+            raise
         except Exception as exc:
             self._co_uninitialize()
             raise SolidWorksBackendUnavailableError(
@@ -79,7 +146,7 @@ class SolidWorksSession:
 
     def revision(self) -> str:
         try:
-            return str(self.app.RevisionNumber())
+            return str(com_get(self.app, "RevisionNumber"))
         except Exception as exc:
             raise _wrap_com(exc, "RevisionNumber failed") from exc
 
@@ -88,7 +155,7 @@ class SolidWorksSession:
             return str(self.config.part_template)
         try:
             template = self.app.GetUserPreferenceStringValue(
-                self.constants.swDefaultTemplatePart
+                int(self.constants.swDefaultTemplatePart)
             )
         except Exception as exc:
             raise _wrap_com(
@@ -118,21 +185,10 @@ class SolidWorksSession:
         previous = self._title(model)
         path = str(destination)
         try:
-            constants = self.constants
-            version = constants.swSaveAsCurrentVersion
-            options = constants.swSaveAsOptions_Silent
-        except Exception:
-            version = 0
-            options = 1
-        try:
-            import pythoncom
-            import win32com.client
-
-            errors = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
-            warnings = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
-            ok = model.Extension.SaveAs(
-                path, version, options, None, errors, warnings
-            )
+            # IModelDoc2.SaveAs is the live 2026 late-bound path.
+            # Extension.SaveAs rejects Python None for ExportData
+            # (DISP_E_TYPEMISMATCH on argument 4).
+            ok = com_get(model, "SaveAs", path)
         except Exception as exc:
             raise _wrap_com(exc, f"SaveAs failed for {path}") from exc
         if not ok:
@@ -152,11 +208,10 @@ class SolidWorksSession:
 
     def close_doc(self, model: Any) -> None:
         title = self._title(model)
+        if not title:
+            return
         try:
-            if title:
-                self.app.CloseDoc(title)
-            elif hasattr(model, "Close"):
-                model.Close()
+            self.app.CloseDoc(title)
         except Exception as exc:
             raise _wrap_com(exc, f"CloseDoc failed for {title!r}") from exc
         if title in self._open_titles:
@@ -164,21 +219,14 @@ class SolidWorksSession:
 
     def open_part(self, path: Path) -> Any:
         try:
-            import pythoncom
-            import win32com.client
-
-            errors = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
-            warnings = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, 0)
-            model = self.app.OpenDoc6(
+            model = com_get(
+                self.app,
+                "OpenDoc",
                 str(path),
-                self.constants.swDocPART,
-                self.constants.swOpenDocOptions_Silent,
-                "",
-                errors,
-                warnings,
+                int(self.constants.swDocPART),
             )
         except Exception as exc:
-            raise _wrap_com(exc, f"OpenDoc6 failed for {path}") from exc
+            raise _wrap_com(exc, f"OpenDoc failed for {path}") from exc
         if model is None:
             raise SolidWorksComError(f"OpenDoc6 returned None for {path}")
         title = self._title(model)
@@ -188,7 +236,7 @@ class SolidWorksSession:
 
     def get_modeler(self) -> Any:
         try:
-            modeler = self.app.GetModeler()
+            modeler = com_get(self.app, "GetModeler")
         except Exception as exc:
             raise _wrap_com(exc, "GetModeler failed") from exc
         if modeler is None:
@@ -197,9 +245,10 @@ class SolidWorksSession:
 
     def _title(self, model: Any) -> str:
         try:
-            return str(model.GetTitle())
+            value = com_get(model, "GetTitle")
         except Exception:
             return ""
+        return str(value) if value is not None else ""
 
     def close(self) -> None:
         titles = list(self._open_titles)

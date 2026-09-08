@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from se2cad.solidworks.com_bind import com_get
 from se2cad.solidworks.errors import CanonicalPartValidationError, SolidWorksComError
 from se2cad.solidworks.recipe_plan import ConstructionPlan, ExpectedSolid
 from se2cad.solidworks.units import BACKEND_LENGTH_TOLERANCE_M, volume_tolerance_m3
@@ -37,7 +38,7 @@ def _as_tuple6(raw: Any) -> tuple[float, ...]:
 
 def _bodies(part: Any, body_type: int) -> list[Any]:
     try:
-        raw = part.GetBodies2(body_type, False)
+        raw = com_get(part, "GetBodies2", body_type, False)
     except Exception as exc:
         raise SolidWorksComError(f"GetBodies2 failed: {exc}") from exc
     if raw is None:
@@ -81,20 +82,21 @@ def read_part_validation(session: Any, model: Any) -> PartValidation:
         )
 
     try:
-        box = _as_tuple6(model.GetPartBox(True))
+        box = _as_tuple6(com_get(model, "GetPartBox", True))
     except CanonicalPartValidationError:
         raise
     except Exception as exc:
         raise SolidWorksComError(f"GetPartBox failed: {exc}") from exc
 
     try:
-        mass = model.Extension.CreateMassProperty()
+        extension = com_get(model, "Extension")
+        mass = com_get(extension, "CreateMassProperty")
         if mass is None:
             raise CanonicalPartValidationError("CreateMassProperty returned None")
         if hasattr(mass, "UseSystemUnits"):
             mass.UseSystemUnits = True
-        volume = float(mass.Volume)
-        com = mass.CenterOfMass
+        volume = float(com_get(mass, "Volume"))
+        com = com_get(mass, "CenterOfMass")
         if com is None:
             raise CanonicalPartValidationError("CenterOfMass returned None")
         com_xyz = tuple(float(v) for v in com)

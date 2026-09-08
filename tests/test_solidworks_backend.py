@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +12,12 @@ from unittest.mock import patch
 
 from se2cad.catalog import LARGE_GRID_CELL_PITCH_MM
 from se2cad.library import SolidKind, lookup_recipe
+from se2cad.solidworks.com_bind import com_get
+from se2cad.solidworks.com_construct import (
+    _feature_cut_dir_keeps_point,
+    _hypotenuse_and_apex,
+    _yz_profile_to_right_plane_sketch,
+)
 from se2cad.solidworks import (
     GENERATED_ROOT_ENV,
     BoundPartLocator,
@@ -32,6 +39,17 @@ from se2cad.solidworks import (
     solidworks_backend_status,
 )
 from se2cad.solidworks.artifacts import assert_overwrite_is_canonical
+from se2cad.solidworks.com_session import (
+    SolidWorksSession,
+    _FALLBACK_CONSTANTS,
+    _attach_sldworks,
+    _solidworks_constants,
+)
+from se2cad.solidworks.config import (
+    PART_TEMPLATE_ENV,
+    VISIBLE_ENV,
+    SolidWorksBackendConfig,
+)
 from se2cad.solidworks.locator import BoundPartLocator as BoundLocator
 from se2cad.solidworks.recipe_plan import all_canonical_plans
 from se2cad.solidworks.units import recipe_volume_m3
@@ -145,7 +163,8 @@ class ConfigTests(unittest.TestCase):
             env = {
                 key: value
                 for key, value in os.environ.items()
-                if key != GENERATED_ROOT_ENV
+                if key
+                not in {GENERATED_ROOT_ENV, PART_TEMPLATE_ENV, VISIBLE_ENV}
             }
             env["SE2CAD_LOCAL_CONFIG"] = str(local)
             with patch.dict(os.environ, env, clear=True):
@@ -192,18 +211,231 @@ class LocatorBindingTests(unittest.TestCase):
 
 class AvailabilityTests(unittest.TestCase):
     def test_linux_backend_is_unavailable_without_raising_on_status(self) -> None:
+        for pywin32_present in (False, True):
+            with self.subTest(pywin32_present=pywin32_present):
+                with patch("se2cad.solidworks.availability._windows", return_value=False):
+                    with patch(
+                        "se2cad.solidworks.availability._pywin32_present",
+                        return_value=pywin32_present,
+                    ):
+                        status = solidworks_backend_status()
+                        self.assertFalse(status.available)
+                        self.assertFalse(status.windows)
+                        self.assertFalse(solidworks_backend_available())
+                        self.assertIn("Windows", status.reason)
+
+    def test_windows_without_pywin32_is_unavailable(self) -> None:
+        with patch("se2cad.solidworks.availability._windows", return_value=True):
+            with patch("se2cad.solidworks.availability._pywin32_present", return_value=False):
+                status = solidworks_backend_status()
+                self.assertFalse(status.available)
+                self.assertTrue(status.windows)
+                self.assertFalse(status.python_com_modules)
+                self.assertFalse(solidworks_backend_available())
+                self.assertIn("pywin32", status.reason)
+
+    def test_windows_with_pywin32_is_available_without_opening_solidworks(self) -> None:
+        with patch("se2cad.solidworks.availability._windows", return_value=True):
+            with patch("se2cad.solidworks.availability._pywin32_present", return_value=True):
+                status = solidworks_backend_status()
+                self.assertTrue(status.available)
+                self.assertTrue(status.windows)
+                self.assertTrue(status.python_com_modules)
+                self.assertTrue(solidworks_backend_available())
+                self.assertIn("not opened", status.reason)
+
+    def test_live_status_matches_process_predicates_without_raising(self) -> None:
         status = solidworks_backend_status()
-        self.assertFalse(status.available)
-        self.assertFalse(solidworks_backend_available())
-        self.assertIn("Windows", status.reason)
+        self.assertEqual(status.windows, sys.platform == "win32")
+        self.assertEqual(
+            status.available,
+            status.windows and status.python_com_modules,
+        )
+        self.assertEqual(solidworks_backend_available(), status.available)
 
     def test_generate_fails_closed_when_backend_is_unavailable(self) -> None:
         from se2cad.solidworks import generate_canonical_parts
 
         with tempfile.TemporaryDirectory() as tmp:
             with patch.dict(os.environ, {GENERATED_ROOT_ENV: tmp}):
-                with self.assertRaises(SolidWorksBackendUnavailableError):
-                    generate_canonical_parts()
+                with patch("se2cad.solidworks.availability._windows", return_value=False):
+                    with self.assertRaises(SolidWorksBackendUnavailableError):
+                        generate_canonical_parts()
+
+
+class SessionAttachTests(unittest.TestCase):
+    def test_attach_uses_running_instance_without_ensuredispatch(self) -> None:
+        class FakeClient:
+            @staticmethod
+            def GetActiveObject(progid: str) -> str:
+                if progid != "SldWorks.Application":
+                    raise AssertionError(progid)
+                return "ACTIVE"
+
+            @staticmethod
+            def Dispatch(progid: str) -> str:
+                raise AssertionError("Dispatch must not run when a session is active")
+
+        app, started = _attach_sldworks(FakeClient())
+        self.assertEqual(app, "ACTIVE")
+        self.assertFalse(started)
+
+    def test_attach_dispatches_when_no_running_instance(self) -> None:
+        class FakeClient:
+            @staticmethod
+            def GetActiveObject(progid: str) -> str:
+                raise RuntimeError("no ROT entry")
+
+            @staticmethod
+            def Dispatch(progid: str) -> str:
+                if progid != "SldWorks.Application":
+                    raise AssertionError(progid)
+                return "STARTED"
+
+        app, started = _attach_sldworks(FakeClient())
+        self.assertEqual(app, "STARTED")
+        self.assertTrue(started)
+
+    def test_attach_does_not_require_gencache_ensuredispatch(self) -> None:
+        class FakeClient:
+            @staticmethod
+            def GetActiveObject(progid: str) -> str:
+                return "ACTIVE"
+
+            class gencache:
+                @staticmethod
+                def EnsureDispatch(obj: object) -> object:
+                    raise TypeError("makepy cannot run")
+
+        app, started = _attach_sldworks(FakeClient())
+        self.assertEqual(app, "ACTIVE")
+        self.assertFalse(started)
+
+    def test_constants_fall_back_when_typelib_is_unavailable(self) -> None:
+        class Empty:
+            class constants:
+                pass
+
+        constants = _solidworks_constants(Empty())
+        self.assertEqual(constants.swDefaultTemplatePart, 8)
+        self.assertEqual(constants.swDocPART, 1)
+        self.assertEqual(constants.swOpenDocOptions_Silent, 1)
+        self.assertEqual(constants.swSaveAsCurrentVersion, 0)
+        self.assertEqual(constants.swSaveAsOptions_Silent, 1)
+        self.assertEqual(constants.swSolidBody, _FALLBACK_CONSTANTS["swSolidBody"])
+        self.assertEqual(constants.swEndCondThroughAll, 1)
+        self.assertEqual(constants.swStartSketchPlane, 0)
+        self.assertEqual(constants.swRefPlaneReferenceConstraint_Coincident, 4)
+        with self.assertRaises(AttributeError):
+            getattr(constants, "swNotARealEnum")
+
+    def test_generated_constants_win_over_fallbacks(self) -> None:
+        class Generated:
+            swDocPART = 99
+
+        class Client:
+            constants = Generated()
+
+        constants = _solidworks_constants(Client())
+        self.assertEqual(constants.swDocPART, 99)
+        self.assertEqual(constants.swDefaultTemplatePart, 8)
+
+    def test_com_get_reads_property_without_calling_cdispatch(self) -> None:
+        class FakeDispatch:
+            _oleobj_ = object()
+
+            def __call__(self) -> None:
+                raise OSError(-2147352573, "Member not found.")
+
+        feature = FakeDispatch()
+        model = type("Model", (), {"FirstFeature": feature})()
+        self.assertIs(com_get(model, "FirstFeature"), feature)
+
+    def test_com_get_calls_zero_argument_methods(self) -> None:
+        model = type("Model", (), {"GetTitle": lambda self: "Part1"})()
+        self.assertEqual(com_get(model, "GetTitle"), "Part1")
+
+    def test_revision_accepts_property_or_method(self) -> None:
+        session = SolidWorksSession(
+            config=SolidWorksBackendConfig(
+                generated_root=Path("."),
+                part_template=None,
+                visible=False,
+                source="test",
+            )
+        )
+        session.app = type("App", (), {"RevisionNumber": "34.3.2"})()
+        self.assertEqual(session.revision(), "34.3.2")
+        session.app = type("App", (), {"RevisionNumber": lambda self: "34.0.0"})()
+        self.assertEqual(session.revision(), "34.0.0")
+
+
+class RightPlaneSketchMappingTests(unittest.TestCase):
+    def test_yz_profile_maps_to_live_right_plane_sketch_axes(self) -> None:
+        self.assertEqual(_yz_profile_to_right_plane_sketch(0.2, 0.1), (-0.1, 0.2, 0.0))
+        self.assertEqual(_yz_profile_to_right_plane_sketch(-1.25, 1.25), (-1.25, -1.25, 0.0))
+        self.assertEqual(_yz_profile_to_right_plane_sketch(1.25, -1.25), (1.25, 1.25, 0.0))
+
+
+class ConstructionSignatureTests(unittest.TestCase):
+    def test_feature_extrusion2_uses_live_2026_arity(self) -> None:
+        import ast
+
+        path = (
+            Path(__file__).resolve().parents[1]
+            / "src"
+            / "se2cad"
+            / "solidworks"
+            / "com_construct.py"
+        )
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "FeatureExtrusion2"
+            ):
+                self.assertEqual(len(node.args), 23)
+                return
+        self.fail("FeatureExtrusion2 call not found")
+
+    def test_feature_cut4_uses_live_2026_arity(self) -> None:
+        import ast
+
+        path = (
+            Path(__file__).resolve().parents[1]
+            / "src"
+            / "se2cad"
+            / "solidworks"
+            / "com_construct.py"
+        )
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "FeatureCut4"
+            ):
+                self.assertEqual(len(node.args), 27)
+                return
+        self.fail("FeatureCut4 call not found")
+
+    def test_hypotenuse_cut_consumes_qualified_recipe_face(self) -> None:
+        corner = plan_from_recipe(lookup_recipe("large_armor_corner"))
+        assert corner.tetrahedron is not None
+        hypotenuse, apex = _hypotenuse_and_apex(corner.tetrahedron)
+        self.assertEqual(hypotenuse, lookup_recipe("large_armor_corner").faces[-1])
+        self.assertEqual(hypotenuse, (0, 2, 3))
+        self.assertEqual(apex, 1)
+        p0, p1, p2 = (corner.tetrahedron.vertices_m[i] for i in hypotenuse)
+        keep = corner.tetrahedron.vertices_m[apex]
+        self.assertTrue(_feature_cut_dir_keeps_point(p0, p1, p2, keep))
+        inv = plan_from_recipe(lookup_recipe("large_armor_corner_inv"))
+        assert inv.box_minus_tetrahedron is not None
+        self.assertEqual(
+            inv.box_minus_tetrahedron.cut.faces[-1],
+            hypotenuse,
+        )
 
 
 class RecipePlanTests(unittest.TestCase):

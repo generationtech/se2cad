@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "src" / "se2cad"
@@ -76,11 +77,16 @@ class NeutralityTests(unittest.TestCase):
     def test_solidworks_package_imports_without_pywin32(self) -> None:
         import se2cad.solidworks as sw
 
-        self.assertFalse(sw.solidworks_backend_available())
         self.assertEqual(
             sw.logical_part_filename("large_armor_block"),
             "large_armor_block.SLDPRT",
         )
+        with patch("se2cad.solidworks.availability._windows", return_value=True):
+            with patch("se2cad.solidworks.availability._pywin32_present", return_value=False):
+                self.assertFalse(sw.solidworks_backend_available())
+                status = sw.solidworks_backend_status()
+                self.assertFalse(status.available)
+                self.assertIn("pywin32", status.reason)
 
     def test_authoritative_catalog_has_no_machine_paths(self) -> None:
         catalog = (SRC / "catalog" / "large_grid_armor.json").read_text(encoding="utf-8")
