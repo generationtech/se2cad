@@ -2,7 +2,8 @@
 
 S2C-1.2.1 exposes the blueprint parser. S2C-2.1.1 exposes the definition
 catalog. S2C-3.1.1 exposes the CAD-neutral IR and placement transforms.
-CAD backends are later units.
+S2C-4.1.1 exposes the canonical block-library recipes. CAD backends are
+later units.
 """
 
 from se2cad.catalog import (
@@ -23,6 +24,19 @@ from se2cad.ir import (
     CanonicalBlueprint,
     CanonicalGrid,
     build_canonical_blueprint,
+)
+from se2cad.library import (
+    CANONICAL_CELL_ENVELOPE,
+    CANONICAL_LOCAL_FRAME,
+    LibraryError,
+    LibraryRecord,
+    NativeSolidRecipe,
+    SolidKind,
+    UnknownGeometryError,
+    all_library_records,
+    cell_half_extent_mm,
+    lookup_recipe,
+    lookup_record,
 )
 from se2cad.parser import (
     BlueprintParseError,
@@ -54,6 +68,8 @@ from se2cad.transform import (
 )
 
 __all__ = [
+    "CANONICAL_CELL_ENVELOPE",
+    "CANONICAL_LOCAL_FRAME",
     "IDENTITY_ROTATION",
     "LARGE_GRID_CELL_PITCH_MM",
     "SE_DIRECTION_VECTORS",
@@ -71,25 +87,34 @@ __all__ = [
     "GridSize",
     "InvalidFieldError",
     "InvalidOrientationError",
+    "LibraryError",
+    "LibraryRecord",
     "MalformedXmlError",
     "MillimetrePosition",
     "MissingRequiredFieldError",
+    "NativeSolidRecipe",
     "ObservedDefinition",
     "ParsedBlock",
     "ParsedBlueprint",
     "ParsedGrid",
     "RecipeKind",
     "RotationMatrix",
+    "SolidKind",
     "SupportStatus",
     "TransformError",
+    "UnknownGeometryError",
     "UnknownSubtypeError",
     "UnsupportedBlueprintError",
+    "all_library_records",
     "build_canonical_blueprint",
     "cell_center_mm",
+    "cell_half_extent_mm",
     "direction_vector",
     "is_valid_orientation",
     "legal_orientations",
     "load_default_catalog",
+    "lookup_recipe",
+    "lookup_record",
     "parse_blueprint",
     "parse_blueprint_xml",
     "rotation_from_forward_up",

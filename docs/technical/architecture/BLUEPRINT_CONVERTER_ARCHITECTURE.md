@@ -122,7 +122,7 @@ SE2CAD stores a 3×3 orthonormal **integer** rotation `R` and a millimetre trans
 
 A homogeneous 4×4 is not required for this discrete placement: `(R, t)` is the rigid transform a later CAD backend applies.
 
-Deferred to the block-library / SolidWorks units: solid recipes, part documents, insertion API, and any backend-specific matrix packing. Those units must consume this contract rather than invent a second frame.
+Solid recipes and the library-side record that agrees with this frame: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md). Deferred to later units: part documents, insertion API, and any backend-specific matrix packing. Those units must consume this contract rather than invent a second frame.
 
 ## SolidWorks backend
 

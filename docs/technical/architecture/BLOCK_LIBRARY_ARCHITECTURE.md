@@ -24,7 +24,7 @@ How a part was authored (native features, later optional mesh prep, or hand mode
 
 ## Record
 
-A conceptual library record should eventually be able to express:
+The initial-program library record (`se2cad.library.LibraryRecord`) expresses:
 
 | Field | Purpose |
 | --- | --- |
@@ -32,8 +32,9 @@ A conceptual library record should eventually be able to express:
 | Grid size | Large Grid for the initial program |
 | Geometry strategy | How the part is produced |
 | Reference frame | Origin and axes the transform engine assumes |
-| Placement semantics | Any additional insert rules the backend needs |
-| Part locator | How to obtain the reusable CAD part |
+| Placement semantics | Insert at cell center; no extra offset |
+| Native solid recipe | Exact constructive geometry for later CAD authoring |
+| Part locator | Unbound until a later unit produces CAD documents |
 
 Strategy vocabulary (not an implementation checklist):
 
@@ -59,9 +60,52 @@ Space Engineers definitions include materially different geometry classes.
 
 ## Reference frames
 
-The transform engine and the library must share one origin/axis contract. The converter-side frame, axes, units, origin, handedness, and rotation construction are recorded in [BLUEPRINT_CONVERTER_ARCHITECTURE.md](BLUEPRINT_CONVERTER_ARCHITECTURE.md). S2C-4.1.1 writes the library-side record so it agrees with that contract. Do not invent a second frame inside the SolidWorks backend.
+The transform engine and the library share one origin/axis contract. The converter-side frame, axes, units, origin, handedness, and rotation construction are recorded in [BLUEPRINT_CONVERTER_ARCHITECTURE.md](BLUEPRINT_CONVERTER_ARCHITECTURE.md). This document does not define a second frame.
+
+Public library frame: `se2cad.library.CANONICAL_LOCAL_FRAME`. It reads the qualified S2C-3.1.1 axes from `SE_DIRECTION_VECTORS` and the pitch from `LARGE_GRID_CELL_PITCH_MM`.
+
+| Canonical local axis | Meaning |
+| --- | --- |
+| +X | block Right |
+| +Y | block Up |
+| +Z | block Backward (local −Z is block Forward) |
+
+The local origin is the 1×1×1 cell center. Units are millimetres. The cell envelope is the axis-aligned box from `−half` to `+half` on each axis, where `half = LARGE_GRID_CELL_PITCH_MM / 2`. Identity Forward/Up is the identity rotation.
+
+Invariant used by later CAD insertion:
+
+```
+canonical solid authored in this local frame
+    +
+S2C-3.1.1 instance transform (R, t)
+    =
+correctly placed/oriented block geometry
+```
+
+Do not add a half-cell offset at insert time. Do not invent a second frame inside the SolidWorks backend.
 
 Large Grid cell pitch is 2500 mm, consumed from the single named constant established with the catalog (S2C-2.1.1).
+
+## Native armor recipes
+
+Public entrypoints: `se2cad.library.lookup_recipe`, `se2cad.library.lookup_record`, and `se2cad.library.all_library_records`.
+
+Lookup is an exact, case-sensitive match of the catalog `geometry_id`. Unknown identities fail closed. Each of the four initial catalog geometry IDs resolves to exactly one `native_procedural` recipe. Part locators are unbound until a later unit produces CAD documents.
+
+Recipes are SE2CAD constructive solids. Vertex signs are the cell-local ±1 cube corners from Keen `MyCubeGridDefinitions` topology edge tables for `Box`, `Slope`, `Corner`, and `InvCorner`. Those signs are Space Engineers topology facts. Scaling them by the catalog half-extent, and the construction vocabulary below, are SE2CAD engineering choices.
+
+| geometry_id | Observed `CubeTopology` | Solid kind | Identity convention |
+| --- | --- | --- | --- |
+| `large_armor_block` | `Box` | axis-aligned box of the cell envelope | all six faces full |
+| `large_armor_slope` | `Slope` | right triangular prism, YZ triangle extruded along X | full faces on Forward and Down; solid is `Y + Z <= 0` |
+| `large_armor_corner` | `Corner` | tetrahedron | Right-Down-Forward cube corner; orthogonal triangles on Right, Down, Forward |
+| `large_armor_corner_inv` | `InvCorner` | cell box minus that same tetrahedron | full faces on Up, Left, Backward; missing cube corner is Right-Down-Forward |
+
+All four solids have the same expected bounding box as the cell envelope. That does not make them the same solid: vertex sets, face counts, volumes, and construction kinds remain distinct.
+
+Deterministic validation properties stored on each recipe: vertex count, face count, outward-wound `volume_times_6_mm3`, and the exact integer bounding box. Faces are sufficient for later solid construction together with the construction kind.
+
+Placement semantics for these 1×1×1 parts: insert at the cell center with no additional offset. The IR transform is the only placement.
 
 ## Asset boundary
 

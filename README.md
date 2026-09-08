@@ -12,9 +12,9 @@ SolidWorks is the initial CAD backend (SLDASM). The architecture keeps parsing, 
 
 ## Current status
 
-The repository currently contains program definition, architecture, engineering governance, a single-grid Large Grid blueprint parser, a definition catalog for the four initial Large Grid armor subtypes, a CAD-neutral intermediate representation, and an exact placement transform engine.
+The repository currently contains program definition, architecture, engineering governance, a single-grid Large Grid blueprint parser, a definition catalog for the four initial Large Grid armor subtypes, a CAD-neutral intermediate representation, an exact placement transform engine, and native-procedural recipes for the four Large Grid armor solids.
 
-Blueprint conversion to CAD is **not implemented**. There is no block library or SolidWorks exporter in this tree yet.
+Blueprint conversion to CAD is **not implemented**. There is no SolidWorks exporter or canonical `.SLDPRT` set in this tree yet.
 
 The first executable program is a vertical slice: one Large Grid, one grid, and four armor subtypes (`LargeBlockArmorBlock`, `LargeBlockArmorSlope`, `LargeBlockArmorCorner`, `LargeBlockArmorCornerInv`) placed from a user-authored asymmetric blueprint fixture using reusable native CAD parts.
 

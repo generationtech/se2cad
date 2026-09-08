@@ -9,15 +9,15 @@ Unit definitions (no live status): [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 Initial program: four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
 
-The program is not complete. A single-grid Large Grid blueprint parser, a four-entry Large Grid armor catalog, a CAD-neutral IR, and an exact placement transform engine exist. No block library or SolidWorks backend exists in the tree.
+The program is not complete. A single-grid Large Grid blueprint parser, a four-entry Large Grid armor catalog, a CAD-neutral IR, an exact placement transform engine, and native-procedural recipes for the four Large Grid armor solids exist. No SolidWorks backend or canonical `.SLDPRT` set exists in the tree.
 
 Public capability text in [README.md](../../../README.md) matches this: CAD conversion is not implemented.
 
 ## Next executable unit
 
-**S2C-4.1.1 — Library contract, reference frames, and native armor recipes**
+**S2C-4.2.1 — Produce reusable SolidWorks canonical parts**
 
-Information only. Do not start it in the same session that completed S2C-3.1.1.
+Information only. Do not start it in the same session that completed S2C-4.1.1.
 
 ## Unit status
 
@@ -28,7 +28,7 @@ Information only. Do not start it in the same session that completed S2C-3.1.1.
 | S2C-1.2.1 | QUALIFIED | Python parser and tests exist; qualified acceptance fixture extracts expected subtype/position/orientation values; unsafe and unsupported XML is rejected; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
 | S2C-2.1.1 | QUALIFIED | Packaged JSON catalog and loader exist; four Large Grid armor subtypes resolve to distinct SE2CAD geometry IDs; unknown/malformed/duplicate catalog data fails closed; acceptance fixture 24 blocks resolve; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
 | S2C-3.1.1 | QUALIFIED | CAD-neutral IR and integer transform engine exist; 24 fixture blocks convert through parser+catalog; all 24 legal Forward/Up orientations are unique right-handed integer rotations; invalid pairs fail closed; distinct assessment recorded below; no verified findings requiring remediation after test-scan false positives were corrected. External validation was not required. |
-| S2C-4.1.1 | PLANNED | Not started. |
+| S2C-4.1.1 | QUALIFIED | Library records and four native-procedural recipes exist; catalog geometry IDs resolve 1:1; recipes consume the qualified S2C-3.1.1 frame and `LARGE_GRID_CELL_PITCH_MM`; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
 | S2C-4.2.1 | PLANNED | Not started. |
 | S2C-5.1.1 | PLANNED | Not started. |
 | S2C-6.1.1 | PLANNED | Not started. |
@@ -91,6 +91,16 @@ Implemented a CAD-neutral IR (`src/se2cad/ir/`) and a separate integer transform
 Space Engineers direction vectors, handedness, Forward/Up construction, and Min-to-cell-center mapping were established from current local assemblies before the mapping was implemented. Details are under “S2C-3.1.1 coordinate evidence” below. The durable contract is in [BLUEPRINT_CONVERTER_ARCHITECTURE.md](../architecture/BLUEPRINT_CONVERTER_ARCHITECTURE.md).
 
 Verification: `PYTHONPATH=src python3 -m unittest discover -s tests -v` — 85 tests, OK. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` was unchanged before and after this unit. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or game-content trees were added. Parser modules under `src/se2cad/parser/` and catalog data under `src/se2cad/catalog/` were not modified. No SolidWorks, geometry-solid, or library-storage code.
+
+### 2026-09-07 — S2C-4.1.1
+
+Executed the next unit named by STATE. Did not start S2C-4.2.1. Did not commit, tag, push, or release. Did not decide where generated canonical SLDPRT documents will live.
+
+Implemented `src/se2cad/library/`: shared canonical local frame, library records, and four native-procedural recipes. Public entrypoints: `lookup_recipe`, `lookup_record`, `all_library_records`, `CANONICAL_LOCAL_FRAME`. The library consumes `SE_DIRECTION_VECTORS` and `LARGE_GRID_CELL_PITCH_MM`; it does not define a second coordinate system. Part locators remain unbound.
+
+The durable library-side contract is in [BLOCK_LIBRARY_ARCHITECTURE.md](../architecture/BLOCK_LIBRARY_ARCHITECTURE.md). Geometry evidence is under “S2C-4.1.1 geometry evidence” below.
+
+Verification: `PYTHONPATH=src python3 -m unittest discover -s tests -v` — 103 tests, OK after remediation. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` was unchanged before and after this unit. No `.mwm`, `.fbx`, `.dds`, `.hkt`, `.sldprt`, or game-content trees were added. Parser modules under `src/se2cad/parser/`, catalog data under `src/se2cad/catalog/`, IR under `src/se2cad/ir/`, and transforms under `src/se2cad/transform/` were not modified.
 
 ## Resolved technology selections
 
@@ -231,6 +241,59 @@ Acceptance fixture resolution: all 24 parsed blocks resolve. Geometry-ID counts 
 No axis or handedness question remained unresolved. No human-architect convention confirmation was required.
 
 Acceptance fixture IR: 24 instances. Geometry-ID counts match catalog resolution. Representative positions: `(0,0,0)→(0,0,0)`, `(1,0,0)→(2500,0,0)`, `(0,0,1)→(0,0,2500)`, `(0,0,-1)→(0,0,-2500)`, `(5,2,-2)→(12500,5000,-5000)` mm.
+
+## S2C-4.1.1 geometry evidence
+
+**Observed Space Engineers facts** (topology tokens and constructive vertex signs). Distinct from SE2CAD construction vocabulary.
+
+This session could not re-open a local Space Engineers install. Steam `libraryfolders.vdf` on this machine lists no apps; `CubeBlocks_Armor.sbc` and `Sandbox.Game.dll` were not present. Subtype → `CubeTopology` tokens therefore rest on the QUALIFIED S2C-2.1.1 local-definition record (install root `/home/ken/.local/share/Steam/steamapps/common/SpaceEngineers`, Steam appid `244850`, buildid `24675677`, `Content/Data/CubeBlocks/CubeBlocks_Armor.sbc` mtime 2026-09-05): `Box`, `Slope`, `Corner`, `InvCorner`; all 1×1×1; `BlockTopology` `Cube`.
+
+Solid vertex signs come from Keen published `MyCubeGridDefinitions` topology edge tables (`GetTopologyInfo`), not from extracted FBX/MWM meshes:
+
+- Keen `MyCubeTopology` enum order is `Box`, `Slope`, `Corner`, `InvCorner`, then later shapes. `GetTopologyInfo` indexes `m_tileTable[(int)topology]`.
+- Current official wiki and Keen ModAPI still list those four tokens and still export `GetTopologyInfo`.
+- Edge points are cell-local ±1 cube corners about the cell center. Axes match the qualified SE frame: +X Right, +Y Up, +Z Backward.
+- **Box:** eight corners; six full faces.
+- **Slope:** six vertices; full faces Forward and Down; sloped quad from the Forward-Up edge `(*, +1, -1)` to the Backward-Down edge `(*, -1, +1)`; identity solid `Y + Z <= 0` in those signs.
+- **Corner:** tetrahedron of `(+1,+1,-1)`, `(+1,-1,-1)`, `(-1,-1,-1)`, `(+1,-1,+1)`; right-angle cube corner is Right-Down-Forward `(+1,-1,-1)`; orthogonal triangles on Right, Down, Forward.
+- **InvCorner:** the other seven cube corners; full faces Up, Left, Backward; missing cube corner is the same Right-Down-Forward vertex; constructive complement of Corner.
+
+Internet / published-source corroboration (not a substitute for the topology tables): official CubeBlock definition wiki (`CubeTopology` tokens; Side list is a texture-panel order, not the solid); Keen ModAPI `MyCubeGridDefinitions.GetTopologyInfo`.
+
+**SE2CAD engineering choices** (not Keen facts):
+
+- Scale topology signs by `LARGE_GRID_CELL_PITCH_MM / 2` so vertices are integer millimetres in the qualified canonical local frame.
+- Construction kinds: axis-aligned box; YZ right triangle extruded along X; tetrahedron; box minus that tetrahedron.
+- Shared expected AABB is the cell envelope `[-half, +half]³`. Distinction is vertex set, volume, and construction kind, not a smaller AABB.
+- `volume_times_6_mm3` as the exact integer closed-mesh volume. For half-extent `h`: Box `48 h³`, Slope `24 h³`, Corner `8 h³`, InvCorner `40 h³`.
+- Part locator unbound. No extra insert offset.
+
+No Corner/InvCorner evidence gap required a stop. The shapes are CubeTopology constructive tables, not proprietary mesh extracts.
+
+## Quality/security assessment (S2C-4.1.1)
+
+Hypotheses tested and outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Library defines a competing coordinate system | Disproven. `CANONICAL_LOCAL_FRAME` copies `SE_DIRECTION_VECTORS` Right/Up/Backward and `LARGE_GRID_CELL_PITCH_MM`. Origin is cell center. Tests require identity Forward/Up to leave vertices unchanged and a known S2C-3.1.1 rotation to map the Corner right-angle vertex with no extra translation. |
+| Axis or sign error in identity Slope/Corner/InvCorner | Disproven against Keen topology edge signs. Slope vertices satisfy `Y+Z <= 0` and omit the Up-Backward cube corners. Corner is the Right-Down-Forward tetrahedron. InvCorner is the cube minus that vertex. |
+| A shape that merely resembles SE armor was accepted | Disproven. Recipes are the topology-table solids (vertex signs + construction), not visual approximations. |
+| Corner/InvCorner required extracted Keen mesh | Disproven. Both are finite CubeTopology edge tables. No FBX/MWM/mesh data was imported. |
+| Bounding-box equality collapses the four solids | Disproven. All four share the cell AABB; vertex sets, face counts, `volume_times_6_mm3`, and `SolidKind` remain distinct. Corner ∪ InvCorner reconstructs the cube volume. |
+| Recipes are insufficient for later deterministic construction | Disproven. Each record carries `solid_kind`, exact millimetre vertices, outward faces, and a construction spec (box / YZ prism / tetrahedron / box-minus-tetrahedron). InvCorner reuses the Corner tetrahedron. |
+| Pitch or half-extent literals were copied | Disproven. Library source has no `2500` or `1250`. Half-extent is `LARGE_GRID_CELL_PITCH_MM // 2`. |
+| Game-install or CAD backend dependency | Disproven. Library imports are stdlib plus catalog constants/model, parser `Direction` tokens, and transform direction vectors. No SolidWorks, COM, Blender, subprocess, SQLite, Steam, or asset paths. Tests pass without a game install. |
+| Proprietary assets or machine paths were committed | Disproven. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or `.sldprt` added. Fixture SHA-256 unchanged. |
+| Unknown geometry IDs are aliased or folded | Disproven. Lookup is exact `geometry_id` equality. Tests reject subtype strings, case variants, and padding. |
+| Parser/catalog/IR/transform were modified or S2C-4.2.1 started | Disproven. Those trees were not modified. No COM, SLDPRT production, mates, or print-prep. SLDPRT location remains an open question. |
+| Unrelated refactoring | Disproven. Changes are the library package, package exports, library architecture contract, README capability text, tests, and this state file. |
+
+Remediated: first face-winding set produced a negative closed-mesh volume (inward cube faces). Faces were corrected so `volume_times_6_mm3` is positive and matches the exact Box/Slope/Corner/InvCorner volumes. A transform-invariant regression test was added. Tests re-run after remediation: 103 OK.
+
+Accepted residual risk: this session could not re-inspect current `Sandbox.Game.dll` topology tables because no local Space Engineers install was present. The first four `MyCubeTopology` entries and their edge tables have been stable since the published Keen source; changing them would break existing worlds. A later backend must apply the S2C-3.1.1 column-vector transform to these local solids and must not invent a second frame. `LibraryRecord` can be constructed directly; the conversion path looks up by catalog `geometry_id`.
+
+Not claimed: SolidWorks part production, in-game visual re-check, or that native recipes settle copyright/redistribution status of later CAD documents ([ADR-004](../adr/ADR-004_THIRD_PARTY_ASSET_BOUNDARY.md)).
 
 ## Quality/security assessment (S2C-3.1.1)
 
