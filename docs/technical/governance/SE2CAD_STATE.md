@@ -9,17 +9,15 @@ Unit definitions (no live status): [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 Initial program: four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
 
-The program is not complete. No converter, catalog, IR, block library, or SolidWorks backend exists in the tree.
+The program is not complete. A single-grid Large Grid blueprint parser exists. No catalog, IR, transform engine, block library, or SolidWorks backend exists in the tree.
 
 Public capability text in [README.md](../../../README.md) matches this: conversion is not implemented.
 
 ## Next executable unit
 
-**S2C-1.2.1 — Safe single-grid blueprint parser**
+**S2C-2.1.1 — Catalog for the four Large Grid armor types**
 
-Information only. Do not start it in the same session that completed S2C-1.1.1.
-
-Implementation language remains an open human technology-selection decision. S2C-1.2.1 must stop and ask if the human has not confirmed a language.
+Information only. Do not start it in the same session that completed S2C-1.2.1.
 
 ## Unit status
 
@@ -27,7 +25,7 @@ Implementation language remains an open human technology-selection decision. S2C
 | --- | --- | --- |
 | S2C-0.1.1 | QUALIFIED | Bootstrap documents and rules exist; local links resolve; plan has no live status; no M1+ implementation; no proprietary game/SDK assets; distinct assessment recorded below; findings remediated. External validation was not required. |
 | S2C-1.1.1 | QUALIFIED | Operator-supplied `bp.sbc` registered unmodified at the specified path; `PROVENANCE.md` present; deterministic inspection recorded below; human architect confirmed this is the intended `se2cad-test1` object; distinct assessment recorded below; no verified findings requiring remediation. |
-| S2C-1.2.1 | PLANNED | Not started. |
+| S2C-1.2.1 | QUALIFIED | Python parser and tests exist; qualified acceptance fixture extracts expected subtype/position/orientation values; unsafe and unsupported XML is rejected; distinct assessment recorded below; findings remediated and tests re-run. External validation was not required. |
 | S2C-2.1.1 | PLANNED | Not started. |
 | S2C-3.1.1 | PLANNED | Not started. |
 | S2C-4.1.1 | PLANNED | Not started. |
@@ -64,11 +62,28 @@ Created `fixtures/acceptance/four-block-armor-asymmetric/PROVENANCE.md` from ope
 
 Verification: SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` (8967 bytes, UTF-8, CRLF) was unchanged after inspection and after writing provenance and this state file. Inspection notes are below. No application modules were added under `src/`, `tests/`, or `tools/`. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or game-content trees were added.
 
+### 2026-09-07 — S2C-1.2.1
+
+Executed the next unit named by STATE. The human architect explicitly selected Python as the implementation language; that selection is recorded in this file only.
+
+Implemented a stdlib `xml.etree.ElementTree` parser that reads an operator-selected `bp.sbc` path and returns a CAD-neutral parsed representation. No CLI. No catalog, IR, transforms, or SolidWorks code.
+
+Omitted-field defaults were established from local Space Engineers evidence plus published Keen/source corroboration before they were implemented. Details are under “S2C-1.2.1 omitted-field semantics” below.
+
+Verification: `PYTHONPATH=src python3 -m unittest discover -s tests -v` — 32 tests, OK. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` was unchanged before and after this unit. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or game-content trees were added. Did not commit, tag, push, or release. Did not start S2C-2.1.1.
+
+## Resolved technology selections
+
+These are human-architect technology selections recorded as live decisions. They are not architectural ADRs and were not invented as a new planning artifact.
+
+| Decision | Resolution | Recorded |
+| --- | --- | --- |
+| Implementation language | Python | S2C-1.2.1. Confirmed by the human architect for this unit. |
+
 ## Open questions
 
 These are not invitations to decide them inside an unrelated unit.
 
-- Implementation language (human technology selection). The repository template is Python-oriented. S2C-1.2.1 must stop and ask if the human has not confirmed a language.
 - CLI / entrypoint shape.
 - Whether canonical SLDPRT documents live in-tree or in a generated local cache.
 - How users configure SolidWorks, and optionally a local game or SDK install path, when a unit needs that.
@@ -96,6 +111,73 @@ Ad-hoc read-only inspection of `fixtures/acceptance/four-block-armor-asymmetric/
 | Small Grid / subgrids / functional-mechanical | No `GridSizeEnum` = Small. No second grid. Document `xsi:type` set is only `MyObjectBuilder_ShipBlueprintDefinition` and `MyObjectBuilder_CubeBlock`. Keyword scan for common functional/mechanical names: no hits. |
 
 Omitted `Min` / `BlockOrientation` are recorded as omitted. Inspection did not invent default Forward/Up names for omitted orientation.
+
+## S2C-1.2.1 parser evidence
+
+Product parser: `src/se2cad/parser/`. Public entrypoints `parse_blueprint(path)` and `parse_blueprint_xml(text)`.
+
+Observed output for `fixtures/acceptance/four-block-armor-asymmetric/bp.sbc`:
+
+| Check | Result |
+| --- | --- |
+| SHA-256 before / after | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` / unchanged |
+| GridSizeEnum | Large |
+| CubeGrid count | 1 |
+| Block count | 24, document order preserved, no drops |
+| Subtype counts | `LargeBlockArmorBlock` 9, `LargeBlockArmorSlope` 12, `LargeBlockArmorCorner` 2, `LargeBlockArmorCornerInv` 1 |
+| Positions | 24 unique. One omitted `Min` applied as (0, 0, 0). Range x 0..5, y 0..2, z -2..1 |
+| Orientations | 15 omitted `BlockOrientation` applied as Forward/Up. Explicit pairs: Down/Forward 5, Down/Right 1, Forward/Right 1, Down/Left 1, Backward/Down 1 |
+| Identity | ShipBlueprint Id Subtype `se2cad-test1`; CubeGrid DisplayName `se2cad-test1`; ShipBlueprint DisplayName preserved as U+E030 + `Kolyma` |
+
+These counts live in tests as fixture expectations, not as parser constants.
+
+## S2C-1.2.1 omitted-field semantics
+
+**Omitted `Min`** means grid coordinate `(0, 0, 0)`. The parser still records `min_serialized=False` so later validation can distinguish omission from an explicit origin.
+
+**Omitted `BlockOrientation`** means `Forward` / `Up` (`SerializableBlockOrientation.Identity`). The parser records `orientation_serialized=False`.
+
+Local Space Engineers evidence:
+
+- Operator-local `Blueprints/local/se2cad-test1/bp.sbc` is byte-identical to the qualified fixture (same SHA-256). The first cube block omits `Min` and sits beside explicit `Min` values `(1,0,0)` … `(4,0,0)` and `(0,0,1)`.
+- Current local `SpaceEngineers/Bin64/VRage.Game.dll` still exports `ShouldSerializeMin` and `ShouldSerializeBlockOrientation`.
+- Current local `VRage.Math.xml` documents `Base6Directions.Direction` as Forward, Backward, Left, Right, Up, Down and axes ForwardBackward / LeftRight / UpDown.
+
+Internet / published-source corroboration (not a substitute for the local evidence):
+
+- Keen published `MyObjectBuilder_CubeBlock`: `Min` defaults to `SerializableVector3I(0,0,0)` and `ShouldSerializeMin()` is `Min != (0,0,0)`.
+- Same type: `BlockOrientation` defaults to `SerializableBlockOrientation.Identity` and `ShouldSerializeBlockOrientation()` is `!= Identity`.
+- `SerializableBlockOrientation.Identity` is `(Base6Directions.Direction.Forward, Base6Directions.Direction.Up)`.
+- Current Keen ModAPI docs still list both `ShouldSerialize*` methods on `MyObjectBuilder_CubeBlock`.
+
+XmlSerializer omits a field when `ShouldSerializeX()` is false; deserialization then uses the field initializer. That is the mapping implemented here.
+
+## Quality/security assessment (S2C-1.2.1)
+
+Hypotheses tested and outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Malformed or entity-bearing XML is accepted | Disproven. `xml.etree.ElementTree` can expand internal entities when a DOCTYPE is present; the parser rejects `<!DOCTYPE`, `<!ENTITY`, and XInclude markers before parse. Tests cover malformed XML, DOCTYPE/entity, XInclude, and a file-URI entity that must not be read. |
+| XML values cause arbitrary file access | Disproven. No XML-derived paths are opened. The only filesystem read is the operator-selected blueprint path. XXE canary file was not read. |
+| XML values are executed or passed to a shell | Disproven. Parser imports are stdlib XML/path/typing plus local parser types. No `subprocess`, `os.system`, `eval`, or `exec`. |
+| Multiple grids are silently accepted | Disproven. Zero, multiple, and nested `CubeGrid` raise `UnsupportedBlueprintError`. |
+| Unknown direction tokens are remapped | Disproven. Unknown tokens and non-orthogonal pairs raise `InvalidFieldError`. |
+| Subtype identity is normalized or collapsed | Disproven. Acceptance test requires the four exact subtype strings and counts; parser has no armor-category mapping. |
+| Omitted Min/orientation defaults were guessed | Disproven. Defaults were established from local SE resources and published Keen serialization methods before implementation; see omitted-field semantics above. |
+| SolidWorks / CAD types leaked into the parser | Disproven. No SolidWorks, COM, matrix, geometry-ID, or catalog types in `src/se2cad`. |
+| Proprietary SE assets were added | Disproven. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or game/SDK trees added. Negative fixtures are SE2CAD-authored XML strings. Qualified `bp.sbc` SHA-256 unchanged. |
+| Unnecessary dependencies or a CLI were introduced | Disproven. Stdlib only. `pyproject.toml` is packaging metadata with no runtime dependencies. No CLI. |
+| Missing path was reported as malformed XML | Confirmed. `parse_blueprint` used `MalformedXmlError` for a non-file path. Remediated to `BlueprintParseError`; regression test added. |
+| Multi-block `SubBlocks` were silently ignored | Confirmed. Ordinary extra cube-block metadata (e.g. `BuiltBy`) is ignored; `SubBlocks` / `MultiBlockId` / `MultiBlockDefinition` are unsupported structural forms. Remediated to `UnsupportedBlueprintError`; regression test added. |
+| Fixture counts were baked into parser code | Disproven. Source grep of `src/` found no `24` or subtype-count constants. Counts live in tests. |
+| Unrelated refactoring or later units started | Disproven. No catalog schema, CAD transforms, or S2C-2.1.1 work. |
+
+Remediated: missing-path error type; reject multi-block cube-block children. Tests re-run after remediation: 32 OK.
+
+Accepted residual risk under the local single-user trust model: the parser reads the whole file into memory and does not impose an arbitrary size cap. A cheap `xinclude` substring rejection can refuse an otherwise-supported document whose text happens to contain that marker.
+
+Not claimed: SolidWorks validation, Space Engineers runtime validation, or that the parser is an Internet-facing XML upload service.
 
 ## Quality/security assessment (S2C-0.1.1)
 

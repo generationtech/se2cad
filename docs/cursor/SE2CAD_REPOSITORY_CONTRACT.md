@@ -12,8 +12,8 @@ docs/technical/governance/     Process, program, plan, state
 docs/technical/adr/            Individual accepted decisions
 docs/testing/                  Test and fixture specifications
 fixtures/                      Committed test data with recorded provenance
-src/                           Implementation (empty until the first code unit)
-tests/                         Automated tests (empty until the first code unit)
+src/                           Implementation
+tests/                         Automated tests
 tools/                         Maintainer utilities (empty until a unit needs one)
 ```
 
