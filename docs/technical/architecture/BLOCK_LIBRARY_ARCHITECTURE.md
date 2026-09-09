@@ -138,6 +138,8 @@ Install roots reuse the established environment / uncommitted `se2cad.local.json
 
 Each discovered record is an observed identity plus the fields the catalog already models: `subtype_id`, `type_id`, `cube_size`, `size`, `block_topology`, and `cube_topology` when present. Small Grid identities may appear as observed `cube_size` facts. `geometry_id`, `recipe_kind`, and `support_status` are not assigned here. Source paths in the report are root-relative. Runtime lookup remains the packaged catalog.
 
+When STATE records S2C-11.2.1, catalog identity expansion is library-build authoring on those observed facts. Public entrypoints: `se2cad.catalog.expand_catalog_identities`, `geometry_id_for_subtype`. Existing packaged SE2CAD decisions are preserved. New Large Grid identities receive distinct `geometry_id` values and remain `unsupported` until a later recipe decision. Small Grid identities are not written into the packaged catalog. Machine paths and mesh/texture references are not stored.
+
 ## Asset boundary
 
 Native armor recipes are SE2CAD-authored constructive geometry. They must not import Keen FBX, MWM, or extracted game meshes.

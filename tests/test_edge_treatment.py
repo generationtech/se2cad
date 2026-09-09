@@ -212,11 +212,11 @@ class IdentityFreeApplicabilityTests(unittest.TestCase):
 
     def test_applicability_is_not_a_four_id_allowlist(self) -> None:
         catalog_ids = {entry.geometry_id for entry in load_default_catalog().entries}
-        self.assertEqual(catalog_ids, set(_CATALOG_GEOMETRY_IDS))
+        self.assertTrue(set(_CATALOG_GEOMETRY_IDS).issubset(catalog_ids))
         solid = _box_solid((0, 0, 0), (2000, 1600, 1200))
         result = apply_edge_treatment(solid, EDGE_TREATMENT_CHAMFER)
         self.assertTrue(result.applied)
-        for geometry_id in catalog_ids:
+        for geometry_id in _CATALOG_GEOMETRY_IDS:
             self.assertNotEqual(solid.vertices, solid_from_recipe(lookup_recipe(geometry_id)).vertices)
 
 
@@ -262,9 +262,10 @@ class SinglePlaneClipTests(unittest.TestCase):
 class LibraryIdentityTests(unittest.TestCase):
     def test_treatment_does_not_add_catalog_or_library_identities(self) -> None:
         catalog = load_default_catalog()
+        before = [entry.geometry_id for entry in catalog.entries]
         self.assertEqual(
-            [entry.geometry_id for entry in catalog.entries],
-            list(_CATALOG_GEOMETRY_IDS),
+            [entry.geometry_id for entry in load_default_catalog().entries],
+            before,
         )
         self.assertEqual(
             [record.geometry_id for record in all_library_records()],

@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 from se2cad.catalog import (
+    CATALOG_SCHEMA_VERSION,
     LARGE_GRID_CELL_PITCH_MM,
     CellSize,
     RecipeKind,
@@ -16,7 +17,7 @@ from se2cad.catalog import (
     load_default_catalog,
 )
 
-EXPECTED_ENTRIES = {
+EXPECTED_SUPPORTED = {
     "LargeBlockArmorBlock": {
         "type_id": "CubeBlock",
         "cube_size": "Large",
@@ -51,18 +52,55 @@ EXPECTED_ENTRIES = {
     },
 }
 
+EXPECTED_EXPANDED = {
+    "LargeHeavyBlockArmorBlock": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": (1, 1, 1),
+        "block_topology": "Cube",
+        "cube_topology": "Box",
+        "geometry_id": "large_heavy_block_armor_block",
+    },
+    "LargeHeavyBlockArmorSlope": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": (1, 1, 1),
+        "block_topology": "Cube",
+        "cube_topology": "Slope",
+        "geometry_id": "large_heavy_block_armor_slope",
+    },
+    "LargeHeavyBlockArmorCorner": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": (1, 1, 1),
+        "block_topology": "Cube",
+        "cube_topology": "Corner",
+        "geometry_id": "large_heavy_block_armor_corner",
+    },
+    "LargeHeavyBlockArmorCornerInv": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": (1, 1, 1),
+        "block_topology": "Cube",
+        "cube_topology": "InvCorner",
+        "geometry_id": "large_heavy_block_armor_corner_inv",
+    },
+}
+
 
 class DefaultCatalogTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.catalog = load_default_catalog()
 
-    def test_four_supported_subtypes_load(self) -> None:
+    def test_original_four_supported_subtypes_remain(self) -> None:
         ids = [entry.subtype_id for entry in self.catalog.entries]
-        self.assertEqual(ids, list(EXPECTED_ENTRIES))
+        self.assertEqual(ids[:4], list(EXPECTED_SUPPORTED))
+        self.assertGreater(len(ids), 4)
+        self.assertEqual(ids[4:], list(EXPECTED_EXPANDED))
 
     def test_observed_definition_facts(self) -> None:
-        for subtype_id, expected in EXPECTED_ENTRIES.items():
+        for subtype_id, expected in {**EXPECTED_SUPPORTED, **EXPECTED_EXPANDED}.items():
             entry = self.catalog.lookup(subtype_id)
             self.assertEqual(entry.observed.type_id, expected["type_id"])
             self.assertEqual(entry.observed.cube_size, expected["cube_size"])
@@ -79,22 +117,30 @@ class DefaultCatalogTests(unittest.TestCase):
 
     def test_geometry_identities_are_distinct_se2cad_ids(self) -> None:
         geometry_ids = []
-        for subtype_id, expected in EXPECTED_ENTRIES.items():
+        for subtype_id, expected in {**EXPECTED_SUPPORTED, **EXPECTED_EXPANDED}.items():
             entry = self.catalog.lookup(subtype_id)
             self.assertEqual(entry.geometry_id, expected["geometry_id"])
             self.assertNotEqual(entry.geometry_id, subtype_id)
             geometry_ids.append(entry.geometry_id)
-        self.assertEqual(len(set(geometry_ids)), 4)
+        self.assertEqual(len(set(geometry_ids)), len(geometry_ids))
         self.assertNotEqual(
-            EXPECTED_ENTRIES["LargeBlockArmorCorner"]["geometry_id"],
-            EXPECTED_ENTRIES["LargeBlockArmorCornerInv"]["geometry_id"],
+            EXPECTED_SUPPORTED["LargeBlockArmorCorner"]["geometry_id"],
+            EXPECTED_SUPPORTED["LargeBlockArmorCornerInv"]["geometry_id"],
+        )
+        self.assertNotEqual(
+            EXPECTED_SUPPORTED["LargeBlockArmorBlock"]["geometry_id"],
+            EXPECTED_EXPANDED["LargeHeavyBlockArmorBlock"]["geometry_id"],
         )
 
     def test_recipe_kind_and_support_status(self) -> None:
-        for subtype_id in EXPECTED_ENTRIES:
+        for subtype_id in EXPECTED_SUPPORTED:
             entry = self.catalog.lookup(subtype_id)
             self.assertEqual(entry.recipe_kind, RecipeKind.NATIVE_PROCEDURAL)
             self.assertEqual(entry.support_status, SupportStatus.SUPPORTED)
+        for subtype_id in EXPECTED_EXPANDED:
+            entry = self.catalog.lookup(subtype_id)
+            self.assertEqual(entry.recipe_kind, RecipeKind.UNSUPPORTED)
+            self.assertEqual(entry.support_status, SupportStatus.UNSUPPORTED)
 
     def test_lookup_is_exact_and_case_sensitive(self) -> None:
         exact = self.catalog.lookup("LargeBlockArmorBlock")
@@ -129,6 +175,7 @@ class DefaultCatalogTests(unittest.TestCase):
         self.assertEqual(path.name, "large_grid_armor.json")
         raw = path.read_text(encoding="utf-8")
         data = json.loads(raw)
+        self.assertEqual(data["schema_version"], CATALOG_SCHEMA_VERSION)
         serialized = json.dumps(data)
         self.assertNotIn("/home/", serialized)
         self.assertNotIn("C:\\\\", serialized)

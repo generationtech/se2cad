@@ -48,20 +48,33 @@ def _scale(signs: tuple[int, int, int]) -> tuple[int, int, int]:
 
 
 class CatalogResolutionTests(unittest.TestCase):
-    def test_each_catalog_geometry_id_resolves_to_exactly_one_recipe(self) -> None:
+    def test_each_supported_catalog_geometry_id_resolves_to_exactly_one_recipe(self) -> None:
         catalog = load_default_catalog()
-        catalog_ids = [entry.geometry_id for entry in catalog.entries]
-        self.assertEqual(catalog_ids, list(_CATALOG_GEOMETRY_IDS))
+        supported_ids = [
+            entry.geometry_id
+            for entry in catalog.entries
+            if entry.support_status.value == "supported"
+        ]
+        self.assertEqual(supported_ids, list(_CATALOG_GEOMETRY_IDS))
         records = all_library_records()
         self.assertEqual(len(records), 4)
-        self.assertEqual([record.geometry_id for record in records], catalog_ids)
+        self.assertEqual([record.geometry_id for record in records], supported_ids)
         seen: set[str] = set()
-        for geometry_id in catalog_ids:
+        for geometry_id in supported_ids:
             recipe = lookup_recipe(geometry_id)
             self.assertEqual(recipe.geometry_id, geometry_id)
             self.assertNotIn(geometry_id, seen)
             seen.add(geometry_id)
         self.assertEqual(len(seen), 4)
+        unsupported_ids = [
+            entry.geometry_id
+            for entry in catalog.entries
+            if entry.support_status.value == "unsupported"
+        ]
+        self.assertTrue(unsupported_ids)
+        for geometry_id in unsupported_ids:
+            with self.assertRaises(UnknownGeometryError):
+                lookup_recipe(geometry_id)
 
     def test_lookup_is_exact_and_fails_closed(self) -> None:
         exact = lookup_recipe("large_armor_block")
@@ -289,13 +302,17 @@ class CatalogBindingTests(unittest.TestCase):
     def test_library_records_bind_catalog_identities_not_subtypes(self) -> None:
         catalog = load_default_catalog()
         for entry in catalog.entries:
+            self.assertNotEqual(entry.geometry_id, entry.subtype_id)
+            if entry.support_status.value != "supported":
+                with self.assertRaises(UnknownGeometryError):
+                    lookup_record(entry.geometry_id)
+                continue
             record = lookup_record(entry.geometry_id)
             self.assertEqual(record.geometry_id, entry.geometry_id)
             self.assertEqual(record.recipe_kind, entry.recipe_kind)
             self.assertEqual(
                 record.observed_cube_topology, entry.observed.cube_topology
             )
-            self.assertNotEqual(record.geometry_id, entry.subtype_id)
 
 
 if __name__ == "__main__":

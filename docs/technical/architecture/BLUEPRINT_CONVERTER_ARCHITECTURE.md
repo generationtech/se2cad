@@ -87,18 +87,18 @@ Each catalog entry has two groups of fields that must not be collapsed:
 
 | Group | Meaning | Fields |
 | --- | --- | --- |
-| Observed Space Engineers facts | Tokens taken from installed cube-block definitions | `subtype_id`, `type_id`, `cube_size`, `size` (cell occupancy), `block_topology`, `cube_topology` |
+| Observed Space Engineers facts | Tokens taken from installed cube-block definitions | `subtype_id`, `type_id`, `cube_size`, `size` (cell occupancy), `block_topology`, `cube_topology` when present |
 | SE2CAD decisions | Identities and policy owned by this project | `geometry_id`, `recipe_kind`, `support_status` |
 
 `geometry_id` is an SE2CAD identity. It is not a Keen subtype. Distinct subtypes keep distinct geometry IDs.
 
-Lookup is an exact, case-sensitive match of the parser `subtype_id` string. Unknown subtypes fail closed. Duplicate `subtype_id` or `geometry_id` values, unknown `recipe_kind` values, and malformed JSON are rejected at load.
+Lookup is an exact, case-sensitive match of the parser `subtype_id` string. Unknown subtypes fail closed. Duplicate `subtype_id` or `geometry_id` values, unknown `recipe_kind` values, and malformed JSON are rejected at load. Schema version is `CATALOG_SCHEMA_VERSION` (2). Unknown fields remain rejected. `cube_topology` may be omitted when the definition has none. Packaged entries must be Large Grid; Small Grid activation is M13.
 
-Recipe vocabulary remains `native_procedural`, `sdk_mesh_direct`, `sdk_mesh_manifold`, `hand_authored`, and `unsupported`. Naming a recipe is not an implementation of that recipe. The initial four Large Grid armor entries use `native_procedural` only.
+Recipe vocabulary remains `native_procedural`, `sdk_mesh_direct`, `sdk_mesh_manifold`, `hand_authored`, and `unsupported`. Naming a recipe is not an implementation of that recipe. `support_status` `supported` requires a recorded recipe kind other than `unsupported`. The initial four Large Grid armor entries remain `native_procedural` / `supported`. Additional catalogued identities may remain `unsupported` until a later recipe decision.
 
-The catalog must not store machine-specific paths or proprietary mesh/texture references. The normal conversion path must not open Space Engineers content files to resolve these four subtypes.
+The catalog must not store machine-specific paths or proprietary mesh/texture references. The normal conversion path must not open Space Engineers content files to resolve catalogued subtypes.
 
-When STATE records S2C-11.1.1, library-build discovery may read an operator-local install for catalog-authoring evidence. That scan is not part of `parse_blueprint`, `load_default_catalog`, `build_canonical_blueprint`, or assembly generation. Contract: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md).
+When STATE records S2C-11.1.1, library-build discovery may read an operator-local install for catalog-authoring evidence. When STATE records S2C-11.2.1, `expand_catalog_identities` resolves Large Grid observed facts into catalog entries without scanning an install. Those scans and the authoring function are not part of `parse_blueprint`, `load_default_catalog`, `build_canonical_blueprint`, or assembly generation. Contract: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md).
 
 ## Transforms
 
@@ -200,6 +200,6 @@ The completed initial program’s converter success path was:
 
 That path remains the qualified baseline. Fail closed on multiple grids and missing required fields. Do not silently drop blocks.
 
-Unknown-subtype handling, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1. The optional block-edge treatment contract is present when STATE records S2C-10.1.1. SolidWorks treated-part generation is present when STATE records S2C-10.2.1; default conversion remains untreated. Explicit treated-part assembly selection is present when STATE records S2C-10.3.1; default assemble remains untreated. Operator-local definition discovery is present when STATE records S2C-11.1.1; it does not change runtime catalog lookup.
+Unknown-subtype handling, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1. The optional block-edge treatment contract is present when STATE records S2C-10.1.1. SolidWorks treated-part generation is present when STATE records S2C-10.2.1; default conversion remains untreated. Explicit treated-part assembly selection is present when STATE records S2C-10.3.1; default assemble remains untreated. Operator-local definition discovery is present when STATE records S2C-11.1.1; it does not change runtime catalog lookup. Catalog identity expansion is present when STATE records S2C-11.2.1; runtime lookup stays the packaged catalog.
 
 Blender is not a converter stage. A general print/slicer pipeline is not a converter stage.

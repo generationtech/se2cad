@@ -15,17 +15,17 @@ The nine milestones, in order, are: blueprint statistics; CAD component naming; 
 
 No implementation milestone is ACTIVE. Cold-storage backlog remains outside this program. Do not invent work beyond it.
 
-A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-11.2.1 remains PLANNED and is the next executable unit.
+A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 remains PLANNED and is the next executable unit.
 
 **Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, and QUALIFIED S2C-11.1.1 operator-local definition discovery. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. S2C-11.2.1 catalog identity expansion remains PLANNED. Remaining later M11 units through M15 are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-11.1.1 operator-local definition discovery, and QUALIFIED S2C-11.2.1 catalog identity expansion. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. S2C-11.3.1 recipe selection remains PLANNED. Remaining later M11 units through M15 are approved, not implemented.
 
 ## Next executable unit
 
-S2C-11.2.1 catalog identity expansion. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). Do not invent recipe selection, preflight, Small Grid conversion, symmetry, or print-shell.
+S2C-11.3.1 geometry provenance and recipe selection. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). Do not invent automated generation, preflight, Small Grid conversion, symmetry, or print-shell.
 
 ## Unit status
 
@@ -56,7 +56,7 @@ S2C-11.2.1 catalog identity expansion. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLA
 | S2C-10.2.1 | QUALIFIED | Sibling `{geometry_id}_chamfer.SLDPRT` under the generated root when `EDGE_TREATMENT_CHAMFER` is requested. Untreated `large_armor_*.SLDPRT` remain the default. Ordinary suite 283 tests, 4 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: treated and untreated parts, one solid body, S2C-10.1.1 measurables. Distinct assessment recorded below. |
 | S2C-10.3.1 | QUALIFIED | Default assemble still names untreated `{geometry_id}.SLDPRT`. Explicit `--edge-treatment chamfer` names `{geometry_id}_chamfer.SLDPRT` and fails closed if siblings are missing. Ordinary suite 323 tests, 5 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: treated 24-component `se2cad-test1.SLDASM` save/reopen used `*_chamfer.SLDPRT`; IR transforms, names, and default appearance unchanged; untreated part hashes unchanged; subsequent default assemble used untreated filenames. Distinct assessment recorded below. |
 | S2C-11.1.1 | QUALIFIED | Library-build `se2cad.discovery` reads operator-configured game/SDK `.sbc` trees into observed catalog fields. Ordinary suite 309 tests, 4 skipped, OK. Runtime conversion remains install-free. External validation was not required. Distinct assessment recorded below. |
-| S2C-11.2.1 | PLANNED | |
+| S2C-11.2.1 | QUALIFIED | Schema v2 catalog records eight Large Grid identities; original four remain `native_procedural` / `supported`; four heavy-armor counterparts are `unsupported`. `expand_catalog_identities` resolves discovery-shaped observed facts. Ordinary suite 338 tests, 5 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-11.3.1 | PLANNED | |
 | S2C-11.4.1 | PLANNED | |
 | S2C-11.5.1 | PLANNED | |
@@ -72,6 +72,14 @@ S2C-11.2.1 catalog identity expansion. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLA
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-09 — S2C-11.2.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-11.3.1. Did not invent recipe selection, preflight, Small Grid conversion, symmetry, or print-shell. Did not create a general CLI or UI. Did not change runtime `parse_blueprint` / `load_default_catalog` / `build_canonical_blueprint` / assembly generation to scan an install. Did not mark expanded identities `supported`. Did not add library recipes or generate parts. Did not commit, tag, or push.
+
+Packaged catalog schema is 2. `cube_topology` may be omitted. Small Grid `cube_size` is rejected at load. `supported` requires a recipe kind other than `unsupported`. `expand_catalog_identities` preserves existing SE2CAD decisions, skips Small Grid, and records new Large Grid identities as `unsupported`. Distinct subtypes keep distinct `geometry_id` values. No machine paths or mesh references are stored.
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 338 tests, 5 skipped, 0.577 s, OK. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. No live game/SDK tree was used; QUALIFIED from automated tests as the unit allows. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-09 — S2C-10.3.1 QUALIFIED
 
@@ -799,6 +807,30 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
 
+## Quality/security assessment (S2C-11.2.1)
+
+Hypotheses tested after schema v2, authoring, packaged expansion, ordinary tests, and remediation existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Asset paths or machine paths enter packaged catalog data | Disproven. Packaged JSON has no `/home/`, `C:\`, `.mwm`, `.fbx`, `.dds`, `.hkt`, `Steam`, `SpaceEngineers`, or `game_root`. Loader rejects those markers and path separators in identity strings. Authoring from synthetic discovery XML that contains a Model `.mwm` path does not copy it. |
+| Duplicate `geometry_id` or subtype collision | Disproven. Loader and `expand_catalog_identities` reject duplicates. Light and heavy Box identities keep distinct IDs. |
+| Schema v1 is silently accepted | Disproven. Loader accepts only `CATALOG_SCHEMA_VERSION` 2. Schema 1 fails closed. Unknown fields still fail. |
+| Support claimed without a recipe decision | Disproven. Loader rejects `supported` + `unsupported` recipe kind. Authoring never marks a new identity supported. Packaged expanded entries are `unsupported` and have no library recipe. |
+| Conversion now requires a game/SDK install | Disproven. Catalog and runtime packages do not import `se2cad.discovery`. Acceptance IR still builds from packaged catalog + `bp.sbc`. |
+| Small Grid was activated | Disproven. Loader rejects `cube_size` other than `Large`. Authoring skips Small Grid identities. `SmallBlockArmorBlock` remains unknown. |
+| Original four conversion changed | Disproven. Fixture SHA-256 unchanged. All 24 IR blocks remain the original four supported native identities. |
+| Authoring emits a catalog the loader cannot load | Confirmed then remediated. A digit-leading subtype produced `2foo_bar`, which the loader rejects. Expand now runs `checked_geometry_id` before recording. Regression test added. |
+| Catalog modules scan an install or write discovery paths | Disproven. `src/se2cad/catalog/` has no `SE2CAD_GAME_ROOT` / `se2cad.discovery` tokens. Serialized authoring output has no source-relative paths. |
+| S2C-11.3.1 or later M7–M15 work started | Disproven. No recipe-kind assignment policy, exception records, generation, preflight, Small Grid conversion, symmetry, or print-shell. |
+| Proprietary assets added | Disproven. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+
+Remediated: invalid derived `geometry_id` fails closed at authoring. Tests re-run after remediation: 338 OK, 5 skipped.
+
+Accepted residual risk: the four heavy-armor identities were recorded as the CubeTopology counterparts of the QUALIFIED S2C-2.1.1 class without a live install this session. A later operator-local discovery run may add more vanilla identities or expose drift. Digit-leading or otherwise non-letter subtypes fail closed; vanilla armor IDs in this catalog start with a letter. Cataloguing an identity as `unsupported` makes `lookup` succeed and IR construction possible; assembly still fails closed because those IDs have no canonical part.
+
+Not claimed: recipe selection; geometry generation; Small Grid conversion; TriangleMesh construction; a live vanilla inventory.
+
 ## Quality/security assessment (S2C-10.3.1 QUALIFIED)
 
 Hypotheses tested after live SolidWorks qualification evidence existed. Outcomes:
@@ -900,6 +932,27 @@ Public entrypoints: `se2cad.discovery.discover_cube_block_definitions`, `load_di
 | Fail closed | missing/non-directory root; path escape; no CubeBlocks tree; malformed XML; DTD/entity/XInclude; missing identity/size/topology; conflicting observed facts |
 | Ordinary suite | 309 tests, 4 skipped, 0.996 s, OK |
 | Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+
+## S2C-11.2.1 catalog identity evidence
+
+Authoritative catalog: `src/se2cad/catalog/large_grid_armor.json`. Schema: `CATALOG_SCHEMA_VERSION` 2. Authoring: `se2cad.catalog.expand_catalog_identities`. Runtime lookup remains `load_default_catalog`.
+
+| Group | SubtypeId | geometry_id | recipe_kind | support_status |
+| --- | --- | --- | --- | --- |
+| Original four | `LargeBlockArmorBlock` | `large_armor_block` | `native_procedural` | `supported` |
+| Original four | `LargeBlockArmorSlope` | `large_armor_slope` | `native_procedural` | `supported` |
+| Original four | `LargeBlockArmorCorner` | `large_armor_corner` | `native_procedural` | `supported` |
+| Original four | `LargeBlockArmorCornerInv` | `large_armor_corner_inv` | `native_procedural` | `supported` |
+| Expanded | `LargeHeavyBlockArmorBlock` | `large_heavy_block_armor_block` | `unsupported` | `unsupported` |
+| Expanded | `LargeHeavyBlockArmorSlope` | `large_heavy_block_armor_slope` | `unsupported` | `unsupported` |
+| Expanded | `LargeHeavyBlockArmorCorner` | `large_heavy_block_armor_corner` | `unsupported` | `unsupported` |
+| Expanded | `LargeHeavyBlockArmorCornerInv` | `large_heavy_block_armor_corner_inv` | `unsupported` | `unsupported` |
+
+Observed facts for all eight: `CubeBlock`, `Large`, 1×1×1, `Cube`, and the same `Box` / `Slope` / `Corner` / `InvCorner` tokens as the QUALIFIED S2C-2.1.1 armor class. Heavy-armor identities are the CubeTopology counterparts this unit was prepared to record. No live game/SDK tree was read this session.
+
+SE2CAD decisions: distinct `geometry_id` values; expanded entries stay `unsupported` until S2C-11.3.1. `cube_topology` may be omitted for identities without it. Small Grid is not catalogued.
+
+Acceptance fixture: all 24 blocks still resolve to the original four supported identities. Library recipes remain the four native solids.
 
 ## Quality/security assessment (S2C-10.2.1)
 

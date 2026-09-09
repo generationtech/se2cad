@@ -18,7 +18,7 @@ from se2cad.catalog import (
 
 def _valid_catalog() -> dict:
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "entries": [
             _entry("LargeBlockArmorBlock", "large_armor_block", "Box"),
             _entry("LargeBlockArmorSlope", "large_armor_slope", "Slope"),
@@ -78,13 +78,6 @@ class CatalogValidationTests(unittest.TestCase):
             load_catalog_text("{not json", source="broken")
         self.assertIn("malformed", str(ctx.exception))
 
-    def test_missing_required_fields_fail(self) -> None:
-        data = _valid_catalog()
-        del data["entries"][0]["observed"]["cube_topology"]
-        with self.assertRaises(CatalogValidationError) as ctx:
-            load_catalog_text(json.dumps(data), source="missing-field")
-        self.assertIn("cube_topology", str(ctx.exception))
-
     def test_empty_subtype_id_fails(self) -> None:
         data = _valid_catalog()
         data["entries"][0]["subtype_id"] = ""
@@ -105,10 +98,47 @@ class CatalogValidationTests(unittest.TestCase):
 
     def test_unsupported_schema_version_fails(self) -> None:
         data = _valid_catalog()
-        data["schema_version"] = 2
+        data["schema_version"] = 1
         with self.assertRaises(CatalogValidationError) as ctx:
-            load_catalog_text(json.dumps(data), source="schema-2")
+            load_catalog_text(json.dumps(data), source="schema-1")
         self.assertIn("schema_version", str(ctx.exception))
+
+    def test_supported_without_recipe_kind_fails(self) -> None:
+        data = _valid_catalog()
+        data["entries"][0]["se2cad"]["recipe_kind"] = "unsupported"
+        data["entries"][0]["se2cad"]["support_status"] = "supported"
+        with self.assertRaises(CatalogValidationError) as ctx:
+            load_catalog_text(json.dumps(data), source="supported-no-recipe")
+        self.assertIn("recipe decision", str(ctx.exception))
+
+    def test_small_grid_cube_size_is_rejected(self) -> None:
+        data = _valid_catalog()
+        data["entries"][0]["observed"]["cube_size"] = "Small"
+        with self.assertRaises(CatalogValidationError) as ctx:
+            load_catalog_text(json.dumps(data), source="small-grid")
+        self.assertIn("Small Grid", str(ctx.exception))
+
+    def test_asset_path_in_identity_fails(self) -> None:
+        data = _valid_catalog()
+        data["entries"][0]["observed"]["type_id"] = r"Models\Cubes\Large\Armor.mwm"
+        with self.assertRaises(CatalogValidationError) as ctx:
+            load_catalog_text(json.dumps(data), source="smuggled-mwm")
+        self.assertIn("proprietary asset", str(ctx.exception))
+
+    def test_omitted_cube_topology_is_allowed(self) -> None:
+        data = _valid_catalog()
+        del data["entries"][0]["observed"]["cube_topology"]
+        data["entries"][0]["se2cad"]["recipe_kind"] = "unsupported"
+        data["entries"][0]["se2cad"]["support_status"] = "unsupported"
+        catalog = load_catalog_text(json.dumps(data), source="no-cube-topology")
+        self.assertIsNone(catalog.entries[0].observed.cube_topology)
+
+    def test_missing_required_fields_fail(self) -> None:
+        data = _valid_catalog()
+        del data["entries"][0]["observed"]["block_topology"]
+        with self.assertRaises(CatalogValidationError) as ctx:
+            load_catalog_text(json.dumps(data), source="missing-field")
+        self.assertIn("block_topology", str(ctx.exception))
 
     def test_unexpected_fields_fail(self) -> None:
         data = _valid_catalog()

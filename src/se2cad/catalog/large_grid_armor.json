@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "entries": [
     {
       "subtype_id": "LargeBlockArmorBlock",
@@ -59,6 +59,66 @@
         "geometry_id": "large_armor_corner_inv",
         "recipe_kind": "native_procedural",
         "support_status": "supported"
+      }
+    },
+    {
+      "subtype_id": "LargeHeavyBlockArmorBlock",
+      "observed": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": { "x": 1, "y": 1, "z": 1 },
+        "block_topology": "Cube",
+        "cube_topology": "Box"
+      },
+      "se2cad": {
+        "geometry_id": "large_heavy_block_armor_block",
+        "recipe_kind": "unsupported",
+        "support_status": "unsupported"
+      }
+    },
+    {
+      "subtype_id": "LargeHeavyBlockArmorSlope",
+      "observed": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": { "x": 1, "y": 1, "z": 1 },
+        "block_topology": "Cube",
+        "cube_topology": "Slope"
+      },
+      "se2cad": {
+        "geometry_id": "large_heavy_block_armor_slope",
+        "recipe_kind": "unsupported",
+        "support_status": "unsupported"
+      }
+    },
+    {
+      "subtype_id": "LargeHeavyBlockArmorCorner",
+      "observed": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": { "x": 1, "y": 1, "z": 1 },
+        "block_topology": "Cube",
+        "cube_topology": "Corner"
+      },
+      "se2cad": {
+        "geometry_id": "large_heavy_block_armor_corner",
+        "recipe_kind": "unsupported",
+        "support_status": "unsupported"
+      }
+    },
+    {
+      "subtype_id": "LargeHeavyBlockArmorCornerInv",
+      "observed": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": { "x": 1, "y": 1, "z": 1 },
+        "block_topology": "Cube",
+        "cube_topology": "InvCorner"
+      },
+      "se2cad": {
+        "geometry_id": "large_heavy_block_armor_corner_inv",
+        "recipe_kind": "unsupported",
+        "support_status": "unsupported"
       }
     }
   ]

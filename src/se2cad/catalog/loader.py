@@ -11,6 +11,10 @@ from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
+from se2cad.catalog.constants import (
+    CATALOG_CUBE_SIZE_LARGE,
+    CATALOG_SCHEMA_VERSION,
+)
 from se2cad.catalog.errors import CatalogValidationError
 from se2cad.catalog.model import (
     CatalogEntry,
@@ -22,14 +26,15 @@ from se2cad.catalog.model import (
 )
 
 _PACKAGED_CATALOG_NAME = "large_grid_armor.json"
-_SUPPORTED_SCHEMA_VERSION = 1
+_SUPPORTED_SCHEMA_VERSION = CATALOG_SCHEMA_VERSION
 _REQUIRED_TOP_LEVEL = frozenset({"schema_version", "entries"})
 _REQUIRED_ENTRY = frozenset({"subtype_id", "observed", "se2cad"})
-_REQUIRED_OBSERVED = frozenset(
-    {"type_id", "cube_size", "size", "block_topology", "cube_topology"}
-)
+_REQUIRED_OBSERVED = frozenset({"type_id", "cube_size", "size", "block_topology"})
+_OPTIONAL_OBSERVED = frozenset({"cube_topology"})
 _REQUIRED_SE2CAD = frozenset({"geometry_id", "recipe_kind", "support_status"})
 _REQUIRED_SIZE = frozenset({"x", "y", "z"})
+_GEOMETRY_ID_CHARS = frozenset("abcdefghijklmnopqrstuvwxyz0123456789_")
+_SMUGGLED_ASSET_MARKERS = (".mwm", ".fbx", ".dds", ".hkt")
 
 
 def default_catalog_path() -> Path:
@@ -121,11 +126,20 @@ def _entry_from_data(raw: Any, loc: str) -> CatalogEntry:
     if not isinstance(se2cad, dict):
         raise CatalogValidationError(f"{loc}.se2cad: must be an object")
     _require_keys(se2cad, _REQUIRED_SE2CAD, where=f"{loc}.se2cad")
-    geometry_id = _exact_identity(se2cad["geometry_id"], f"{loc}.se2cad.geometry_id")
+    geometry_id = checked_geometry_id(
+        se2cad["geometry_id"], f"{loc}.se2cad.geometry_id"
+    )
     recipe_kind = _recipe_kind(se2cad["recipe_kind"], f"{loc}.se2cad.recipe_kind")
     support_status = _support_status(
         se2cad["support_status"], f"{loc}.se2cad.support_status"
     )
+    if (
+        support_status is SupportStatus.SUPPORTED
+        and recipe_kind is RecipeKind.UNSUPPORTED
+    ):
+        raise CatalogValidationError(
+            f"{loc}.se2cad: support_status 'supported' requires a recipe decision"
+        )
     return CatalogEntry(
         subtype_id=subtype_id,
         observed=observed,
@@ -138,18 +152,49 @@ def _entry_from_data(raw: Any, loc: str) -> CatalogEntry:
 def _observed_from_data(raw: Any, loc: str) -> ObservedDefinition:
     if not isinstance(raw, dict):
         raise CatalogValidationError(f"{loc}: must be an object")
-    _require_keys(raw, _REQUIRED_OBSERVED, where=loc)
+    _require_keys(
+        raw,
+        _REQUIRED_OBSERVED,
+        where=loc,
+        optional=_OPTIONAL_OBSERVED,
+    )
+    cube_size = _exact_identity(raw["cube_size"], f"{loc}.cube_size")
+    if cube_size != CATALOG_CUBE_SIZE_LARGE:
+        raise CatalogValidationError(
+            f"{loc}.cube_size: Small Grid is not activated; got {cube_size!r}"
+        )
     return ObservedDefinition(
         type_id=_exact_identity(raw["type_id"], f"{loc}.type_id"),
-        cube_size=_exact_identity(raw["cube_size"], f"{loc}.cube_size"),
+        cube_size=cube_size,
         size=_cell_size(raw["size"], f"{loc}.size"),
         block_topology=_exact_identity(
             raw["block_topology"], f"{loc}.block_topology"
         ),
-        cube_topology=_exact_identity(
-            raw["cube_topology"], f"{loc}.cube_topology"
-        ),
+        cube_topology=_optional_cube_topology(raw, loc),
     )
+
+
+def _optional_cube_topology(raw: dict[str, Any], loc: str) -> str | None:
+    if "cube_topology" not in raw:
+        return None
+    value = raw["cube_topology"]
+    if value is None:
+        return None
+    return _exact_identity(value, f"{loc}.cube_topology")
+
+
+def checked_geometry_id(value: Any, loc: str) -> str:
+    """Validate an SE2CAD geometry identity. Distinct from a Keen subtype."""
+    identity = _exact_identity(value, loc)
+    if identity[0] < "a" or identity[0] > "z":
+        raise CatalogValidationError(
+            f"{loc}: must start with a lowercase ASCII letter"
+        )
+    if any(ch not in _GEOMETRY_ID_CHARS for ch in identity):
+        raise CatalogValidationError(
+            f"{loc}: must be lowercase ASCII letters, digits, or underscore"
+        )
+    return identity
 
 
 def _cell_size(raw: Any, loc: str) -> CellSize:
@@ -188,7 +233,18 @@ def _support_status(value: Any, loc: str) -> SupportStatus:
 def _exact_identity(value: Any, loc: str) -> str:
     if not isinstance(value, str) or value == "":
         raise CatalogValidationError(f"{loc}: must be a non-empty string")
+    _reject_smuggled_asset(value, loc)
     return value
+
+
+def _reject_smuggled_asset(value: str, loc: str) -> None:
+    lowered = value.lower()
+    if any(marker in lowered for marker in _SMUGGLED_ASSET_MARKERS):
+        raise CatalogValidationError(
+            f"{loc}: proprietary asset reference is not allowed"
+        )
+    if "/" in value or "\\" in value or ":" in value:
+        raise CatalogValidationError(f"{loc}: filesystem path is not allowed")
 
 
 def _positive_int(value: Any, loc: str) -> int:
@@ -199,13 +255,20 @@ def _positive_int(value: Any, loc: str) -> int:
     return value
 
 
-def _require_keys(raw: dict[str, Any], required: frozenset[str], *, where: str) -> None:
+def _require_keys(
+    raw: dict[str, Any],
+    required: frozenset[str],
+    *,
+    where: str,
+    optional: frozenset[str] = frozenset(),
+) -> None:
     missing = sorted(required.difference(raw))
     if missing:
         raise CatalogValidationError(
             f"{where}: missing required field(s): {', '.join(missing)}"
         )
-    unexpected = sorted(set(raw).difference(required))
+    allowed = required.union(optional)
+    unexpected = sorted(set(raw).difference(allowed))
     if unexpected:
         raise CatalogValidationError(
             f"{where}: unexpected field(s): {', '.join(unexpected)}"

@@ -508,7 +508,16 @@ class RuntimeIndependenceTests(unittest.TestCase):
         raw = path.read_text(encoding="utf-8")
         data = json.loads(raw)
         serialized = json.dumps(data)
-        self.assertEqual(len(data["entries"]), 4)
+        self.assertGreaterEqual(len(data["entries"]), 4)
+        self.assertEqual(
+            [entry["subtype_id"] for entry in data["entries"][:4]],
+            [
+                "LargeBlockArmorBlock",
+                "LargeBlockArmorSlope",
+                "LargeBlockArmorCorner",
+                "LargeBlockArmorCornerInv",
+            ],
+        )
         self.assertNotIn("/home/", serialized)
         self.assertNotIn("C:\\\\", serialized)
         self.assertNotIn(".mwm", serialized.lower())

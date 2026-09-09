@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 from se2cad.catalog.constants import LARGE_GRID_CELL_PITCH_MM
 from se2cad.catalog.errors import UnknownSubtypeError
@@ -45,7 +46,15 @@ class ObservedDefinition:
     cube_size: str
     size: CellSize
     block_topology: str
-    cube_topology: str
+    cube_topology: Optional[str]
+
+
+@dataclass(frozen=True)
+class ObservedIdentity:
+    """One subtype plus observed definition facts. No SE2CAD decisions."""
+
+    subtype_id: str
+    observed: ObservedDefinition
 
 
 @dataclass(frozen=True)
