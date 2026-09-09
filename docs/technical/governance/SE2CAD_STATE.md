@@ -15,17 +15,17 @@ The nine milestones, in order, are: blueprint statistics; CAD component naming; 
 
 No implementation milestone is ACTIVE. Cold-storage backlog remains outside this program. Do not invent work beyond it.
 
-A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. S2C-11.1.1 remains QUALIFIED. S2C-11.2.1 remains PLANNED and is deferred until S2C-10.3.1 is QUALIFIED.
+A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-11.2.1 remains PLANNED and is the next executable unit.
 
 **Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, DEV-COMPLETE S2C-10.3.1 explicit treated-part assembly selection, and QUALIFIED S2C-11.1.1 operator-local definition discovery. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. S2C-10.3.1 is not QUALIFIED; live treated-assembly evidence is still required. S2C-11.2.1 catalog identity expansion remains PLANNED and is deferred until S2C-10.3.1 is QUALIFIED. Remaining later M11 units through M15 are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, and QUALIFIED S2C-11.1.1 operator-local definition discovery. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. S2C-11.2.1 catalog identity expansion remains PLANNED. Remaining later M11 units through M15 are approved, not implemented.
 
 ## Next executable unit
 
-S2C-10.3.1 live SolidWorks qualification. Implementation is DEV-COMPLETE. Remaining work is `SE2CAD_SOLIDWORKS_INTEGRATION` evidence only. Do not re-implement assembly selection. Do not start S2C-11.2.1. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md).
+S2C-11.2.1 catalog identity expansion. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). Do not invent recipe selection, preflight, Small Grid conversion, symmetry, or print-shell.
 
 ## Unit status
 
@@ -54,9 +54,9 @@ S2C-10.3.1 live SolidWorks qualification. Implementation is DEV-COMPLETE. Remain
 | S2C-9.2.1 | QUALIFIED | HSV-offset → RGB in `se2cad.solidworks.appearance`; `IComponent2.MaterialPropertyValues` instance override at insert. Ordinary suite 251 tests, 3 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: fixture 24 default appearances; synthetic two colors plus default on one `large_armor_block.SLDPRT`; canonical part SHA-256 unchanged. Distinct assessment recorded below. |
 | S2C-10.1.1 | QUALIFIED | CAD-neutral equal-setback chamfer on convex manifold edges; default off; not a new `geometry_id`. Ordinary suite 267 tests, 3 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-10.2.1 | QUALIFIED | Sibling `{geometry_id}_chamfer.SLDPRT` under the generated root when `EDGE_TREATMENT_CHAMFER` is requested. Untreated `large_armor_*.SLDPRT` remain the default. Ordinary suite 283 tests, 4 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: treated and untreated parts, one solid body, S2C-10.1.1 measurables. Distinct assessment recorded below. |
-| S2C-10.3.1 | DEV-COMPLETE | Default assemble still names untreated `{geometry_id}.SLDPRT`. Explicit `--edge-treatment chamfer` names `{geometry_id}_chamfer.SLDPRT` and fails closed if siblings are missing. Ordinary suite 323 tests, 5 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2 was attached but could not reopen/save while same-named parts were already open in the operator session. QUALIFIED still required. Distinct assessment recorded below. |
+| S2C-10.3.1 | QUALIFIED | Default assemble still names untreated `{geometry_id}.SLDPRT`. Explicit `--edge-treatment chamfer` names `{geometry_id}_chamfer.SLDPRT` and fails closed if siblings are missing. Ordinary suite 323 tests, 5 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: treated 24-component `se2cad-test1.SLDASM` save/reopen used `*_chamfer.SLDPRT`; IR transforms, names, and default appearance unchanged; untreated part hashes unchanged; subsequent default assemble used untreated filenames. Distinct assessment recorded below. |
 | S2C-11.1.1 | QUALIFIED | Library-build `se2cad.discovery` reads operator-configured game/SDK `.sbc` trees into observed catalog fields. Ordinary suite 309 tests, 4 skipped, OK. Runtime conversion remains install-free. External validation was not required. Distinct assessment recorded below. |
-| S2C-11.2.1 | PLANNED | Execution deferred until S2C-10.3.1 is QUALIFIED. Has not started. |
+| S2C-11.2.1 | PLANNED | |
 | S2C-11.3.1 | PLANNED | |
 | S2C-11.4.1 | PLANNED | |
 | S2C-11.5.1 | PLANNED | |
@@ -72,6 +72,25 @@ S2C-10.3.1 live SolidWorks qualification. Implementation is DEV-COMPLETE. Remain
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-09 — S2C-10.3.1 QUALIFIED
+
+Executed the next unit named by STATE: live SolidWorks qualification only. Did not re-implement assembly selection. Did not start S2C-11.2.1. Did not invent catalog identity expansion, recipe selection, preflight, Small Grid, symmetry, or print-shell. Did not close operator documents. Did not write to `C:\SE2CAD-generated\`. Did not commit, tag, or push.
+
+Attached running SW 2026 `RevisionNumber` 34.3.2 (`GetActiveObject`, `started_application` False). Document count was 0 before the live run and 0 after. `SE2CAD_GENERATED_ROOT=generated`.
+
+Live `SE2CAD_SOLIDWORKS_INTEGRATION=1` `unittest tests.test_solidworks_integration -v` — 5 tests, OK, 242.837 s.
+
+| Check | Result |
+| --- | --- |
+| Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+| Treated assembly | 24 components; filenames `{geometry_id}_chamfer.SLDPRT`; `geometry_id` / names / `(R, t)` / default appearance unchanged; `_chamfer` not in component names |
+| Untreated assemble after | 24 `{geometry_id}.SLDPRT`; same identity `se2cad-test1.SLDASM` overwritten as previously recorded residual |
+| Untreated parts | SHA-256 unchanged across treated generate and treated assemble |
+| Generated artifacts | gitignored `generated/`; `git check-ignore` reports parts and assemblies |
+| Operator root | `C:\SE2CAD-generated\` mtimes unchanged (last write 11:54) |
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 323 tests, 5 skipped, 0.531 s, OK. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-09 — S2C-10.3.1 DEV-COMPLETE
 
@@ -402,7 +421,7 @@ Resolved in S2C-11.1.1 and no longer open: optional local game or SDK install pa
 
 ## Known blockers
 
-S2C-10.3.1 live SolidWorks qualification is blocked while an operator `SldWorks.Application` session holds same-named documents open. Observed 2026-09-09 on revision 34.3.2: `C:\SE2CAD-generated\large_armor_*.SLDPRT`, `C:\SE2CAD-generated\se2cad-test1.SLDASM`, and untitled `Part1`. Implementation is DEV-COMPLETE. Do not start S2C-11.2.1.
+None. The prior same-named-document attach blocker for S2C-10.3.1 is cleared: this session attached to revision 34.3.2 with document count 0 and completed live qualification.
 
 ## S2C-1.1.1 fixture inspection
 
@@ -571,7 +590,15 @@ Ordinary evidence:
 | Operator argv | `<blueprint.sbc>` untreated; `<blueprint.sbc> --edge-treatment chamfer` treated; unknown flags fail closed |
 | Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
 
-Live SW 2026 qualification was attempted and did not complete. See Known blockers.
+Live SW 2026 `RevisionNumber` 34.3.2 (`SE2CAD_GENERATED_ROOT=generated`):
+
+| Check | Result |
+| --- | --- |
+| Attach | Running instance; `started_application` False; document count 0 before and after |
+| Treated fixture assembly | `generated/se2cad-test1.SLDASM` save/reopen: 24 components; 9/12/2/1 geometry IDs; each `part_filename` `{geometry_id}_chamfer.SLDPRT`; IR `ArrayData` exact; names match `component_name_from_block` with no `_chamfer`; default instance RGB |
+| Untreated assemble after | Same identity overwritten; 24 untreated `{geometry_id}.SLDPRT` |
+| Untreated `{geometry_id}.SLDPRT` | SHA-256 unchanged after treated generate and treated assemble |
+| Operator documents | Not closed. `C:\SE2CAD-generated\` not written |
 
 ## S2C-2.1.1 catalog evidence
 
@@ -771,6 +798,28 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-10.3.1 QUALIFIED)
+
+Hypotheses tested after live SolidWorks qualification evidence existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Assembly selection was re-implemented | Disproven. No `src/` or `tests/` product edits this session. |
+| Operator documents were closed to force live evidence | Disproven. Attach found document count 0. `C:\SE2CAD-generated\` files were left untouched (mtimes unchanged). |
+| Live run wrote outside the generated root | Disproven. Artifacts are under repo `generated/`. `git check-ignore` reports the parts and assemblies. |
+| Treated assemble silently fell back to untreated parts | Disproven. Live test asserted 24 `{geometry_id}_chamfer.SLDPRT` after save/reopen. |
+| Treated assemble overwrote untreated `{geometry_id}.SLDPRT` | Disproven. Live test compared untreated SHA-256 before and after treated generate and treated assemble. |
+| Transforms, names, or appearance changed | Disproven. Live comparisons used IR `ArrayData`, `component_name_from_block`, and default RGB. `_chamfer` is not in component names. |
+| S2C-11.2.1 or later M7–M15 work started | Disproven. Packaged catalog identities, recipes, and conversion contracts are unchanged. |
+| Proprietary assets added | Disproven. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+| Leftover documents remained open | Disproven. Document count 0 after the live run. |
+
+No verified product findings required remediation.
+
+Accepted residual risk: attaching to a running SolidWorks instance that already has `large_armor_*.SLDPRT` or `se2cad-test1.SLDASM` open still makes OpenDoc/SaveAs fail for the same filenames in another generated root. This session had zero open documents. Treated assemble of the same blueprint identity overwrites the untreated `.SLDASM` name; untreated parts are not modified. The leftover `generated/live-s2c-1031/` file from an earlier failed attempt remains gitignored local cache.
+
+Not claimed: catalog identity expansion; print-shell; a general CLI.
 
 ## Quality/security assessment (S2C-10.3.1)
 
