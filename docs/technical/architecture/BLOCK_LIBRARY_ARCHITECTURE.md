@@ -124,7 +124,7 @@ Measurable contract when treatment is applied:
 | Volume | Treated volume is strictly smaller than untreated and at least `EDGE_TREATMENT_MIN_VOLUME_RATIO` (0.85) of untreated |
 | Untreated identity | Library `geometry_id`, recipe vertices/faces, and catalog entries are unchanged |
 
-The CAD-neutral realization clips by each convex edge's chamfer half-space. That coincides with a local edge chamfer on the native recipes and on convex solids. SolidWorks materialization of treated parts is S2C-10.2.1 and is not implied here.
+The CAD-neutral realization clips by each convex edge's chamfer half-space. That coincides with a local edge chamfer on the native recipes and on convex solids. SolidWorks materialization, when STATE records S2C-10.2.1, is a sibling generated artifact (`{geometry_id}_chamfer.SLDPRT`) produced by a local equal-setback chamfer feature. It is not a new `geometry_id` and must not overwrite untreated `large_armor_*.SLDPRT`.
 
 Fail closed on an open or non-manifold mesh, a non-positive setback, a setback that consumes a convex edge, a requested treatment that does not decrease volume, or a treated solid that leaves the untreated envelope.
 

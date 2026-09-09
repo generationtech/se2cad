@@ -36,6 +36,14 @@ _FALLBACK_CONSTANTS = {
     "swAddComponentConfigOptions_CurrentSelectedConfig": 0,
     # Official Name2 remarks: set fails when this toggle is True.
     "swExtRefUpdateCompNames": 18,
+    # Published swChamferType_e / swFeatureChamferOption_e.
+    "swChamferAngleDistance": 1,
+    "swChamferDistanceDistance": 2,
+    "swChamferVertex": 3,
+    "swChamferEqualDistance": 16,
+    "swFeatureChamferFlipDirection": 1,
+    "swFeatureChamferKeepFeature": 2,
+    "swFeatureChamferTangentPropagation": 4,
 }
 
 

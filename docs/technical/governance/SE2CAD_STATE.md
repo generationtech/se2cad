@@ -19,11 +19,11 @@ No implementation milestone is ACTIVE. Cold-storage backlog remains outside this
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, and QUALIFIED S2C-10.1.1 optional block-edge treatment contract. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. S2C-10.2.1 treated-part generation and remaining M11–M15 features are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, and QUALIFIED S2C-10.2.1 optional treated canonical parts. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. Remaining M11–M15 features are approved, not implemented.
 
 ## Next executable unit
 
-S2C-10.2.1 — Generate optional treated canonical parts. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
+S2C-11.1.1 — Operator-local definition discovery. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
 
 ## Unit status
 
@@ -51,7 +51,7 @@ S2C-10.2.1 — Generate optional treated canonical parts. Defined in [SE2CAD_PLA
 | S2C-9.1.1 | QUALIFIED | Parser/IR carry CAD-neutral `ColorMaskHSV`; omitted maps to `(0.0, -1.0, 0.0)`; `AppearanceSupport` independent of geometry `SupportStatus`. Ordinary suite 233 tests, 2 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-9.2.1 | QUALIFIED | HSV-offset → RGB in `se2cad.solidworks.appearance`; `IComponent2.MaterialPropertyValues` instance override at insert. Ordinary suite 251 tests, 3 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: fixture 24 default appearances; synthetic two colors plus default on one `large_armor_block.SLDPRT`; canonical part SHA-256 unchanged. Distinct assessment recorded below. |
 | S2C-10.1.1 | QUALIFIED | CAD-neutral equal-setback chamfer on convex manifold edges; default off; not a new `geometry_id`. Ordinary suite 267 tests, 3 skipped, OK. External validation was not required. Distinct assessment recorded below. |
-| S2C-10.2.1 | PLANNED | |
+| S2C-10.2.1 | QUALIFIED | Sibling `{geometry_id}_chamfer.SLDPRT` under the generated root when `EDGE_TREATMENT_CHAMFER` is requested. Untreated `large_armor_*.SLDPRT` remain the default. Ordinary suite 283 tests, 4 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: treated and untreated parts, one solid body, S2C-10.1.1 measurables. Distinct assessment recorded below. |
 | S2C-11.1.1 | PLANNED | |
 | S2C-11.2.1 | PLANNED | |
 | S2C-11.3.1 | PLANNED | |
@@ -69,6 +69,16 @@ S2C-10.2.1 — Generate optional treated canonical parts. Defined in [SE2CAD_PLA
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-09 — S2C-10.2.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-11.1.1. Did not invent library expansion, preflight, Small Grid, symmetry, or print-shell. Did not create a general CLI or UI. Did not bake the treatment into `geometry_id`, catalog identity, recipes, or untreated canonical filenames. Did not add a second insert offset or change placement. Did not commit, tag, or push.
+
+Mechanism is a sibling artifact, not a configuration on the untreated part and not a new CAD backend. Requested generation writes `{geometry_id}_chamfer.SLDPRT` under the configured generated root. Default `generate_canonical_parts()` and `python -m se2cad.solidworks` still write untreated `large_armor_*.SLDPRT`. Assembly placement still names those untreated files.
+
+SolidWorks materialization is a local `InsertFeatureChamfer` after the qualified untreated construction. Live 34.3.2: published `swChamferEqualDistance` (16) inserts a no-op Chamfer feature; equal 50 mm face setback is `swChamferDistanceDistance` (2) with Width and OtherDist both 0.05 m, then `ForceRebuild3`. InvCorner’s three notch edges sit on the hypotenuse cut plane; including them returns None, so they are skipped (local chamfer of a live-concave edge). Measurables are recorded in [S2C-10.2.1 treated canonical parts](#s2c-1021-treated-canonical-parts).
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 283 tests, 4 skipped, 0.396 s, OK. `SE2CAD_SOLIDWORKS_INTEGRATION=1` `unittest tests.test_solidworks_integration -v` — 4 tests, OK (three existing tests 112.799 s on the first live pass; treated test OK in 43.961 s after the InvCorner filter). Fixture SHA-256 unchanged. Untreated part SHA-256 unchanged across treated generation. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-09 — S2C-10.1.1 QUALIFIED
 
@@ -354,7 +364,7 @@ These are human-architect technology selections recorded as live decisions. They
 
 These are not invitations to decide them inside an unrelated unit.
 
-- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-7.1.1 added `python -m se2cad.statistics <blueprint.sbc>` on the same terms. S2C-8.1.1 applied names on the existing assemble path and did not add an operator entry. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
+- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-7.1.1 added `python -m se2cad.statistics <blueprint.sbc>` on the same terms. S2C-8.1.1 applied names on the existing assemble path and did not add an operator entry. S2C-10.2.1 added only `--edge-treatment chamfer` on the existing part-generation entry. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
 - Optional local game or SDK install path. Still a human technology-selection item. S2C-11.1.1 must reuse the established env / `se2cad.local.json` pattern or stop and ask. The Windows SolidWorks conversion path does not require it.
 
 Resolved in S2C-6.1.1 and no longer open: numeric position/orientation comparison method. IR `(R, t)` is exact. SolidWorks `ArrayData` allowance is `BACKEND_LENGTH_TOLERANCE_M` (`1e-6` m). Recorded in [INITIAL_ACCEPTANCE_FIXTURE.md](../../testing/INITIAL_ACCEPTANCE_FIXTURE.md) and in this file.
@@ -363,7 +373,7 @@ Resolved in S2C-4.2.1 and no longer open: generated SLDPRT location (local gener
 
 ## Known blockers
 
-None. The next approved unit is S2C-10.2.1 (PLANNED).
+None. The next approved unit is S2C-11.1.1 (PLANNED).
 
 ## S2C-1.1.1 fixture inspection
 
@@ -482,7 +492,36 @@ Optional equal-setback chamfer of convex manifold edges. Default is off. The ope
 
 Placement invariants after a chamfer request: `CANONICAL_LOCAL_FRAME` unchanged; `additional_offset_mm` remains `(0, 0, 0)`; treated vertices stay inside the untreated bounds and the cell envelope; the armor-block face interiors still meet `±half_extent` on each axis. `lookup_recipe` vertices, faces, and catalog identities are unchanged. An L-prism with no catalog identity classifies exactly one concave edge and is not an allowlist entry.
 
-The CAD-neutral realization clips by each convex edge's chamfer half-space. That coincides with a local edge chamfer on these recipes and on convex solids. SolidWorks materialization is S2C-10.2.1.
+The CAD-neutral realization clips by each convex edge's chamfer half-space. That coincides with a local edge chamfer on these recipes and on convex solids. SolidWorks materialization is recorded in [S2C-10.2.1 treated canonical parts](#s2c-1021-treated-canonical-parts).
+
+## S2C-10.2.1 treated canonical parts
+
+Optional treated siblings are generated only when requested. Untreated `large_armor_*.SLDPRT` remain the default conversion parts and the assembly-insert names.
+
+| Artifact | Role |
+| --- | --- |
+| `{geometry_id}.SLDPRT` | Untreated default; lookup and placement unchanged |
+| `{geometry_id}_chamfer.SLDPRT` | Treated sibling; same `geometry_id`; generated root only |
+
+Live SW 2026 `RevisionNumber` 34.3.2 (`SE2CAD_GENERATED_ROOT=generated`):
+
+| Check | Result |
+| --- | --- |
+| Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+| Untreated parts | still one solid body; volumes 15.625 / 7.8125 / 2.604167 / 13.020833 m³ |
+| Treated filenames | `large_armor_block_chamfer.SLDPRT` (76121), `large_armor_slope_chamfer.SLDPRT` (77652), `large_armor_corner_chamfer.SLDPRT` (79083), `large_armor_corner_inv_chamfer.SLDPRT` (89026) |
+| Untreated SHA-256 after treated write | unchanged |
+| Placement | fixture assembly still inserts untreated `large_armor_*.SLDPRT`; `(R, t)` unchanged |
+| Git | `git check-ignore` reports `/generated/` for untreated and treated siblings |
+
+| Solid | Edges chamfered | Faces | Volume m³ | Ratio |
+| --- | --- | --- | --- | --- |
+| `large_armor_block` | 12 | 6 → 26 | 15.625 → 15.588167 | 0.997643 |
+| `large_armor_slope` | 9 | 5 → 20 | 7.8125 → 7.784304 | 0.996391 |
+| `large_armor_corner` | 6 | 4 → 14 | 2.604167 → 2.584630 | 0.992498 |
+| `large_armor_corner_inv` | 9 (3 notch edges skipped) | 7 → 20 | 13.020833 → 12.993208 | 0.997878 |
+
+Every treated part stayed inside the untreated envelope and the cell envelope. Volume decreased and stayed above `EDGE_TREATMENT_MIN_VOLUME_RATIO` 0.85. Face count increased. InvCorner’s notch edges are live-concave; a local chamfer of those edges returns None, so they are not treated.
 
 ## S2C-2.1.1 catalog evidence
 
@@ -682,6 +721,27 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-10.2.1)
+
+Hypotheses tested after sibling naming, ordinary tests, and live 34.3.2 treated/untreated generation existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Treated generation overwrites untreated `large_armor_*.SLDPRT` | Disproven. Destinations are `{geometry_id}_chamfer.SLDPRT`. `part_artifact_path` refuses a treated write whose name equals the untreated canonical name. Live treated write left untreated SHA-256 unchanged. |
+| Writes escape the generated root | Disproven. `contained_destination` still rejects separators and `..`. Live treated files are under `C:\Users\ken\Documents\se2cad\generated`. `git check-ignore` reports `/generated/`. |
+| Treatment is a new `geometry_id` or catalog identity | Disproven. Locator `geometry_id` is unchanged. Catalog and `lookup_recipe` still have exactly the four IDs. Filename suffix is an artifact token, not a catalog key. |
+| Default conversion or placement uses treated parts | Disproven. `generate_canonical_parts` / `__main__` default to `EDGE_TREATMENT_OFF`. `recipe_plan.py`, `pipeline.py`, `assemble.py`, `placement.py`, and `com_construct.py` do not request treatment. Live fixture assembly still inserts untreated filenames. |
+| Foreign overwrite | Disproven. `notes_chamfer.SLDPRT` is not a treated artifact name and is refused. |
+| Ordinary suite attaches to SolidWorks | Disproven. 283 tests, 4 skipped, 0.396 s with `SE2CAD_SOLIDWORKS_INTEGRATION` unset. |
+| Proprietary assets or fixture rewrite | Disproven. Fixture SHA-256 unchanged. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+| S2C-11.1.1 or later M7–M15 work started | Disproven. No definition discovery, preflight, Small Grid, symmetry, or print-shell. |
+
+Remediated during live evidence: `swChamferEqualDistance` (16) is a no-op on late-bound 34.3.2; equal setback uses `swChamferDistanceDistance` (2) plus `ForceRebuild3`. InvCorner all-edge chamfer returns None; oblique-face (notch) edges are excluded and the remaining 9 succeed. Ordinary suite re-run after the live remediations: 283 OK, 4 skipped. Treated live test re-run: OK, 43.961 s.
+
+Accepted residual risk: a local CAD chamfer and the CAD-neutral sequential half-spaces differ at vertices (box volume delta about 8e-5 m³) and on InvCorner, where three live-concave notch edges are skipped. Both stay inside the S2C-10.1.1 envelope and volume-ratio bounds. The oblique-face fallback is only used when the full convex set is refused; slope/corner succeed without it.
+
+Not claimed: physical print judgment; fillet; print-shell; TriangleMesh; treated parts used at assembly insert.
 
 ## Quality/security assessment (S2C-10.1.1)
 

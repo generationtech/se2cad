@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from se2cad.library import EDGE_TREATMENT_MIN_VOLUME_RATIO
 from se2cad.solidworks.com_bind import com_get
 from se2cad.solidworks.errors import CanonicalPartValidationError, SolidWorksComError
 from se2cad.solidworks.recipe_plan import ConstructionPlan, ExpectedSolid
@@ -23,6 +24,7 @@ class PartValidation:
     bounding_box_max_m: tuple[float, float, float]
     volume_m3: float
     center_of_mass_m: tuple[float, float, float]
+    face_count: int | None = None
 
 
 def _as_tuple6(raw: Any) -> tuple[float, ...]:
@@ -46,6 +48,33 @@ def _bodies(part: Any, body_type: int) -> list[Any]:
     if isinstance(raw, (list, tuple)):
         return [body for body in raw if body is not None]
     return [raw]
+
+
+def _face_count(bodies: list[Any]) -> int | None:
+    """Best-effort solid face count. None when the live API is unavailable."""
+    total = 0
+    readable = False
+    for body in bodies:
+        try:
+            total += int(com_get(body, "GetFaceCount"))
+            readable = True
+            continue
+        except Exception:
+            pass
+        try:
+            faces = com_get(body, "GetFaces")
+        except Exception:
+            continue
+        if faces is None:
+            continue
+        if isinstance(faces, (list, tuple)):
+            total += len([face for face in faces if face is not None])
+        else:
+            total += 1
+        readable = True
+    if not readable:
+        return None
+    return total
 
 
 def _is_solid_body(body: Any) -> bool:
@@ -116,6 +145,7 @@ def read_part_validation(session: Any, model: Any) -> PartValidation:
         bounding_box_max_m=(box[3], box[4], box[5]),
         volume_m3=volume,
         center_of_mass_m=(com_xyz[0], com_xyz[1], com_xyz[2]),
+        face_count=_face_count(solids),
     )
 
 
@@ -170,6 +200,87 @@ def assert_matches_plan(observed: PartValidation, expected: ExpectedSolid) -> No
             f"center of mass {observed.center_of_mass_m} m does not match "
             f"qualified {expected.center_of_mass_m} m "
             f"(tolerance {BACKEND_COM_TOLERANCE_M} m)"
+        )
+
+
+def _box_contains(
+    outer_min: tuple[float, float, float],
+    outer_max: tuple[float, float, float],
+    inner_min: tuple[float, float, float],
+    inner_max: tuple[float, float, float],
+    tolerance: float,
+) -> bool:
+    return all(
+        inner_min[i] >= outer_min[i] - tolerance
+        and inner_max[i] <= outer_max[i] + tolerance
+        for i in range(3)
+    )
+
+
+def assert_matches_treatment_contract(
+    untreated: PartValidation,
+    treated: PartValidation,
+    *,
+    envelope_min_m: tuple[float, float, float],
+    envelope_max_m: tuple[float, float, float],
+    min_ratio: float = EDGE_TREATMENT_MIN_VOLUME_RATIO,
+) -> None:
+    """Fail closed when a treated solid misses the S2C-10.1.1 measurables."""
+    if treated.solid_body_count != 1:
+        raise CanonicalPartValidationError(
+            f"treated part expected one solid body, found {treated.solid_body_count}"
+        )
+    if treated.sheet_body_count != 0:
+        raise CanonicalPartValidationError(
+            "treated part must not contain sheet bodies: "
+            f"found {treated.sheet_body_count}"
+        )
+    if treated.volume_m3 >= untreated.volume_m3:
+        raise CanonicalPartValidationError(
+            "treated volume did not decrease: "
+            f"treated={treated.volume_m3} untreated={untreated.volume_m3}"
+        )
+    if untreated.volume_m3 <= 0.0:
+        raise CanonicalPartValidationError("untreated volume is not positive")
+    ratio = treated.volume_m3 / untreated.volume_m3
+    if ratio < min_ratio:
+        raise CanonicalPartValidationError(
+            "treated volume exceeds the change bound: "
+            f"ratio={ratio} min={min_ratio}"
+        )
+    length_tol = BACKEND_LENGTH_TOLERANCE_M
+    if not _box_contains(
+        untreated.bounding_box_min_m,
+        untreated.bounding_box_max_m,
+        treated.bounding_box_min_m,
+        treated.bounding_box_max_m,
+        length_tol,
+    ):
+        raise CanonicalPartValidationError(
+            "treated solid left the untreated envelope: "
+            f"treated min={treated.bounding_box_min_m} "
+            f"max={treated.bounding_box_max_m}"
+        )
+    if not _box_contains(
+        envelope_min_m,
+        envelope_max_m,
+        treated.bounding_box_min_m,
+        treated.bounding_box_max_m,
+        length_tol,
+    ):
+        raise CanonicalPartValidationError(
+            "treated solid left the placement cell envelope: "
+            f"treated min={treated.bounding_box_min_m} "
+            f"max={treated.bounding_box_max_m}"
+        )
+    if (
+        untreated.face_count is not None
+        and treated.face_count is not None
+        and treated.face_count <= untreated.face_count
+    ):
+        raise CanonicalPartValidationError(
+            "treated face count did not increase: "
+            f"treated={treated.face_count} untreated={untreated.face_count}"
         )
 
 

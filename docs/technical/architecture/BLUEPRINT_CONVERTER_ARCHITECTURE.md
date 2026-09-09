@@ -56,7 +56,7 @@ RGB conversion and SolidWorks assignment live in the SolidWorks package (`se2cad
 
 ## Block-edge treatment
 
-Optional printable edge definition is a library geometry treatment, not an IR field and not a new catalog identity. Public entrypoints: `se2cad.apply_edge_treatment`, `EDGE_TREATMENT_OFF`, `EDGE_TREATMENT_CHAMFER`. Default conversion does not apply it. Placement still uses the qualified frame, cell envelope, pitch, and zero insert offset. Contract detail: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md). SolidWorks generation of treated parts is S2C-10.2.1.
+Optional printable edge definition is a library geometry treatment, not an IR field and not a new catalog identity. Public entrypoints: `se2cad.apply_edge_treatment`, `EDGE_TREATMENT_OFF`, `EDGE_TREATMENT_CHAMFER`. Default conversion does not apply it. Placement still uses the qualified frame, cell envelope, pitch, and zero insert offset. Contract detail: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md). When STATE records S2C-10.2.1, requested SolidWorks generation writes deterministic treated siblings (`{geometry_id}_chamfer.SLDPRT`) under the generated root and leaves untreated `large_armor_*.SLDPRT` as the default conversion and insert parts.
 
 ## Intermediate representation
 
@@ -170,7 +170,7 @@ Execution model (human-architect, S2C-4.2.1): the Windows process runs the neede
 
 API lengths are metres. Recipe millimetres are converted only inside the backend, explicitly. The backend consumes the qualified canonical frame and must not apply a corrective rotation or offset to make a part “look right”.
 
-Generated canonical part files use deterministic names from `geometry_id` (`large_armor_block.SLDPRT`, …) and must stay under the configured generated root. A part locator may be bound only after generate, validate, save, and reopen succeed. The locator’s logical identity is not a Windows absolute path and is not stored in the catalog.
+Generated canonical part files use deterministic names from `geometry_id` (`large_armor_block.SLDPRT`, …) and must stay under the configured generated root. Optional treated siblings use `{geometry_id}_chamfer.SLDPRT` and must not overwrite those untreated names. A part locator may be bound only after generate, validate, save, and reopen succeed. The locator’s logical identity is not a Windows absolute path and is not stored in the catalog. The treated locator keeps the same `geometry_id` and a different filename.
 
 Placement method: apply the calculated transform to each inserted component. Do not reconstruct fixed Space Engineers block placement with mates.
 
@@ -197,6 +197,6 @@ The completed initial program’s converter success path was:
 
 That path remains the qualified baseline. Fail closed on multiple grids and missing required fields. Do not silently drop blocks.
 
-Unknown-subtype handling, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1. The optional block-edge treatment contract is present when STATE records S2C-10.1.1; default conversion remains untreated and SolidWorks treated-part generation is S2C-10.2.1.
+Unknown-subtype handling, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1. The optional block-edge treatment contract is present when STATE records S2C-10.1.1. SolidWorks treated-part generation is present when STATE records S2C-10.2.1; default conversion remains untreated.
 
 Blender is not a converter stage. A general print/slicer pipeline is not a converter stage.

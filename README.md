@@ -298,7 +298,9 @@ CAD-neutral **optional block-edge treatment** is an equal-setback chamfer
 of convex solid edges. Default conversion stays untreated and
 dimensionally the qualified M0–M6 path. The treatment is not a new
 block subtype and is not limited to the four proof-of-concept armor IDs.
-SolidWorks generation of treated parts is not part of this contract.
+When requested, SolidWorks writes treated sibling parts
+(`*_chamfer.SLDPRT`) under the generated root and leaves the untreated
+canonical `.SLDPRT` files unchanged.
 
 ### Current scope
 
@@ -351,7 +353,11 @@ Generate and validate the canonical parts:
 
 ``` cmd
 python -m se2cad.solidworks
+python -m se2cad.solidworks --edge-treatment chamfer
 ```
+
+The second command writes treated sibling `.SLDPRT` files. It does not
+replace the untreated canonical parts.
 
 Convert the included acceptance fixture:
 

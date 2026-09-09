@@ -15,12 +15,17 @@ from se2cad.solidworks.appearance import (
     quantize_rgb_8bit,
 )
 from se2cad.solidworks.artifacts import (
+    TREATED_PART_STEM_SUFFIX,
     assembly_path_for,
     artifact_path_for,
     canonical_geometry_ids,
     contained_destination,
+    is_treated_artifact_filename,
     logical_assembly_filename,
     logical_part_filename,
+    logical_treated_part_filename,
+    part_artifact_path,
+    treated_artifact_path_for,
 )
 from se2cad.solidworks.availability import (
     solidworks_backend_available,
@@ -58,11 +63,18 @@ from se2cad.solidworks.transform_pack import solidworks_arraydata
 from se2cad.solidworks.units import mm_to_metres, metres_to_mm, point_mm_to_metres
 
 
-def generate_canonical_parts(config: SolidWorksBackendConfig | None = None):
-    """Generate the four canonical parts. Requires Windows + pywin32 + SolidWorks."""
+def generate_canonical_parts(
+    config: SolidWorksBackendConfig | None = None,
+    treatment=None,
+):
+    """Generate the four canonical parts. Requires Windows + pywin32 + SolidWorks.
+
+    Untreated ``large_armor_*.SLDPRT`` remain the default. Pass
+    ``EDGE_TREATMENT_CHAMFER`` to write treated sibling artifacts.
+    """
     from se2cad.solidworks.generate import generate_canonical_parts as impl
 
-    return impl(config)
+    return impl(config, treatment=treatment)
 
 
 def generate_assembly(blueprint_path, config: SolidWorksBackendConfig | None = None):
@@ -76,6 +88,7 @@ __all__ = [
     "APPEARANCE_RGB_TOLERANCE",
     "GENERATED_ROOT_ENV",
     "SATURATION_DELTA",
+    "TREATED_PART_STEM_SUFFIX",
     "VALUE_DELTA",
     "AssemblyIdentityError",
     "AssemblyValidationError",
@@ -104,9 +117,13 @@ __all__ = [
     "contained_destination",
     "generate_assembly",
     "generate_canonical_parts",
+    "is_treated_artifact_filename",
     "load_solidworks_backend_config",
     "logical_assembly_filename",
     "logical_part_filename",
+    "logical_treated_part_filename",
+    "part_artifact_path",
+    "treated_artifact_path_for",
     "metres_to_mm",
     "mm_to_metres",
     "placements_from_ir",

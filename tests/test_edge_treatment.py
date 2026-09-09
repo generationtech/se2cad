@@ -282,7 +282,7 @@ class LibraryIdentityTests(unittest.TestCase):
             for geometry_id in _CATALOG_GEOMETRY_IDS:
                 self.assertNotIn(geometry_id, text, msg=name)
 
-    def test_solidworks_generation_path_does_not_request_treatment(self) -> None:
+    def test_default_conversion_modules_do_not_request_treatment(self) -> None:
         from pathlib import Path
 
         backend = Path(__file__).resolve().parents[1] / "src" / "se2cad" / "solidworks"
@@ -290,12 +290,13 @@ class LibraryIdentityTests(unittest.TestCase):
             "apply_edge_treatment",
             "EDGE_TREATMENT_CHAMFER",
             "EDGE_TREATMENT_SETBACK_MM",
+            "apply_equal_setback_chamfer",
         )
         for name in (
-            "generate.py",
             "recipe_plan.py",
             "pipeline.py",
             "assemble.py",
+            "placement.py",
             "com_construct.py",
         ):
             text = (backend / name).read_text(encoding="utf-8")

@@ -253,6 +253,77 @@ class SolidWorksIntegrationTests(unittest.TestCase):
         }
         self.assertEqual(after_hashes, part_hashes)
 
+    def test_treated_and_untreated_canonical_parts(self) -> None:
+        from se2cad.library import (
+            CANONICAL_CELL_ENVELOPE,
+            EDGE_TREATMENT_CHAMFER,
+            EDGE_TREATMENT_MIN_VOLUME_RATIO,
+            EDGE_TREATMENT_OFF,
+        )
+        from se2cad.solidworks.generate import generate_canonical_parts
+        from se2cad.solidworks.units import mm_to_metres
+
+        untreated = generate_canonical_parts(self.config)
+        self.assertEqual(len(untreated), 4)
+        untreated_hashes = {}
+        for result in untreated:
+            self.assertEqual(result.treatment, EDGE_TREATMENT_OFF)
+            self.assertFalse(result.treatment_applied)
+            self.assertEqual(result.after_reopen.solid_body_count, 1)
+            self.assertEqual(result.after_reopen.sheet_body_count, 0)
+            self.assertEqual(
+                result.locator.identity.filename,
+                f"{result.locator.identity.geometry_id}.SLDPRT",
+            )
+            self.assertTrue(result.locator.path.is_relative_to(self.config.generated_root))
+            untreated_hashes[result.locator.path.name] = hashlib.sha256(
+                result.locator.path.read_bytes()
+            ).hexdigest()
+
+        treated = generate_canonical_parts(
+            self.config, treatment=EDGE_TREATMENT_CHAMFER
+        )
+        self.assertEqual(len(treated), 4)
+        half = mm_to_metres(CANONICAL_CELL_ENVELOPE.max_mm[0])
+        for result, prior in zip(treated, untreated):
+            geometry_id = result.locator.identity.geometry_id
+            self.assertEqual(result.treatment, EDGE_TREATMENT_CHAMFER)
+            self.assertTrue(result.treatment_applied)
+            self.assertEqual(
+                result.locator.identity.filename,
+                f"{geometry_id}_chamfer.SLDPRT",
+            )
+            self.assertTrue(result.locator.path.is_file())
+            self.assertTrue(result.locator.path.is_relative_to(self.config.generated_root))
+            self.assertNotEqual(result.locator.path, prior.locator.path)
+            self.assertEqual(result.after_save.solid_body_count, 1)
+            self.assertEqual(result.after_reopen.solid_body_count, 1)
+            self.assertEqual(result.after_reopen.sheet_body_count, 0)
+            self.assertIsNotNone(result.untreated_after_construct)
+            untreated_volume = result.untreated_after_construct.volume_m3
+            treated_volume = result.after_reopen.volume_m3
+            self.assertLess(treated_volume, untreated_volume)
+            self.assertGreaterEqual(
+                treated_volume / untreated_volume,
+                EDGE_TREATMENT_MIN_VOLUME_RATIO,
+            )
+            self.assertGreaterEqual(result.after_reopen.bounding_box_min_m[0], -half - 1e-6)
+            self.assertLessEqual(result.after_reopen.bounding_box_max_m[0], half + 1e-6)
+            if (
+                result.untreated_after_construct.face_count is not None
+                and result.after_reopen.face_count is not None
+            ):
+                self.assertGreater(
+                    result.after_reopen.face_count,
+                    result.untreated_after_construct.face_count,
+                )
+
+        after_hashes = {
+            name: hashlib.sha256((self.config.generated_root / name).read_bytes()).hexdigest()
+            for name in untreated_hashes
+        }
+        self.assertEqual(after_hashes, untreated_hashes)
+
 
 if __name__ == "__main__":
     unittest.main()
