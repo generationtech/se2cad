@@ -11,6 +11,7 @@ This module does not import Keen meshes or read a game install.
 
 from __future__ import annotations
 
+from se2cad.catalog.constants import FILLER_GEOMETRY_ID, LARGE_GRID_CELL_PITCH_MM
 from se2cad.catalog.model import RecipeKind
 from se2cad.library.errors import UnknownGeometryError, UnsupportedTopologyError
 from se2cad.library.frame import (
@@ -376,3 +377,39 @@ LIBRARY_RECORDS: tuple[LibraryRecord, ...] = tuple(
         ORIGINAL_LIBRARY_BINDINGS + REPRESENTATIVE_AUTOMATABLE_BINDINGS
     )
 )
+
+# Smaller than the cell envelope so the filler cannot be mistaken for armor.
+FILLER_HALF_EXTENT_MM = LARGE_GRID_CELL_PITCH_MM // 5
+FILLER_OBSERVED_TOPOLOGY = "Filler"
+
+
+def _filler_recipe() -> NativeSolidRecipe:
+    half = FILLER_HALF_EXTENT_MM
+    vertices = tuple(
+        (sx * half, sy * half, sz * half) for sx, sy, sz in _CUBE_CORNER_SIGNS
+    )
+    faces = _CUBE_FACES
+    return NativeSolidRecipe(
+        geometry_id=FILLER_GEOMETRY_ID,
+        recipe_kind=RecipeKind.NATIVE_PROCEDURAL,
+        solid_kind=SolidKind.AXIS_ALIGNED_BOX,
+        vertices_mm=vertices,
+        faces=faces,
+        construction=BoxConstruction(
+            min_mm=(-half, -half, -half),
+            max_mm=(half, half, half),
+        ),
+        orientation=TopologyOrientation(
+            observed_cube_topology=FILLER_OBSERVED_TOPOLOGY,
+            full_faces=("Right", "Left", "Up", "Down", "Backward", "Forward"),
+            cut_description=(
+                "designated unknown-block filler; smaller than the cell; "
+                "not a supported armor type"
+            ),
+            distinguishing_cube_corner_signs=_RIGHT_DOWN_FORWARD_SIGNS,
+        ),
+        validation=_validation(vertices, faces),
+    )
+
+
+FILLER_LIBRARY_RECORD = _record(_filler_recipe())

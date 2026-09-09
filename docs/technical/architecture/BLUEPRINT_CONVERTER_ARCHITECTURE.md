@@ -24,6 +24,7 @@ Responsibilities:
 | SolidWorks backend | Insert parts by transform; assign instance appearance; save assembly | Recalculate SE orientation; call Blender; build mate networks for fixed SE placement; paint canonical `.SLDPRT` files |
 | Statistics | Derive a CAD-neutral summary from parser + catalog fields | Call SolidWorks; invent identities; drop unresolvable blocks; change conversion policy |
 | Preflight | Diagnose each parsed block against the catalog: supported, unsupported, or unknown | Convert; insert filler; treat a produced report as conversion success |
+| Conversion policy | Apply explicit strict refusal or permissive filler substitution using preflight | Default to permissive; alias unknown as armor; drop blocks; invent real unknown geometry |
 | Component names | Derive a CAD-neutral instance name from existing IR fields | Rename canonical `.SLDPRT` identities; invent a catalog key; change `(R, t)` |
 
 ## Statistics
@@ -48,7 +49,17 @@ Each block reports subtype, `Min`, catalog outcome, geometry support, and appear
 
 `all_supported` is the input for a later strict-versus-permissive decision. Producing a preflight report is not conversion success. Operator exit 0 means the report was produced.
 
-Malformed and unsupported document shapes fail at the parser, with the same errors as direct parse. Runtime `catalog.lookup` and `build_canonical_blueprint` remain fail-closed on unknown subtypes. Filler substitution is S2C-12.2.1.
+Malformed and unsupported document shapes fail at the parser, with the same errors as direct parse. Runtime `catalog.lookup` and `build_canonical_blueprint` remain fail-closed on unknown subtypes. When STATE records S2C-12.2.1, `se2cad.policy` applies an explicit conversion policy on top of that diagnosis.
+
+## Conversion policy
+
+Conversion policy is CAD-neutral. It consumes preflight and produces IR. It does not import SolidWorks types.
+
+Public entrypoints: `se2cad.policy.convert_blueprint`, `convert_blueprint_from_path`, and `convert_blueprint_from_xml`. A narrow operator entry is `python -m se2cad.policy <blueprint.sbc> [--policy strict|permissive]`.
+
+`ConversionPolicy.STRICT` is the default. It refuses conversion when any block is unknown or unsupported, surfaces the preflight diagnostics, and does not emit a partial assembly as success. `ConversionPolicy.PERMISSIVE` must be requested explicitly. It converts every parsed block: supported blocks keep their catalog geometry identity; unknown and catalog-unsupported blocks receive the designated filler `geometry_id` `se2cad_unknown_filler` at the original `Min`, Forward, and Up. The original SE subtype and appearance stay on the IR. Filler `support_status` and `recipe_kind` remain `unsupported`. The filler is not `large_armor_block` and is not a catalog cube-block subtype.
+
+`build_canonical_blueprint` remains the catalog-resolve path: unknown subtypes still fail closed there. Assembly generation uses policy and defaults to strict.
 
 ## Component names
 
@@ -111,7 +122,7 @@ Recipe vocabulary remains `native_procedural`, `sdk_mesh_direct`, `sdk_mesh_mani
 
 The catalog must not store machine-specific paths or proprietary mesh/texture references. The normal conversion path must not open Space Engineers content files to resolve catalogued subtypes.
 
-When STATE records S2C-11.1.1, library-build discovery may read an operator-local install for catalog-authoring evidence. When STATE records S2C-11.2.1, `expand_catalog_identities` resolves Large Grid observed facts into catalog entries without scanning an install. When STATE records S2C-11.3.1, `select_catalog_recipes` assigns recipe kinds and queryable exception records from those observed facts without granting support. When STATE records S2C-11.4.1, `recipe_for_topology` stamps known CubeTopology constructions onto distinct geometry IDs and the representative heavy-armor subset can be generated through the existing Windows-local backend. When STATE records S2C-11.5.1, leftover evaluation records residual automatable topologies and exception states in repository metadata; leftover evaluation is not converter preflight, and leftovers cannot be reported as successful supported conversion. Those scans and the authoring functions are not part of `parse_blueprint`, `load_default_catalog`, `build_canonical_blueprint`, or assembly generation. When STATE records S2C-12.1.1, `se2cad.preflight` diagnoses catalog outcomes without converting. Contract: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md).
+When STATE records S2C-11.1.1, library-build discovery may read an operator-local install for catalog-authoring evidence. When STATE records S2C-11.2.1, `expand_catalog_identities` resolves Large Grid observed facts into catalog entries without scanning an install. When STATE records S2C-11.3.1, `select_catalog_recipes` assigns recipe kinds and queryable exception records from those observed facts without granting support. When STATE records S2C-11.4.1, `recipe_for_topology` stamps known CubeTopology constructions onto distinct geometry IDs and the representative heavy-armor subset can be generated through the existing Windows-local backend. When STATE records S2C-11.5.1, leftover evaluation records residual automatable topologies and exception states in repository metadata; leftover evaluation is not converter preflight, and leftovers cannot be reported as successful supported conversion. Those scans and the authoring functions are not part of `parse_blueprint`, `load_default_catalog`, `build_canonical_blueprint`, or assembly generation. When STATE records S2C-12.1.1, `se2cad.preflight` diagnoses catalog outcomes without converting. When STATE records S2C-12.2.1, `se2cad.policy` applies strict refusal or designated-filler substitution; the filler identity is not a supported catalog armor type. Contract: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md).
 
 ## Transforms
 
@@ -180,7 +191,7 @@ Solid recipes and the library-side record that agrees with this frame: [BLOCK_LI
 
 First CAD backend, isolated behind a boundary. Core parser, catalog, IR, and transforms must not import SolidWorks types.
 
-The backend package is `se2cad.solidworks`. All pywin32 / COM code stays inside that package and is imported only when a SolidWorks session is requested. Importing `se2cad`, `se2cad.parser`, `se2cad.catalog`, `se2cad.ir`, `se2cad.transform`, `se2cad.library`, `se2cad.statistics`, or `se2cad.preflight` on Linux must not require pywin32. Requesting the backend where COM, pywin32, or SolidWorks is unavailable is a clear backend-availability failure.
+The backend package is `se2cad.solidworks`. All pywin32 / COM code stays inside that package and is imported only when a SolidWorks session is requested. Importing `se2cad`, `se2cad.parser`, `se2cad.catalog`, `se2cad.ir`, `se2cad.transform`, `se2cad.library`, `se2cad.statistics`, `se2cad.preflight`, or `se2cad.policy` on Linux must not require pywin32. Requesting the backend where COM, pywin32, or SolidWorks is unavailable is a clear backend-availability failure.
 
 Execution model (human-architect, S2C-4.2.1): the Windows process runs the needed SE2CAD stages locally. Windows is not a remote worker. Linux-to-Windows remoting is out of scope. See [ADR-003](../adr/ADR-003_SOLIDWORKS_BACKEND.md).
 
@@ -213,6 +224,6 @@ The completed initial program’s converter success path was:
 
 That path remains the qualified baseline. Fail closed on multiple grids and missing required fields. Do not silently drop blocks.
 
-Unknown-subtype conversion policy, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed at conversion. When STATE records S2C-12.1.1, preflight diagnoses unknown and catalog-unsupported blocks without converting them. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1. The optional block-edge treatment contract is present when STATE records S2C-10.1.1. SolidWorks treated-part generation is present when STATE records S2C-10.2.1; default conversion remains untreated. Explicit treated-part assembly selection is present when STATE records S2C-10.3.1; default assemble remains untreated. Operator-local definition discovery is present when STATE records S2C-11.1.1; it does not change runtime catalog lookup. Catalog identity expansion is present when STATE records S2C-11.2.1; runtime lookup stays the packaged catalog. Conversion preflight is present when STATE records S2C-12.1.1; it does not convert or insert filler.
+Unknown-subtype conversion policy, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed at conversion. When STATE records S2C-12.1.1, preflight diagnoses unknown and catalog-unsupported blocks without converting them. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1. The optional block-edge treatment contract is present when STATE records S2C-10.1.1. SolidWorks treated-part generation is present when STATE records S2C-10.2.1; default conversion remains untreated. Explicit treated-part assembly selection is present when STATE records S2C-10.3.1; default assemble remains untreated. Operator-local definition discovery is present when STATE records S2C-11.1.1; it does not change runtime catalog lookup. Catalog identity expansion is present when STATE records S2C-11.2.1; runtime lookup stays the packaged catalog. Conversion preflight is present when STATE records S2C-12.1.1; it does not convert or insert filler. Strict and permissive conversion policy is present when STATE records S2C-12.2.1; default conversion remains strict.
 
 Blender is not a converter stage. A general print/slicer pipeline is not a converter stage.

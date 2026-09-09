@@ -5,6 +5,7 @@ from __future__ import annotations
 from se2cad.library.errors import UnknownGeometryError
 from se2cad.library.model import LibraryRecord, NativeSolidRecipe
 from se2cad.library.recipes import (
+    FILLER_LIBRARY_RECORD,
     LIBRARY_RECORDS,
     ORIGINAL_LIBRARY_BINDINGS,
     REPRESENTATIVE_AUTOMATABLE_BINDINGS,
@@ -17,6 +18,11 @@ for _record in LIBRARY_RECORDS:
             f"duplicate library geometry_id {_record.geometry_id!r}"
         )
     _BY_GEOMETRY_ID[_record.geometry_id] = _record
+if FILLER_LIBRARY_RECORD.geometry_id in _BY_GEOMETRY_ID:
+    raise RuntimeError(
+        f"duplicate library geometry_id {FILLER_LIBRARY_RECORD.geometry_id!r}"
+    )
+_BY_GEOMETRY_ID[FILLER_LIBRARY_RECORD.geometry_id] = FILLER_LIBRARY_RECORD
 
 
 def all_library_records() -> tuple[LibraryRecord, ...]:
@@ -34,6 +40,11 @@ def representative_automatable_geometry_ids() -> tuple[str, ...]:
     return tuple(
         geometry_id for geometry_id, _topology in REPRESENTATIVE_AUTOMATABLE_BINDINGS
     )
+
+
+def filler_library_record() -> LibraryRecord:
+    """Return the designated unknown-block filler. Not a supported armor type."""
+    return FILLER_LIBRARY_RECORD
 
 
 def lookup_record(geometry_id: str) -> LibraryRecord:

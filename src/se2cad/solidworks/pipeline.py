@@ -6,9 +6,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from se2cad.catalog import load_default_catalog
-from se2cad.ir import CanonicalBlueprint, build_canonical_blueprint
+from se2cad.ir import CanonicalBlueprint
 from se2cad.library import NativeSolidRecipe, lookup_recipe
 from se2cad.parser import parse_blueprint
+from se2cad.policy import ConversionPolicy, convert_blueprint
 from se2cad.solidworks.recipe_plan import ConstructionPlan, plan_from_recipe
 
 
@@ -23,15 +24,19 @@ class BlueprintRecipeResolution:
     plans: tuple[ConstructionPlan, ...]
 
 
-def resolve_recipes_from_blueprint(path: Path) -> BlueprintRecipeResolution:
-    """Parse, catalog-resolve, build IR, and look up native recipes.
+def resolve_recipes_from_blueprint(
+    path: Path,
+    policy: ConversionPolicy = ConversionPolicy.STRICT,
+) -> BlueprintRecipeResolution:
+    """Parse, apply conversion policy, and look up native recipes.
 
-    Uses the repository-resident catalog. Does not open a game or SDK tree.
+    Default policy is strict. Uses the repository-resident catalog.
+    Does not open a game or SDK tree.
     """
     blueprint_path = Path(path)
     parsed = parse_blueprint(blueprint_path)
     catalog = load_default_catalog()
-    ir = build_canonical_blueprint(parsed, catalog)
+    ir = convert_blueprint(parsed, catalog, policy=policy).ir
     seen: list[str] = []
     for block in ir.grid.blocks:
         if block.geometry_id not in seen:

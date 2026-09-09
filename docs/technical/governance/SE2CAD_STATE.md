@@ -15,17 +15,17 @@ The nine milestones, in order, are: blueprint statistics; CAD component naming; 
 
 No implementation milestone is ACTIVE. Cold-storage backlog remains outside this program. Do not invent work beyond it.
 
-A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-12.1.1 is QUALIFIED. S2C-12.2.1 remains PLANNED and is the next executable unit.
+A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-12.1.1 is QUALIFIED. S2C-12.2.1 is QUALIFIED. S2C-13.1.1 remains PLANNED and is the next executable unit.
 
 **Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression, and QUALIFIED S2C-12.1.1 conversion preflight. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M12 units through M15 are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression, QUALIFIED S2C-12.1.1 conversion preflight, and QUALIFIED S2C-12.2.1 strict and permissive unknown-block conversion. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M13 units through M15 are approved, not implemented.
 
 ## Next executable unit
 
-S2C-12.2.1 strict and permissive unknown-block conversion. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). Do not invent Small Grid conversion, symmetry, or print-shell.
+S2C-13.1.1 Small Grid semantic path. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). Do not invent SolidWorks Small Grid part generation, multi-grid, symmetry, or print-shell.
 
 ## Unit status
 
@@ -61,7 +61,7 @@ S2C-12.2.1 strict and permissive unknown-block conversion. Defined in [SE2CAD_PL
 | S2C-11.4.1 | QUALIFIED | `recipe_for_topology` stamps Box/Slope/Corner/InvCorner constructions onto distinct geometry IDs. Representative subset is the four heavy-armor identities; they are `native_procedural` / `supported`. Ordinary suite 367 tests, 6 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2 generated, validated, saved, closed, reopened the four heavy parts under the gitignored generated root. Distinct assessment recorded below. |
 | S2C-11.5.1 | QUALIFIED | `evaluate_leftover_set` / packaged `leftover_set.json` record leftover and completed automatable identities. Failed generation, unclassified identities, and unsupported recipe kinds cannot report as supported conversion. Ordinary suite 385 tests, 6 skipped, OK. External validation was not required; no additional parts were generated. Distinct assessment recorded below. |
 | S2C-12.1.1 | QUALIFIED | CAD-neutral `se2cad.preflight` exists; fixture 24 blocks are `all_supported`; unknown, catalog-unsupported, mixed documents, and independent geometry/appearance flags covered; ordinary suite 404 tests, 6 skipped, OK. External validation was not required. Distinct assessment recorded below. |
-| S2C-12.2.1 | PLANNED | |
+| S2C-12.2.1 | QUALIFIED | CAD-neutral `se2cad.policy` exists; strict refuses unknown/unsupported with preflight diagnostics; permissive emits N IR instances with designated filler `se2cad_unknown_filler`; ordinary suite 428 tests, 7 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: two-component permissive `se2cad-filler-probe.SLDASM` save/reopen used distinct `se2cad_unknown_filler.SLDPRT` at the IR pose. Distinct assessment [below](#qualitysecurity-assessment-s2c-1221). |
 | S2C-13.1.1 | PLANNED | |
 | S2C-13.2.1 | PLANNED | |
 | S2C-14.1.1 | PLANNED | |
@@ -72,6 +72,27 @@ S2C-12.2.1 strict and permissive unknown-block conversion. Defined in [SE2CAD_PL
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-09 — S2C-12.2.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-13.1.1. Did not invent Small Grid conversion, symmetry, or print-shell. Did not create a general CLI or UI. Did not change M11 recipe kinds or leftover metadata. Did not alias unknown subtypes to `large_armor_block`. Did not default assemble or `convert_blueprint` to permissive. Did not commit, tag, or push.
+
+Conversion policy is CAD-neutral in `se2cad.policy`. Strict is the default: unknown or unsupported blocks raise `ConversionRefusedError` with preflight counts and do not emit a partial IR or assembly as success. Permissive must be requested. It converts every parsed block, assigning designated filler `geometry_id` `se2cad_unknown_filler` while preserving original subtype, appearance, `Min`, Forward, and Up. Filler `support_status` and `recipe_kind` on those IR blocks remain `unsupported`. `build_canonical_blueprint` remains the catalog-resolve path and still fail-closes on unknown subtypes. Assembly generation and `python -m se2cad.solidworks.assemble` use policy and default to strict. Operator entry `python -m se2cad.policy <blueprint.sbc> [--policy strict|permissive]` exits 0 only when conversion produced an IR.
+
+The filler is a library-only identity: smaller axis-aligned box (`FILLER_HALF_EXTENT_MM` = pitch/5), observed topology `Filler`, filename `se2cad_unknown_filler.SLDPRT`. It is not a catalog cube-block subtype and is not in `all_library_records()`. Default part generation remains the original four.
+
+Attached running SW 2026 `RevisionNumber` 34.3.2 (`GetActiveObject`, `started_application` False). Document count after the live run was 0. `SE2CAD_GENERATED_ROOT=generated`.
+
+Live `SE2CAD_SOLIDWORKS_INTEGRATION=1` `unittest tests.test_solidworks_integration.SolidWorksIntegrationTests.test_permissive_filler_assembly_keeps_pose_and_distinct_part -v` — 1 test, OK, 14.206 s. A later `unittest discover -s tests -v` with the same integration flag left set ran all 7 live integration tests including that probe plus the qualified fixture assemble path — 428 tests, 0 skipped, 257.695 s, OK.
+
+| Check | Result |
+| --- | --- |
+| Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+| Permissive probe | 2 components: `large_armor_block.SLDPRT` + `se2cad_unknown_filler.SLDPRT`; filler subtype `NotACatalogSubtype`; translation `(2.5, 0, 0)` m; Down/Forward axes match IR |
+| Generated artifacts | gitignored `generated/`; `se2cad_unknown_filler.SLDPRT` (58150), `se2cad-filler-probe.SLDASM` (59883) |
+| Operator documents | leftover document count 0 |
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 428 tests, 7 skipped, 0.692 s, OK. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-09 — S2C-12.1.1 QUALIFIED
 
@@ -851,6 +872,29 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-12.2.1)
+
+Hypotheses tested after the CAD-neutral policy module, filler identity, ordinary tests, live filler-assembly run, and documentation existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Unknown or unsupported blocks are silently substituted as `large_armor_block` | Disproven. Permissive IR uses `se2cad_unknown_filler`. That identity is absent from the packaged catalog. Filler volume `6000000000` vs armor `93750000000` (`volume_times_6_mm3`). Tests reject armor filename and armor geometry_id. |
+| Conversion defaults to permissive | Disproven. `convert_blueprint` and `generate_assembly` default to `ConversionPolicy.STRICT`. Assemble argv without `--policy` is strict. Operator `python -m se2cad.policy` without `--policy` is strict and refuses one unknown (exit 2, `conversion_performed=false`). |
+| Blocks can be dropped under either policy | Disproven. Permissive mixed-document test requires `ir.grid.block_count == preflight.block_count == 4` and source indexes `0,1,2,3`. `zip(..., strict=True)` fails closed on length mismatch. Strict refusal raises before IR emission. |
+| Filler overwrites a real part filename | Disproven. Canonical names are `se2cad_unknown_filler.SLDPRT` vs `large_armor_block.SLDPRT`. Live assembly used those distinct files. |
+| Catalog-unsupported keeps its catalog `geometry_id` and looks supported | Disproven. Permissive assigns filler, `support_status=unsupported`, `recipe_kind=unsupported`, not `large_unsupported_probe`. |
+| A produced policy report or assemble without `--policy` hides failures | Disproven. Strict raises `ConversionRefusedError` with unknown/unsupported counts. Assemble main prints that error and exits 2. |
+| Policy imports SolidWorks or copies pitch literals | Disproven. Neutrality tests forbid win32com, `.sldprt`, `.mwm`, `se2cad.solidworks`, `se2cad.library`, and `2500` in `se2cad.policy`. Ordinary suite 428 tests, 7 skipped, 0.692 s. |
+| Leftover honesty or default generation changed | Disproven. `all_library_records()` remains 8. `canonical_geometry_ids()` remains the original four. Packaged leftover still matches `evaluate_leftover_set`. |
+| S2C-13.1.1 or later M7–M15 work started | Disproven. No Small Grid conversion, symmetry, or print-shell. |
+| Proprietary assets or generated CAD were added | Disproven. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. Fixture SHA-256 unchanged. Generated filler artifacts are gitignored. |
+
+No verified findings required remediation.
+
+Accepted residual risk: `build_canonical_blueprint` remains the catalog-resolve path and still constructs IR for catalog-unsupported entries with their catalog `geometry_id`; assembly and `se2cad.policy` use the new policy and default to strict. The filler library recipe is a native SE2CAD solid so it can be generated; that does not grant `supported` to the original subtype. Operator parse-error text may include the operator-supplied blueprint path, as with preflight. Vacuous empty documents remain `all_supported`. Live qualification used a two-block synthetic probe, not a treated-filler assembly.
+
+Not claimed: real geometry for unknown mods; Small Grid conversion; that leftover evaluation is policy; that default generate now writes the filler part.
 
 ## Quality/security assessment (S2C-12.1.1)
 

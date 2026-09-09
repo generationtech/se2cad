@@ -11,6 +11,7 @@ from pathlib import Path
 
 from se2cad.ir.model import CanonicalBlueprint
 from se2cad.library import EDGE_TREATMENT_CHAMFER, EDGE_TREATMENT_OFF, EdgeTreatmentRequest
+from se2cad.policy import ConversionPolicy, ConversionRefusedError
 from se2cad.solidworks.artifacts import (
     assembly_path_for,
     assert_overwrite_is_canonical,
@@ -125,36 +126,74 @@ def generate_assembly(
     blueprint_path: Path,
     config: SolidWorksBackendConfig | None = None,
     treatment: EdgeTreatmentRequest | None = None,
+    policy: ConversionPolicy = ConversionPolicy.STRICT,
 ) -> GeneratedAssembly:
-    """Parse a blueprint through the qualified pipeline and write an SLDASM."""
-    resolved = resolve_recipes_from_blueprint(Path(blueprint_path))
+    """Parse a blueprint through the qualified pipeline and write an SLDASM.
+
+    Default policy is strict. Pass ``ConversionPolicy.PERMISSIVE`` to
+    insert the designated filler for unknown or unsupported blocks.
+    """
+    resolved = resolve_recipes_from_blueprint(Path(blueprint_path), policy=policy)
     return generate_assembly_from_ir(resolved.ir, config, treatment)
 
 
 def _parse_assemble_argv(
     argv: list[str],
-) -> tuple[Path, EdgeTreatmentRequest] | None:
-    """Parse ``<blueprint.sbc> [--edge-treatment chamfer]``.
+) -> tuple[Path, EdgeTreatmentRequest, ConversionPolicy] | None:
+    """Parse ``<blueprint.sbc> [--edge-treatment chamfer] [--policy permissive]``.
 
-    Matches the part-generation spelling. Unknown flags fail closed.
+    Matches the part-generation treatment spelling. Default policy is
+    strict. Unknown flags fail closed.
     """
     usage = (
         "usage: python -m se2cad.solidworks.assemble "
-        "<blueprint.sbc> [--edge-treatment chamfer]"
+        "<blueprint.sbc> [--edge-treatment chamfer] [--policy permissive]"
     )
     if not argv or argv[0].startswith("-"):
         print(usage)
         return None
     blueprint = Path(argv[0])
-    flags = argv[1:]
-    if not flags:
-        return blueprint, EDGE_TREATMENT_OFF
-    if flags == ["--edge-treatment", "off"]:
-        return blueprint, EDGE_TREATMENT_OFF
-    if flags == ["--edge-treatment", "chamfer"]:
-        return blueprint, EDGE_TREATMENT_CHAMFER
-    print(usage)
-    return None
+    treatment = EDGE_TREATMENT_OFF
+    policy = ConversionPolicy.STRICT
+    seen_treatment = False
+    seen_policy = False
+    rest = argv[1:]
+    index = 0
+    while index < len(rest):
+        token = rest[index]
+        if token == "--edge-treatment":
+            if seen_treatment or index + 1 >= len(rest):
+                print(usage)
+                return None
+            value = rest[index + 1]
+            if value == "off":
+                treatment = EDGE_TREATMENT_OFF
+            elif value == "chamfer":
+                treatment = EDGE_TREATMENT_CHAMFER
+            else:
+                print(usage)
+                return None
+            seen_treatment = True
+            index += 2
+            continue
+        if token == "--policy":
+            if seen_policy or index + 1 >= len(rest):
+                print(usage)
+                return None
+            value = rest[index + 1]
+            if value == ConversionPolicy.STRICT.value:
+                policy = ConversionPolicy.STRICT
+            elif value == ConversionPolicy.PERMISSIVE.value:
+                policy = ConversionPolicy.PERMISSIVE
+            else:
+                print(usage)
+                return None
+            seen_policy = True
+            index += 2
+            continue
+        print(usage)
+        return None
+    return blueprint, treatment, policy
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -169,9 +208,15 @@ def main(argv: list[str] | None = None) -> int:
     parsed = _parse_assemble_argv(sys.argv[1:] if argv is None else argv)
     if parsed is None:
         return 2
-    blueprint, request = parsed
+    blueprint, request, policy = parsed
     config = load_solidworks_backend_config()
-    result = generate_assembly(blueprint, config, treatment=request)
+    try:
+        result = generate_assembly(
+            blueprint, config, treatment=request, policy=policy
+        )
+    except ConversionRefusedError as exc:
+        print(exc)
+        return 2
     print(f"generated_root={config.generated_root} source={config.source}")
     print(f"{result.identity} -> {result.path} components={len(result.after_reopen)}")
     return 0

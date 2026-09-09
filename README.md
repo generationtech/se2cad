@@ -334,7 +334,15 @@ the packaged catalog before assembly generation: supported, catalog-
 unsupported, and unknown are distinct outcomes. Geometry support and
 appearance support stay independently reportable. A produced preflight
 report is not a conversion. Unknown subtypes are not aliased to armor.
-Filler substitution is not part of preflight.
+
+CAD-neutral **conversion policy** then applies an explicit strict or
+permissive decision. Strict is the default: unknown or unsupported
+blocks refuse conversion and surface the preflight diagnostics. No
+partial assembly is emitted as success. Permissive must be requested.
+It converts every block, placing the designated filler identity
+`se2cad_unknown_filler` at the original `Min`, Forward, and Up while
+preserving the original SE subtype and appearance. Filler is not armor
+and does not claim supported-library status.
 
 ### Current scope
 
@@ -362,11 +370,13 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-Blueprint statistics and conversion preflight do not require SolidWorks:
+Blueprint statistics, conversion preflight, and conversion policy do not
+require SolidWorks:
 
 ``` cmd
 python -m se2cad.statistics fixtures\acceptance\four-block-armor-asymmetric\bp.sbc
 python -m se2cad.preflight fixtures\acceptance\four-block-armor-asymmetric\bp.sbc
+python -m se2cad.policy fixtures\acceptance\four-block-armor-asymmetric\bp.sbc
 ```
 
 SolidWorks workflow requirements: Windows; Python 3.10+ (the qualified
@@ -399,11 +409,15 @@ Convert the included acceptance fixture:
 ``` cmd
 python -m se2cad.solidworks.assemble fixtures\acceptance\four-block-armor-asymmetric\bp.sbc
 python -m se2cad.solidworks.assemble fixtures\acceptance\four-block-armor-asymmetric\bp.sbc --edge-treatment chamfer
+python -m se2cad.solidworks.assemble path\to\mixed.sbc --policy permissive
 ```
 
 The second command inserts treated sibling parts. It does not change
 IR identity, placement transforms, or overwrite untreated `.SLDPRT`
-files. Generate the treated parts first.
+files. Generate the treated parts first. Assemble defaults to strict
+refusal of unknown or unsupported blocks. `--policy permissive` inserts
+the designated filler part; generate `se2cad_unknown_filler.SLDPRT`
+first.
 
 Then open the generated `.SLDASM` in SolidWorks.
 

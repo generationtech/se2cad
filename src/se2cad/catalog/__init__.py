@@ -8,6 +8,7 @@ catalog is the runtime source; game-install scanning is not required.
 from se2cad.catalog.constants import (
     CATALOG_CUBE_SIZE_LARGE,
     CATALOG_SCHEMA_VERSION,
+    FILLER_GEOMETRY_ID,
     LARGE_GRID_CELL_PITCH_MM,
 )
 from se2cad.catalog.errors import (
@@ -71,6 +72,7 @@ __all__ = [
     "CATALOG_CUBE_SIZE_LARGE",
     "CATALOG_SCHEMA_VERSION",
     "COVERAGE_CLAIM_NOT_UNIVERSAL",
+    "FILLER_GEOMETRY_ID",
     "EVIDENCED_RESIDUAL_TOPOLOGIES",
     "LARGE_GRID_CELL_PITCH_MM",
     "LEFTOVER_SCHEMA_VERSION",

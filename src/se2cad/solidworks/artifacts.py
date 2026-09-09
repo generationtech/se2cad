@@ -6,6 +6,7 @@ from pathlib import Path
 
 import re
 
+from se2cad.catalog.constants import FILLER_GEOMETRY_ID
 from se2cad.library import (
     EDGE_TREATMENT_OFF,
     EdgeTreatmentKind,
@@ -38,7 +39,9 @@ def canonical_geometry_ids() -> tuple[str, ...]:
 
 
 def _library_geometry_ids() -> frozenset[str]:
-    return frozenset(record.geometry_id for record in all_library_records())
+    return frozenset(record.geometry_id for record in all_library_records()) | {
+        FILLER_GEOMETRY_ID
+    }
 
 
 def logical_part_filename(geometry_id: str) -> str:

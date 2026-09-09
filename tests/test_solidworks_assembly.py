@@ -502,5 +502,60 @@ class HermeticInsertionAppearanceTests(unittest.TestCase):
                 self.assertTrue(rgb_close(item.appearance_rgb, placement.appearance_rgb))
 
 
+class FillerPlacementTests(unittest.TestCase):
+    def test_permissive_ir_names_the_distinct_filler_part(self) -> None:
+        from se2cad.catalog import FILLER_GEOMETRY_ID
+        from se2cad.policy import ConversionPolicy, convert_blueprint_from_xml
+        from se2cad.transform import cell_center_mm, rotation_from_forward_up
+
+        xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-filler-probe" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>NotACatalogSubtype</SubtypeName>
+              <Min x="1" y="0" z="0" />
+              <BlockOrientation Forward="Down" Up="Forward" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        result = convert_blueprint_from_xml(
+            xml, policy=ConversionPolicy.PERMISSIVE, source="filler-place"
+        )
+        placements = placements_from_ir(result.ir)
+        self.assertEqual(len(placements), 2)
+        armor, filler = placements
+        self.assertEqual(armor.part_filename, "large_armor_block.SLDPRT")
+        self.assertEqual(filler.part_filename, "se2cad_unknown_filler.SLDPRT")
+        self.assertEqual(filler.geometry_id, FILLER_GEOMETRY_ID)
+        self.assertEqual(filler.subtype_id, "NotACatalogSubtype")
+        self.assertNotEqual(filler.part_filename, armor.part_filename)
+        catalog = load_default_catalog()
+        self.assertEqual(
+            filler.position_mm,
+            cell_center_mm(
+                result.ir.grid.blocks[1].grid_min, catalog.large_grid_cell_pitch_mm
+            ).as_tuple(),
+        )
+        self.assertEqual(
+            filler.rotation,
+            rotation_from_forward_up(Direction.DOWN, Direction.FORWARD),
+        )
+        self.assertEqual(filler.component_name, component_name_from_block(result.ir.grid.blocks[1]))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -445,6 +445,84 @@ class SolidWorksIntegrationTests(unittest.TestCase):
             )
             self.assertEqual(item.part_path.name, item.placement.part_filename)
 
+    def test_permissive_filler_assembly_keeps_pose_and_distinct_part(self) -> None:
+        import tempfile
+
+        from se2cad.catalog import FILLER_GEOMETRY_ID, load_default_catalog
+        from se2cad.ir import component_name_from_block
+        from se2cad.parser import Direction, parse_blueprint
+        from se2cad.policy import ConversionPolicy, convert_blueprint
+        from se2cad.solidworks.assemble import generate_assembly_from_ir
+        from se2cad.solidworks.generate import generate_canonical_parts
+        from se2cad.solidworks.transform_pack import (
+            arraydata_axes,
+            arraydata_translation_m,
+            solidworks_arraydata,
+        )
+        from se2cad.transform import rotation_from_forward_up
+
+        xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-filler-probe" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>NotACatalogSubtype</SubtypeName>
+              <Min x="1" y="0" z="0" />
+              <BlockOrientation Forward="Down" Up="Forward" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "filler-probe.sbc"
+            path.write_text(xml, encoding="utf-8")
+            parsed = parse_blueprint(path)
+        result = convert_blueprint(
+            parsed, load_default_catalog(), ConversionPolicy.PERMISSIVE
+        )
+        self.assertEqual(result.ir.grid.block_count, 2)
+        self.assertEqual(result.filler_count, 1)
+        generate_canonical_parts(
+            self.config,
+            geometry_ids=("large_armor_block", FILLER_GEOMETRY_ID),
+        )
+        assembled = generate_assembly_from_ir(result.ir, self.config)
+        self.assertEqual(assembled.identity, "se2cad-filler-probe")
+        self.assertEqual(assembled.path.name, "se2cad-filler-probe.SLDASM")
+        self.assertTrue(assembled.path.is_relative_to(self.config.generated_root))
+        self.assertEqual(len(assembled.after_reopen), 2)
+        armor, filler = assembled.after_reopen
+        self.assertEqual(armor.placement.geometry_id, "large_armor_block")
+        self.assertEqual(armor.placement.part_filename, "large_armor_block.SLDPRT")
+        self.assertEqual(filler.placement.geometry_id, FILLER_GEOMETRY_ID)
+        self.assertEqual(filler.placement.part_filename, "se2cad_unknown_filler.SLDPRT")
+        self.assertEqual(filler.placement.subtype_id, "NotACatalogSubtype")
+        self.assertNotEqual(filler.part_path.name, armor.part_path.name)
+        expected_rotation = rotation_from_forward_up(Direction.DOWN, Direction.FORWARD)
+        self.assertEqual(arraydata_translation_m(filler.arraydata), (2.5, 0.0, 0.0))
+        self.assertEqual(arraydata_axes(filler.arraydata), expected_rotation.columns)
+        ir_filler = result.ir.grid.blocks[1]
+        self.assertEqual(
+            filler.arraydata,
+            solidworks_arraydata(ir_filler.rotation, ir_filler.position_mm.as_tuple()),
+        )
+        self.assertEqual(
+            filler.component_name, component_name_from_block(ir_filler)
+        )
+        self.assertTrue(filler.geometry_applied)
+
 
 if __name__ == "__main__":
     unittest.main()

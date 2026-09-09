@@ -21,6 +21,7 @@ from se2cad.solidworks import (
     placements_from_ir,
     require_canonical_part_files,
 )
+from se2cad.policy import ConversionPolicy
 from se2cad.solidworks.assemble import (
     _parse_assemble_argv,
     generate_assembly_from_ir,
@@ -188,9 +189,10 @@ class AssembleOperatorEntryTests(unittest.TestCase):
         parsed = _parse_assemble_argv([str(FIXTURE_PATH)])
         self.assertIsNotNone(parsed)
         assert parsed is not None
-        blueprint, request = parsed
+        blueprint, request, policy = parsed
         self.assertEqual(blueprint, FIXTURE_PATH)
         self.assertEqual(request, EDGE_TREATMENT_OFF)
+        self.assertEqual(policy, ConversionPolicy.STRICT)
 
     def test_argv_explicit_chamfer_matches_part_generation_spelling(self) -> None:
         parsed = _parse_assemble_argv(
@@ -198,13 +200,15 @@ class AssembleOperatorEntryTests(unittest.TestCase):
         )
         self.assertIsNotNone(parsed)
         assert parsed is not None
-        blueprint, request = parsed
+        blueprint, request, policy = parsed
         self.assertEqual(blueprint, FIXTURE_PATH)
         self.assertEqual(request, EDGE_TREATMENT_CHAMFER)
+        self.assertEqual(policy, ConversionPolicy.STRICT)
         off = _parse_assemble_argv([str(FIXTURE_PATH), "--edge-treatment", "off"])
         self.assertIsNotNone(off)
         assert off is not None
         self.assertEqual(off[1], EDGE_TREATMENT_OFF)
+        self.assertEqual(off[2], ConversionPolicy.STRICT)
 
     def test_argv_rejects_unknown_flags_and_flag_first_order(self) -> None:
         self.assertIsNone(_parse_assemble_argv([]))
@@ -215,6 +219,33 @@ class AssembleOperatorEntryTests(unittest.TestCase):
             )
         )
         self.assertIsNone(_parse_assemble_argv([str(FIXTURE_PATH), "--help"]))
+        self.assertIsNone(
+            _parse_assemble_argv([str(FIXTURE_PATH), "--policy", "maybe"])
+        )
+
+    def test_argv_explicit_permissive_does_not_change_default_treatment(self) -> None:
+        parsed = _parse_assemble_argv(
+            [str(FIXTURE_PATH), "--policy", "permissive"]
+        )
+        self.assertIsNotNone(parsed)
+        assert parsed is not None
+        blueprint, request, policy = parsed
+        self.assertEqual(blueprint, FIXTURE_PATH)
+        self.assertEqual(request, EDGE_TREATMENT_OFF)
+        self.assertEqual(policy, ConversionPolicy.PERMISSIVE)
+        both = _parse_assemble_argv(
+            [
+                str(FIXTURE_PATH),
+                "--edge-treatment",
+                "chamfer",
+                "--policy",
+                "permissive",
+            ]
+        )
+        self.assertIsNotNone(both)
+        assert both is not None
+        self.assertEqual(both[1], EDGE_TREATMENT_CHAMFER)
+        self.assertEqual(both[2], ConversionPolicy.PERMISSIVE)
 
     def test_generate_assembly_signatures_default_to_untreated(self) -> None:
         public = inspect.signature(generate_assembly)

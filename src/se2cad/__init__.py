@@ -7,11 +7,13 @@ CAD-neutral blueprint statistics. S2C-8.1.1 exposes CAD-neutral
 component names from IR fields. S2C-9.1.1 carries CAD-neutral
 ``ColorMaskHSV`` appearance on the parser and IR. S2C-10.1.1 exposes an
 optional CAD-neutral block-edge treatment. S2C-12.1.1 exposes CAD-neutral
-conversion preflight. The SolidWorks backend lives
+conversion preflight. S2C-12.2.1 exposes CAD-neutral
+strict and permissive conversion policy. The SolidWorks backend lives
 in ``se2cad.solidworks`` and is not imported here.
 """
 
 from se2cad.catalog import (
+    FILLER_GEOMETRY_ID,
     LARGE_GRID_CELL_PITCH_MM,
     CatalogEntry,
     CatalogError,
@@ -32,6 +34,7 @@ from se2cad.ir import (
     ComponentNameError,
     IrError,
     build_canonical_blueprint,
+    canonical_block_from_parsed,
     component_name,
     component_name_from_block,
     component_names_from_blocks,
@@ -73,6 +76,16 @@ from se2cad.parser import (
     UnsupportedBlueprintError,
     parse_blueprint,
     parse_blueprint_xml,
+)
+from se2cad.policy import (
+    ConversionPolicy,
+    ConversionPolicyError,
+    ConversionRefusedError,
+    ConversionResult,
+    UnknownConversionPolicyError,
+    convert_blueprint,
+    convert_blueprint_from_path,
+    convert_blueprint_from_xml,
 )
 from se2cad.preflight import (
     BlockPreflight,
@@ -117,6 +130,7 @@ __all__ = [
     "EDGE_TREATMENT_OFF",
     "EDGE_TREATMENT_SETBACK_MM",
     "DEFAULT_COLOR_MASK_HSV",
+    "FILLER_GEOMETRY_ID",
     "IDENTITY_ROTATION",
     "LARGE_GRID_CELL_PITCH_MM",
     "SE_DIRECTION_VECTORS",
@@ -137,7 +151,11 @@ __all__ = [
     "CellSize",
     "ColorMaskHSV",
     "ComponentNameError",
+    "ConversionPolicy",
+    "ConversionPolicyError",
     "ConversionPreflight",
+    "ConversionRefusedError",
+    "ConversionResult",
     "DefinitionCatalog",
     "Direction",
     "GridCoordinate",
@@ -166,12 +184,14 @@ __all__ = [
     "SupportStatus",
     "TransformError",
     "TreatmentError",
+    "UnknownConversionPolicyError",
     "UnknownGeometryError",
     "UnknownSubtypeError",
     "UnsupportedBlueprintError",
     "all_library_records",
     "apply_edge_treatment",
     "build_canonical_blueprint",
+    "canonical_block_from_parsed",
     "cell_center_mm",
     "cell_half_extent_mm",
     "component_name",
@@ -183,6 +203,9 @@ __all__ = [
     "compute_conversion_preflight",
     "compute_conversion_preflight_from_path",
     "compute_conversion_preflight_from_xml",
+    "convert_blueprint",
+    "convert_blueprint_from_path",
+    "convert_blueprint_from_xml",
     "direction_vector",
     "is_valid_orientation",
     "legal_orientations",

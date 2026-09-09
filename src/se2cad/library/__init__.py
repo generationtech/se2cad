@@ -21,8 +21,10 @@ from se2cad.library.frame import (
     CanonicalLocalFrame,
     cell_half_extent_mm,
 )
+from se2cad.catalog.constants import FILLER_GEOMETRY_ID
 from se2cad.library.lookup import (
     all_library_records,
+    filler_library_record,
     lookup_recipe,
     lookup_record,
     original_library_geometry_ids,
@@ -43,6 +45,8 @@ from se2cad.library.model import (
 )
 from se2cad.library.recipes import (
     AUTOMATABLE_CUBE_TOPOLOGIES,
+    FILLER_HALF_EXTENT_MM,
+    FILLER_OBSERVED_TOPOLOGY,
     ORIGINAL_LIBRARY_BINDINGS,
     REPRESENTATIVE_AUTOMATABLE_BINDINGS,
     TETRAHEDRON_CUT_FACES,
@@ -77,6 +81,9 @@ __all__ = [
     "EDGE_TREATMENT_MIN_VOLUME_RATIO",
     "EDGE_TREATMENT_OFF",
     "EDGE_TREATMENT_SETBACK_MM",
+    "FILLER_GEOMETRY_ID",
+    "FILLER_HALF_EXTENT_MM",
+    "FILLER_OBSERVED_TOPOLOGY",
     "AxisAlignedBoxMm",
     "BoundsMm",
     "BoxConstruction",
@@ -109,6 +116,7 @@ __all__ = [
     "apply_edge_treatment",
     "bounding_box",
     "cell_half_extent_mm",
+    "filler_library_record",
     "lookup_recipe",
     "lookup_record",
     "mesh_edges",

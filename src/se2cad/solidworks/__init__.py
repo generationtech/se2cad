@@ -96,15 +96,19 @@ def generate_assembly(
     blueprint_path,
     config: SolidWorksBackendConfig | None = None,
     treatment=None,
+    policy=None,
 ):
     """Generate a transform-placed SLDASM. Requires Windows + pywin32 + SolidWorks.
 
     Default inserts untreated ``{geometry_id}.SLDPRT``. Pass
-    ``EDGE_TREATMENT_CHAMFER`` to insert treated siblings.
+    ``EDGE_TREATMENT_CHAMFER`` to insert treated siblings. Default
+    policy is strict.
     """
+    from se2cad.policy import ConversionPolicy
     from se2cad.solidworks.assemble import generate_assembly as impl
 
-    return impl(blueprint_path, config, treatment=treatment)
+    chosen = ConversionPolicy.STRICT if policy is None else policy
+    return impl(blueprint_path, config, treatment=treatment, policy=chosen)
 
 
 __all__ = [

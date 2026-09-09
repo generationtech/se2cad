@@ -90,7 +90,7 @@ Large Grid cell pitch is 2500 mm, consumed from the single named constant establ
 
 Public entrypoints: `se2cad.library.lookup_recipe`, `se2cad.library.lookup_record`, and `se2cad.library.all_library_records`.
 
-Lookup is an exact, case-sensitive match of the catalog `geometry_id`. Unknown identities fail closed. Each of the four initial catalog geometry IDs resolves to exactly one `native_procedural` recipe. Authoritative library records keep `part_locator` unbound. A Windows-local SolidWorks backend may return a bound locator only after the canonical part has been generated, validated, saved, and reopened. That locator’s logical identity is the deterministic `geometry_id` filename (for example `large_armor_block.SLDPRT`). The physical path is runtime-only under the configured generated root and must not be written into catalog JSON. Generated `.SLDPRT` files are not source artifacts and are not committed or published.
+Lookup is an exact, case-sensitive match of the catalog `geometry_id`. Unknown identities fail closed. Each of the four initial catalog geometry IDs resolves to exactly one `native_procedural` recipe. When STATE records S2C-12.2.1, `lookup_recipe` also resolves the designated filler identity `se2cad_unknown_filler`; `all_library_records()` remains the supported armor set and does not include that filler. Authoritative library records keep `part_locator` unbound. A Windows-local SolidWorks backend may return a bound locator only after the canonical part has been generated, validated, saved, and reopened. That locator’s logical identity is the deterministic `geometry_id` filename (for example `large_armor_block.SLDPRT`). The physical path is runtime-only under the configured generated root and must not be written into catalog JSON. Generated `.SLDPRT` files are not source artifacts and are not committed or published.
 
 Recipes are SE2CAD constructive solids. Vertex signs are the cell-local ±1 cube corners from Keen `MyCubeGridDefinitions` topology edge tables for `Box`, `Slope`, `Corner`, and `InvCorner`. Those signs are Space Engineers topology facts. Scaling them by the catalog half-extent, and the construction vocabulary below, are SE2CAD engineering choices.
 
@@ -106,6 +106,10 @@ All four solids have the same expected bounding box as the cell envelope. That d
 Deterministic validation properties stored on each recipe: vertex count, face count, outward-wound `volume_times_6_mm3`, and the exact integer bounding box. Faces are sufficient for later solid construction together with the construction kind.
 
 Placement semantics for these 1×1×1 parts: insert at the cell center with no additional offset. The IR transform is the only placement.
+
+## Designated unknown-block filler
+
+S2C-12.2.1. The filler is an explicit SE2CAD representation, not a catalog cube-block subtype and not a silent reuse of `large_armor_block`. Public identity: `se2cad.catalog.FILLER_GEOMETRY_ID` (`se2cad_unknown_filler`). The solid is a smaller axis-aligned box (`FILLER_HALF_EXTENT_MM` = `LARGE_GRID_CELL_PITCH_MM // 5`) in the same canonical frame, inserted at the cell center with no extra offset. Observed topology token is `Filler`, which is not an automatable CubeTopology. Canonical filename is `se2cad_unknown_filler.SLDPRT`; it must not overwrite a supported armor part. Permissive conversion may assign this identity; IR `support_status` for those blocks remains `unsupported`.
 
 ## Optional block-edge treatment
 
