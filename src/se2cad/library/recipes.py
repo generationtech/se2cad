@@ -359,7 +359,7 @@ def recipe_for_topology(geometry_id: str, cube_topology: str) -> NativeSolidReci
     return builder(checked)
 
 
-def _record(recipe: NativeSolidRecipe) -> LibraryRecord:
+def _record(recipe: NativeSolidRecipe, *, chamfer_capable: bool) -> LibraryRecord:
     return LibraryRecord(
         geometry_id=recipe.geometry_id,
         grid_size="Large",
@@ -368,11 +368,15 @@ def _record(recipe: NativeSolidRecipe) -> LibraryRecord:
         frame=CANONICAL_LOCAL_FRAME,
         placement=_IDENTITY_PLACEMENT,
         recipe=recipe,
+        chamfer_capable=chamfer_capable,
     )
 
 
 LIBRARY_RECORDS: tuple[LibraryRecord, ...] = tuple(
-    _record(recipe_for_topology(geometry_id, cube_topology))
+    _record(
+        recipe_for_topology(geometry_id, cube_topology),
+        chamfer_capable=True,
+    )
     for geometry_id, cube_topology in (
         ORIGINAL_LIBRARY_BINDINGS + REPRESENTATIVE_AUTOMATABLE_BINDINGS
     )
@@ -412,4 +416,4 @@ def _filler_recipe() -> NativeSolidRecipe:
     )
 
 
-FILLER_LIBRARY_RECORD = _record(_filler_recipe())
+FILLER_LIBRARY_RECORD = _record(_filler_recipe(), chamfer_capable=False)

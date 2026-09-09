@@ -60,3 +60,12 @@ def lookup_record(geometry_id: str) -> LibraryRecord:
 def lookup_recipe(geometry_id: str) -> NativeSolidRecipe:
     """Return the unique native recipe for a catalog geometry identity."""
     return lookup_record(geometry_id).recipe
+
+
+def geometry_supports_chamfer(geometry_id: str) -> bool:
+    """Return the explicit library chamfer-capability flag.
+
+    This is not catalog ``support_status``, recipe kind, or subtype
+    identity. Unknown geometry_id values fail closed.
+    """
+    return lookup_record(geometry_id).chamfer_capable

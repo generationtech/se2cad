@@ -125,7 +125,13 @@ class NativeSolidRecipe:
 
 @dataclass(frozen=True)
 class LibraryRecord:
-    """Canonical library record for one supported geometry identity."""
+    """Canonical library record for one supported geometry identity.
+
+    ``chamfer_capable`` is an explicit CAD/library decision. It is not
+    catalog ``support_status``, recipe kind, or SE subtype identity.
+    Future imported or hand-authored geometry must set this false until
+    chamfer support is established for that construction.
+    """
 
     geometry_id: str
     grid_size: str
@@ -134,3 +140,4 @@ class LibraryRecord:
     frame: CanonicalLocalFrame
     placement: PlacementSemantics
     recipe: NativeSolidRecipe
+    chamfer_capable: bool

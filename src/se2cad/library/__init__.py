@@ -25,6 +25,7 @@ from se2cad.catalog.constants import FILLER_GEOMETRY_ID
 from se2cad.library.lookup import (
     all_library_records,
     filler_library_record,
+    geometry_supports_chamfer,
     lookup_recipe,
     lookup_record,
     original_library_geometry_ids,
@@ -64,6 +65,8 @@ from se2cad.library.solid import (
     volume_times_6,
 )
 from se2cad.library.treatment import (
+    CHAMFER_SETBACK_MAX_MM,
+    CHAMFER_SETBACK_MIN_MM,
     EDGE_TREATMENT_CHAMFER,
     EDGE_TREATMENT_MIN_VOLUME_RATIO,
     EDGE_TREATMENT_OFF,
@@ -72,11 +75,17 @@ from se2cad.library.treatment import (
     EdgeTreatmentRequest,
     EdgeTreatmentResult,
     apply_edge_treatment,
+    chamfer_size_token,
+    chamfer_treatment,
+    parse_chamfer_mm_token,
+    validate_chamfer_setback_mm,
 )
 
 __all__ = [
     "CANONICAL_CELL_ENVELOPE",
     "CANONICAL_LOCAL_FRAME",
+    "CHAMFER_SETBACK_MAX_MM",
+    "CHAMFER_SETBACK_MIN_MM",
     "EDGE_TREATMENT_CHAMFER",
     "EDGE_TREATMENT_MIN_VOLUME_RATIO",
     "EDGE_TREATMENT_OFF",
@@ -116,9 +125,14 @@ __all__ = [
     "apply_edge_treatment",
     "bounding_box",
     "cell_half_extent_mm",
+    "chamfer_size_token",
+    "chamfer_treatment",
     "filler_library_record",
+    "geometry_supports_chamfer",
     "lookup_recipe",
     "lookup_record",
+    "parse_chamfer_mm_token",
+    "validate_chamfer_setback_mm",
     "mesh_edges",
     "original_library_geometry_ids",
     "recipe_for_topology",

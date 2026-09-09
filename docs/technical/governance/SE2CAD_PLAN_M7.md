@@ -157,7 +157,7 @@ A listed prerequisite is met at DEV-COMPLETE unless the later unit consumes that
 
 **Objective.** Provide an optional geometry treatment that defines printable block edges without disturbing the qualified reference frame or placement dimensions.
 
-**Completion outcome.** When requested, generated solids include a defined edge treatment applicable beyond the four proof-of-concept recipes, and explicit blueprint assembly generation consumes those treated sibling artifacts. Untreated conversion remains the default and stays dimensionally correct.
+**Completion outcome.** When requested, generated solids include a defined edge treatment applicable beyond the four proof-of-concept recipes, and explicit blueprint assembly generation consumes size-specific treated sibling artifacts on demand. Untreated conversion remains the default and stays dimensionally correct.
 
 ### S2C-10.1.1 — Optional block-edge treatment contract
 
@@ -245,6 +245,41 @@ A listed prerequisite is met at DEV-COMPLETE unless the later unit consumes that
 **External validation.** Ordinary tests plus the existing live SolidWorks integration path (`SE2CAD_SOLIDWORKS_INTEGRATION`). Establish, as applicable: untreated selection still resolves untreated parts; explicit chamfer selection resolves treated siblings; expected component count; unchanged IR transforms; deterministic names; per-instance appearance; save/close/reopen persistence; no unexpected mates or placement corrections; untreated artifacts are not modified. Add no named opscheck unless an important requirement cannot be established that way. Required for QUALIFIED.
 
 **Completion criteria.** Explicit treated assembly consumes treated siblings; default untreated assembly remains qualified; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE.
+
+### S2C-10.4.1 — Configurable, demand-driven chamfer variants
+
+**Objective.** Make the already-qualified chamfer treatment configurable by size, name treated artifacts for that size, generate those variants only when a blueprint demands them, and fall back to untreated parts when a geometry is not chamfer-capable.
+
+**Rationale.** S2C-10.2.1 / S2C-10.3.1 used a single implicit 50 mm sibling name and expected treated parts to exist before assemble. Operators need other sizes, lazy generation, and an explicit capability decision that does not treat every supported geometry as chamferable.
+
+**Prerequisites.** S2C-10.3.1. This unit was inserted by a human-authorized amendment after S2C-12.2.1 was already QUALIFIED and before S2C-13.1.1. It does not reopen or invalidate S2C-10.3.1, M11, or M12. It was not part of the original M10 plan.
+
+**Affected systems / expected areas.** Edge-treatment request/size validation; treated artifact naming; library chamfer capability; assemble demand generation and fallback reporting; narrow explicit part-generation entry; ordinary and live tests.
+
+**Implementation requirements.**
+
+- Support `python -m se2cad.solidworks.assemble <blueprint.sbc> --edge-treatment chamfer --chamfer-mm <value>`.
+- Existing 50 mm behavior remains the default when chamfer is requested without an explicit size.
+- Validate `5 mm <= chamfer_mm <= 250 mm`. Reject values outside the range and non-finite values. Do not silently clamp.
+- `--chamfer-mm` is valid only with `--edge-treatment chamfer`. Untreated/default assembly remains unchanged.
+- Treated artifact identity includes the chamfer size, for example `large_armor_block_chamfer_50mm.SLDPRT`. Use one deterministic shared naming/key function for generation and lookup.
+- Do not put the chamfer suffix or size into the SolidWorks component instance name.
+- Do not add treatment algorithm/version suffixes. If the chamfer implementation changes later, old generated variants are deleted and regenerated.
+- Do not eagerly generate chamfer variants for the entire library. Assembly generates only the exact size-specific part a blueprint needs, reusing it when present.
+- Introduce an explicit CAD/library chamfer-capability decision, separate from catalog `support_status`, recipe kind, and SE subtype identity. Qualified Box / Slope / Corner / InvCorner constructions remain chamfer-capable. Future imported/mesh-derived/hand-authored geometry must not inherit capability automatically.
+- If chamfer is requested and a geometry is not chamfer-capable, use the untreated part, report the fallback, and do not claim the assembly was fully treated.
+- Fail closed for invalid size, generation failure of a chamfer-capable geometry, inability to open/save the exact treated artifact, path ambiguity, and other existing SolidWorks generation failures. Do not fall back to another size, the generic `*_chamfer.SLDPRT` name, or untreated geometry when the geometry was declared chamfer-capable.
+- Keep `python -m se2cad.solidworks --edge-treatment chamfer` narrow: the qualified/tested set only. Blueprint assembly is the primary demand-driven producer.
+
+**Explicit boundaries / out of scope.** Blueprint parser semantics; catalog identity; IR transforms; component naming rules; appearance; unknown-block policy; filler semantics; M11 recipe selection; Small Grid; symmetry; print-shell; runtime game/SDK scanning; OBJ import; new geometry recipes; algorithm-version compatibility; committing generated CAD.
+
+**Development validation.** Ordinary tests cover default 50 mm, at least one alternate valid size, range boundaries, invalid/NaN/Inf rejection, `--chamfer-mm` without chamfer rejected, size-specific naming, reuse of the same geometry+size, distinct artifacts for distinct sizes, demand generation of only required parts, unchanged untreated assembly, fail-closed capable generation failure, untreated fallback for non-capable geometry with a structured report, component names without chamfer suffixes, IR-tied transforms/appearance, no path escape, and no eager all-library generation.
+
+**Quality/security assessment focus.** Filename collisions between sizes; stale generic `*_chamfer.SLDPRT` reuse; path injection via artifact identity; silent fallback on true generation failure; accidental eager catalog generation; treatment capability granting catalog support; component-name contamination; untreated source-part modification; writes escaping the generated root.
+
+**External validation.** Ordinary tests plus the existing live SolidWorks integration path (`SE2CAD_SOLIDWORKS_INTEGRATION`). Establish: two distinct chamfer sizes produce distinct `.SLDPRT` artifacts; an assembly requesting one size consumes those exact parts; a later request reuses already-created treated parts; untreated base `.SLDPRT` files remain unchanged; default untreated assembly still consumes untreated parts; at least one intentional non-chamfer-capable probe falls back and is reported if that can be done safely with existing test architecture; document-count/session hygiene remains acceptable. If a safe live unsupported-chamfer probe would require inventing unrelated production geometry, prove that subcase in ordinary tests and record why live evidence was not appropriate. Required for QUALIFIED.
+
+**Completion criteria.** Configurable demand-driven chamfer variants exist; untreated default remains qualified; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE.
 
 ---
 

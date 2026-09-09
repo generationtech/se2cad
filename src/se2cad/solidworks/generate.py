@@ -9,6 +9,7 @@ from se2cad.library import (
     EDGE_TREATMENT_OFF,
     EdgeTreatmentKind,
     EdgeTreatmentRequest,
+    geometry_supports_chamfer,
     lookup_recipe,
     representative_automatable_geometry_ids,
 )
@@ -102,6 +103,11 @@ def generate_one_canonical_part(
         raise SolidWorksComError(
             f"unsupported edge treatment {request.kind.value!r}"
         )
+    if request.enabled and not geometry_supports_chamfer(geometry_id):
+        raise SolidWorksComError(
+            f"geometry_id {geometry_id!r} is not chamfer-capable; "
+            "refusing treated generation"
+        )
     recipe = lookup_recipe(geometry_id)
     plan = plan_from_recipe(recipe)
     destination = _prepare_destination(config, geometry_id, request)
@@ -111,7 +117,7 @@ def generate_one_canonical_part(
         construct_plan(session, model, plan)
         if request.enabled:
             untreated_obs = validate_model(session, model, plan)
-            apply_equal_setback_chamfer(session, model, recipe)
+            apply_equal_setback_chamfer(session, model, recipe, request)
             after_save = read_part_validation(session, model)
             _validate_treated(untreated_obs, after_save, plan)
         else:
@@ -160,7 +166,9 @@ def generate_canonical_parts(
 
     Default ``geometry_ids`` remains the four initial-program identities.
     ``treatment=None`` and ``EDGE_TREATMENT_OFF`` remain the default
-    untreated conversion. Treated siblings are written only when requested.
+    untreated conversion. Treated siblings are written only when
+    requested, and only for the supplied identities. Blueprint assembly
+    is the demand-driven producer of chamfer variants.
     """
     resolved = config if config is not None else load_solidworks_backend_config()
     request = EDGE_TREATMENT_OFF if treatment is None else treatment

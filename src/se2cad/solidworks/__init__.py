@@ -26,6 +26,7 @@ from se2cad.solidworks.artifacts import (
     logical_part_filename,
     logical_treated_part_filename,
     part_artifact_path,
+    treated_artifact_key,
     treated_artifact_path_for,
 )
 from se2cad.solidworks.availability import (
@@ -55,9 +56,15 @@ from se2cad.solidworks.pipeline import (
     resolve_recipes_from_blueprint,
 )
 from se2cad.solidworks.placement import (
+    AssemblyTreatmentReport,
+    ChamferFallback,
     ComponentPlacement,
+    demanded_treated_geometry_ids,
+    missing_treated_geometry_ids,
     placements_from_ir,
     require_canonical_part_files,
+    resolved_assembly_part_filename,
+    treatment_report_from_ir,
 )
 from se2cad.solidworks.recipe_plan import ConstructionPlan, plan_from_recipe
 from se2cad.solidworks.transform_pack import solidworks_arraydata
@@ -73,7 +80,8 @@ def generate_canonical_parts(
 
     Default ``geometry_ids`` remains the four initial-program identities.
     Untreated ``{geometry_id}.SLDPRT`` remain the default. Pass
-    ``EDGE_TREATMENT_CHAMFER`` to write treated sibling artifacts.
+    ``EDGE_TREATMENT_CHAMFER`` to write size-specific treated siblings
+    for the requested identities only.
     """
     from se2cad.solidworks.generate import generate_canonical_parts as impl
 
@@ -101,7 +109,8 @@ def generate_assembly(
     """Generate a transform-placed SLDASM. Requires Windows + pywin32 + SolidWorks.
 
     Default inserts untreated ``{geometry_id}.SLDPRT``. Pass
-    ``EDGE_TREATMENT_CHAMFER`` to insert treated siblings. Default
+    ``EDGE_TREATMENT_CHAMFER`` to insert size-specific treated siblings,
+    generating only the demanded chamfer-capable parts. Default
     policy is strict.
     """
     from se2cad.policy import ConversionPolicy
@@ -117,6 +126,8 @@ __all__ = [
     "SATURATION_DELTA",
     "TREATED_PART_STEM_SUFFIX",
     "VALUE_DELTA",
+    "AssemblyTreatmentReport",
+    "ChamferFallback",
     "AssemblyIdentityError",
     "AssemblyValidationError",
     "BoundPartLocator",
@@ -142,6 +153,7 @@ __all__ = [
     "material_property_values",
     "quantize_rgb_8bit",
     "contained_destination",
+    "demanded_treated_geometry_ids",
     "generate_assembly",
     "generate_canonical_parts",
     "generate_representative_automatable_parts",
@@ -151,8 +163,12 @@ __all__ = [
     "logical_assembly_part_filename",
     "logical_part_filename",
     "logical_treated_part_filename",
+    "missing_treated_geometry_ids",
     "part_artifact_path",
+    "resolved_assembly_part_filename",
+    "treated_artifact_key",
     "treated_artifact_path_for",
+    "treatment_report_from_ir",
     "metres_to_mm",
     "mm_to_metres",
     "placements_from_ir",

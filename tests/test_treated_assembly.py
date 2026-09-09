@@ -74,7 +74,7 @@ class AssemblyPartSelectionTests(unittest.TestCase):
                 logical_treated_part_filename(item.geometry_id, EDGE_TREATMENT_CHAMFER),
             )
             self.assertEqual(
-                item.part_filename, f"{item.geometry_id}_chamfer.SLDPRT"
+                item.part_filename, f"{item.geometry_id}_chamfer_50mm.SLDPRT"
             )
             self.assertTrue(is_treated_artifact_filename(item.part_filename))
             self.assertNotEqual(item.part_filename, prior.part_filename)
@@ -145,7 +145,7 @@ class MissingTreatedPartTests(unittest.TestCase):
                 require_canonical_part_files(root, EDGE_TREATMENT_CHAMFER)
             message = str(ctx.exception)
             self.assertIn("treated part artifacts are missing", message)
-            self.assertIn("large_armor_block_chamfer.SLDPRT", message)
+            self.assertIn("large_armor_block_chamfer_50mm.SLDPRT", message)
             self.assertIn("--edge-treatment chamfer", message)
 
     def test_treated_lookup_does_not_fall_back_to_untreated_files(self) -> None:
@@ -155,13 +155,13 @@ class MissingTreatedPartTests(unittest.TestCase):
             (root / "large_armor_slope.SLDPRT").write_bytes(b"untreated")
             (root / "large_armor_corner.SLDPRT").write_bytes(b"untreated")
             (root / "large_armor_corner_inv.SLDPRT").write_bytes(b"untreated")
-            (root / "large_armor_block_chamfer.SLDPRT").write_bytes(b"treated")
-            (root / "large_armor_slope_chamfer.SLDPRT").write_bytes(b"treated")
+            (root / "large_armor_block_chamfer_50mm.SLDPRT").write_bytes(b"treated")
+            (root / "large_armor_slope_chamfer_50mm.SLDPRT").write_bytes(b"treated")
             with self.assertRaises(MissingCanonicalPartError) as ctx:
                 require_canonical_part_files(root, EDGE_TREATMENT_CHAMFER)
             message = str(ctx.exception)
             self.assertIn("treated part artifacts are missing", message)
-            self.assertIn("large_armor_corner_inv_chamfer.SLDPRT", message)
+            self.assertIn("large_armor_corner_inv_chamfer_50mm.SLDPRT", message)
             self.assertNotIn("resolved untreated", message.lower())
             self.assertTrue((root / "large_armor_block.SLDPRT").is_file())
 
@@ -175,11 +175,11 @@ class MissingTreatedPartTests(unittest.TestCase):
                 "large_armor_corner_inv",
             ):
                 (root / f"{geometry_id}.SLDPRT").write_bytes(b"untreated")
-                (root / f"{geometry_id}_chamfer.SLDPRT").write_bytes(b"treated")
+                (root / f"{geometry_id}_chamfer_50mm.SLDPRT").write_bytes(b"treated")
             found = require_canonical_part_files(root, EDGE_TREATMENT_CHAMFER)
             self.assertEqual(len(found), 4)
             for geometry_id, path in found.items():
-                self.assertEqual(path.name, f"{geometry_id}_chamfer.SLDPRT")
+                self.assertEqual(path.name, f"{geometry_id}_chamfer_50mm.SLDPRT")
                 self.assertEqual(path.read_bytes(), b"treated")
                 path.relative_to(root.resolve())
 

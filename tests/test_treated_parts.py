@@ -60,7 +60,7 @@ class TreatedArtifactNamingTests(unittest.TestCase):
                 geometry_id, EDGE_TREATMENT_CHAMFER
             )
             self.assertEqual(untreated, f"{geometry_id}.SLDPRT")
-            self.assertEqual(treated, f"{geometry_id}_chamfer.SLDPRT")
+            self.assertEqual(treated, f"{geometry_id}_chamfer_50mm.SLDPRT")
             self.assertNotEqual(untreated, treated)
             self.assertTrue(is_treated_artifact_filename(treated))
             self.assertFalse(is_treated_artifact_filename(untreated))
@@ -85,7 +85,7 @@ class TreatedArtifactNamingTests(unittest.TestCase):
                 self.assertEqual(default, omitted)
                 self.assertEqual(default, off)
                 self.assertEqual(default.name, f"{geometry_id}.SLDPRT")
-                self.assertEqual(treated.name, f"{geometry_id}_chamfer.SLDPRT")
+                self.assertEqual(treated.name, f"{geometry_id}_chamfer_50mm.SLDPRT")
                 self.assertNotEqual(treated, default)
                 treated.relative_to(root.resolve())
 
@@ -104,7 +104,7 @@ class TreatedOverwriteTests(unittest.TestCase):
 
     def test_treated_sibling_may_overwrite_its_own_artifact(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            sibling = Path(tmp) / "large_armor_slope_chamfer.SLDPRT"
+            sibling = Path(tmp) / "large_armor_slope_chamfer_50mm.SLDPRT"
             sibling.write_bytes(b"prior")
             assert_overwrite_is_canonical(sibling)
             self.assertEqual(

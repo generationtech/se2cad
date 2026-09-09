@@ -298,12 +298,14 @@ CAD-neutral **optional block-edge treatment** is an equal-setback chamfer
 of convex solid edges. Default conversion stays untreated and
 dimensionally the qualified M0–M6 path. The treatment is not a new
 block subtype and is not limited to the four proof-of-concept armor IDs.
-When requested, SolidWorks writes treated sibling parts
-(`*_chamfer.SLDPRT`) under the generated root and leaves the untreated
-canonical `.SLDPRT` files unchanged. Explicit assemble selection
-(`--edge-treatment chamfer`) inserts those siblings. Default assemble
-still inserts untreated `{geometry_id}.SLDPRT`. Missing treated
-artifacts fail closed; they are not replaced by untreated parts.
+When requested, SolidWorks writes size-specific treated sibling parts
+(`*_chamfer_50mm.SLDPRT` by default, or another validated `--chamfer-mm`)
+under the generated root and leaves the untreated canonical `.SLDPRT`
+files unchanged. Explicit assemble selection (`--edge-treatment chamfer`)
+generates only the demanded chamfer-capable siblings and inserts them.
+Default assemble still inserts untreated `{geometry_id}.SLDPRT`.
+Geometries that cannot accept chamfer keep their untreated part and are
+reported as exceptions.
 
 **Library-build definition discovery** can read cube-block identities
 from an operator-configured local Space Engineers or ModSDK tree

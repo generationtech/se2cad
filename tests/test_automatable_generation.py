@@ -158,7 +158,7 @@ class ArtifactNamingTests(unittest.TestCase):
             treated = logical_treated_part_filename(
                 geometry_id, EDGE_TREATMENT_CHAMFER
             )
-            self.assertEqual(treated, f"{geometry_id}_chamfer.SLDPRT")
+            self.assertEqual(treated, f"{geometry_id}_chamfer_50mm.SLDPRT")
             self.assertTrue(is_canonical_artifact_filename(f"{geometry_id}.SLDPRT"))
             self.assertTrue(is_treated_artifact_filename(treated))
 

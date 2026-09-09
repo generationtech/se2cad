@@ -15,13 +15,13 @@ The nine milestones, in order, are: blueprint statistics; CAD component naming; 
 
 No implementation milestone is ACTIVE. Cold-storage backlog remains outside this program. Do not invent work beyond it.
 
-A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-12.1.1 is QUALIFIED. S2C-12.2.1 is QUALIFIED. S2C-13.1.1 remains PLANNED and is the next executable unit.
+A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. A later 2026-09-09 human-authorized amendment inserted S2C-10.4.1 into M10 after S2C-12.2.1 was already QUALIFIED and before S2C-13.1.1. That repair does not rewrite original M10 planning. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-10.4.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-12.1.1 is QUALIFIED. S2C-12.2.1 is QUALIFIED. S2C-13.1.1 remains PLANNED and is the next executable unit.
 
 **Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression, QUALIFIED S2C-12.1.1 conversion preflight, and QUALIFIED S2C-12.2.1 strict and permissive unknown-block conversion. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M13 units through M15 are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-10.4.1 configurable demand-driven chamfer variants, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression, QUALIFIED S2C-12.1.1 conversion preflight, and QUALIFIED S2C-12.2.1 strict and permissive unknown-block conversion. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M13 units through M15 are approved, not implemented.
 
 ## Next executable unit
 
@@ -55,6 +55,7 @@ S2C-13.1.1 Small Grid semantic path. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_
 | S2C-10.1.1 | QUALIFIED | CAD-neutral equal-setback chamfer on convex manifold edges; default off; not a new `geometry_id`. Ordinary suite 267 tests, 3 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-10.2.1 | QUALIFIED | Sibling `{geometry_id}_chamfer.SLDPRT` under the generated root when `EDGE_TREATMENT_CHAMFER` is requested. Untreated `large_armor_*.SLDPRT` remain the default. Ordinary suite 283 tests, 4 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: treated and untreated parts, one solid body, S2C-10.1.1 measurables. Distinct assessment recorded below. |
 | S2C-10.3.1 | QUALIFIED | Default assemble still names untreated `{geometry_id}.SLDPRT`. Explicit `--edge-treatment chamfer` names `{geometry_id}_chamfer.SLDPRT` and fails closed if siblings are missing. Ordinary suite 323 tests, 5 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: treated 24-component `se2cad-test1.SLDASM` save/reopen used `*_chamfer.SLDPRT`; IR transforms, names, and default appearance unchanged; untreated part hashes unchanged; subsequent default assemble used untreated filenames. Distinct assessment recorded below. |
+| S2C-10.4.1 | QUALIFIED | Configurable `--chamfer-mm` (default 50, range 5–250, no clamp). Size-specific `{geometry_id}_chamfer_{size}mm.SLDPRT`. Demand-driven generation of chamfer-capable geometry only; non-capable filler falls back untreated and is reported. Ordinary suite 458 tests, 8 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: distinct 50 mm and 75 mm artifacts; demand assemble consumed the exact size; reuse left the 75 mm hash unchanged; untreated `{geometry_id}.SLDPRT` unchanged within the probe; default untreated fixture assemble still used untreated parts; filler fallback reported. Distinct assessment [below](#qualitysecurity-assessment-s2c-1041). |
 | S2C-11.1.1 | QUALIFIED | Library-build `se2cad.discovery` reads operator-configured game/SDK `.sbc` trees into observed catalog fields. Ordinary suite 309 tests, 4 skipped, OK. Runtime conversion remains install-free. External validation was not required. Distinct assessment recorded below. |
 | S2C-11.2.1 | QUALIFIED | Schema v2 catalog records eight Large Grid identities; original four remain `native_procedural` / `supported`; four heavy-armor counterparts are `unsupported`. `expand_catalog_identities` resolves discovery-shaped observed facts. Ordinary suite 338 tests, 5 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-11.3.1 | QUALIFIED | `select_catalog_recipes` classifies CubeTopology-class `CubeBlock` armor as `native_procedural` / automatable and TriangleMesh / unusual relationships as queryable long-tail exceptions. Packaged heavy-armor identities are `native_procedural` / `unsupported`. Ordinary suite 355 tests, 5 skipped, OK. External validation was not required. Distinct assessment recorded below. |
@@ -72,6 +73,28 @@ S2C-13.1.1 Small Grid semantic path. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-09 — S2C-10.4.1 QUALIFIED
+
+Human-authorized insertion after S2C-12.2.1 was QUALIFIED and before S2C-13.1.1. Did not start S2C-13.1.1. Did not invent Small Grid conversion, symmetry, or print-shell. Did not change parser, catalog identity, IR transforms, component naming, appearance, unknown-block policy, filler semantics, or M11 recipe selection. Did not add algorithm-version compatibility. Did not commit, tag, or push.
+
+Chamfer size is configurable. `--edge-treatment chamfer` without `--chamfer-mm` remains 50 mm. Valid range is 5–250 mm inclusive; NaN/Inf and out-of-range values fail closed and are not clamped. `--chamfer-mm` is valid only with chamfer. Treated artifact identity is `{geometry_id}_chamfer_{size}mm.SLDPRT` via one shared `treated_artifact_key`. Component names stay on existing IR/SE data. Assembly generates only demanded chamfer-capable variants and reuses an exact existing file. `LibraryRecord.chamfer_capable` is an explicit CAD/library flag: qualified Box/Slope/Corner/InvCorner records are true; the designated filler is false. Non-capable geometry uses the untreated part and is listed in `AssemblyTreatmentReport`. Capable generation failure does not fall back. Explicit `python -m se2cad.solidworks --edge-treatment chamfer` still writes only the original four identities.
+
+Attached running SW 2026 `RevisionNumber` 34.3.2 (`GetActiveObject`, `started_application` False). `SE2CAD_GENERATED_ROOT=generated`. Operator documents were not closed. `GetDocumentCount` is a late-bound property, not a method.
+
+Live `SE2CAD_SOLIDWORKS_INTEGRATION=1` `unittest tests.test_solidworks_integration.SolidWorksIntegrationTests.test_configurable_chamfer_is_demand_driven_and_reusable -v` — 1 test, OK, 34.418 s after remediations. Earlier same-class run: 8 tests, 1 ERROR (`GetDocumentCount()`), then 7 OK including treated 50 mm generate/assemble, 291.978 s. A later discover with the integration flag left set ran all 8 live tests — 458 tests, OK, 328.852 s.
+
+| Check | Result |
+| --- | --- |
+| Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+| Distinct sizes | `large_armor_block_chamfer_50mm.SLDPRT` (76055) and `large_armor_block_chamfer_75mm.SLDPRT` (77057); SHA-256 differ |
+| Demand / reuse | 75 mm assemble created/consumed the exact 75 mm part; second 75 mm request left that file hash unchanged; no `large_heavy_block_*_chamfer_75mm.SLDPRT` |
+| Untreated parts | Probe asserted untreated `large_armor_block.SLDPRT` hash unchanged across treated generate/assemble. Later default fixture assemble in `test_treated_assembly_consumes_treated_siblings` used `{geometry_id}.SLDPRT` |
+| Fallback | Permissive two-block probe: armor used `large_armor_block_chamfer_75mm.SLDPRT`; unknown subtype used `se2cad_unknown_filler.SLDPRT`; report `treated=1` `untreated_fallback=1`; no filler chamfer sibling |
+| Session hygiene | Live probe `GetDocumentCount` equal before/after; `started_application` False |
+| Generated artifacts | gitignored `generated/`; `git check-ignore` reports the new size-specific parts and `se2cad-chamfer-75.SLDASM` / `se2cad-chamfer-fallback.SLDASM` |
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 458 tests, 8 skipped, 0.709 s, OK. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-09 — S2C-12.2.1 QUALIFIED
 
@@ -872,6 +895,36 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-10.4.1)
+
+Hypotheses tested after size-specific naming, demand-driven assemble, capability flag, ordinary tests, live SolidWorks runs, and documentation existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Distinct chamfer sizes collide on one filename | Disproven. Shared `treated_artifact_key` embeds `chamfer_size_token`. Live 50 mm and 75 mm files have different names, sizes, and SHA-256. |
+| Stale generic `*_chamfer.SLDPRT` is reused | Disproven. `is_treated_artifact_filename` rejects the unsized name. `missing_treated_geometry_ids` looks up the size-specific path only. Ordinary test with a generic file present still reports the 50 mm sibling missing. |
+| Path / token smuggling into artifact identity | Disproven. Size tokens are produced from a validated finite number, never from a raw path. `contained_destination` still rejects separators and `..`. Tests reject `../…chamfer_50mm.SLDPRT` and `notes_chamfer_50mm.SLDPRT`. |
+| Capable generation failure silently uses untreated or another size | Disproven. `generate_canonical_parts` is not caught. A patched generation error propagates `SolidWorksComError` and writes no `*_chamfer_*.SLDPRT`. `require_canonical_part_files` for capable IDs names only the exact treated sibling. |
+| Assemble eagerly chamfers the whole library | Disproven. `demanded_treated_geometry_ids` is the IR's capable IDs only. Live 75 mm demand created no heavy-armor 75 mm siblings. Explicit `python -m se2cad.solidworks` still defaults to the original four. |
+| Chamfer capability grants catalog support | Disproven. Capability is `LibraryRecord.chamfer_capable`, not catalog `support_status`. Filler is `native_procedural` and `chamfer_capable=False`. Catalog JSON was not given a chamfer field. |
+| Component names gain chamfer suffixes or sizes | Disproven. Names remain `component_name_from_block`. Live 75 mm component name has no `_chamfer`. |
+| Untreated source parts are modified | Disproven. Treated destinations are size-specific siblings. `part_artifact_path` refuses an untreated filename. Live probe hashed `large_armor_block.SLDPRT` before/after treated work. |
+| Writes escape the generated root | Disproven. Destinations still go through `contained_destination`. Live artifacts stayed under `generated/`. |
+| S2C-13.1.1 or later M7–M15 work started | Disproven. No Small Grid conversion, symmetry, or print-shell. |
+| Proprietary assets or generated CAD were committed | Disproven. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. Fixture SHA-256 unchanged. Generated CAD remains gitignored. |
+
+Verified findings remediated during live evidence:
+
+- Late-bound 34.3.2 `GetDocumentCount` is an int property; calling it raised `TypeError`. The live probe now reads the property.
+- A one-block untreated assemble after a treated assemble of a different identity failed reopen name matching (`large_armor_block` vs IR short name). That extra assemble was removed from the live probe. Untreated consumption remains evidenced by the already-qualified `test_treated_assembly_consumes_treated_siblings` in the same live class.
+- Fallback reopen component order is not IR order; the live probe matches by `geometry_id`.
+
+Ordinary suite re-run after remediations: 458 tests, 8 skipped, 0.709 s, OK. Isolated live probe re-run: OK, 34.418 s.
+
+Accepted residual risk: historical generic `*_chamfer.SLDPRT` files from S2C-10.2.1/10.3.1 may still exist in a local generated root; they are not selected. Regenerating untreated canonical parts in a later live test changes their bytes; in-probe hash stability is the treatment-safety evidence. `GetDocumentCount` equality does not inspect operator documents from another generated root.
+
+Not claimed: algorithm-version compatibility; that every future imported geometry is chamfer-capable; Small Grid conversion.
 
 ## Quality/security assessment (S2C-12.2.1)
 

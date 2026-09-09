@@ -11,8 +11,11 @@ from se2cad.library import (
     EDGE_TREATMENT_OFF,
     EdgeTreatmentKind,
     EdgeTreatmentRequest,
+    TreatmentError,
     all_library_records,
+    chamfer_size_token,
     lookup_recipe,
+    validate_chamfer_setback_mm,
 )
 from se2cad.solidworks.errors import (
     AssemblyIdentityError,
@@ -24,6 +27,9 @@ CANONICAL_PART_SUFFIX = ".SLDPRT"
 CANONICAL_ASSEMBLY_SUFFIX = ".SLDASM"
 TREATED_PART_STEM_SUFFIX = "_chamfer"
 _ASSEMBLY_IDENTITY_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+_TREATED_FILENAME_RE = re.compile(
+    r"^([a-z][a-z0-9_]*)_chamfer_([0-9]+(?:\.[0-9]+)?)mm\.SLDPRT$"
+)
 
 _CANONICAL_GEOMETRY_IDS: tuple[str, ...] = (
     "large_armor_block",
@@ -59,14 +65,11 @@ def is_canonical_artifact_filename(filename: str) -> bool:
     return filename in {logical_part_filename(gid) for gid in _library_geometry_ids()}
 
 
-def logical_treated_part_filename(
-    geometry_id: str,
-    request: EdgeTreatmentRequest,
-) -> str:
-    """Deterministic sibling SLDPRT name for a requested edge treatment.
+def treated_artifact_key(geometry_id: str, request: EdgeTreatmentRequest) -> str:
+    """Shared generation/lookup stem: ``{geometry_id}_chamfer_{size}mm``.
 
-    Treatment is not a new ``geometry_id``. The untreated
-    ``{geometry_id}.SLDPRT`` name is never returned here.
+    Size is part of artifact identity. Algorithm/version suffixes are
+    not. The generic ``{geometry_id}_chamfer`` stem is never returned.
     """
     if geometry_id not in _library_geometry_ids():
         raise UnknownCanonicalPartError(
@@ -78,18 +81,49 @@ def logical_treated_part_filename(
             "no treated artifact name for treatment "
             f"{request.kind.value!r}"
         )
-    return f"{geometry_id}{TREATED_PART_STEM_SUFFIX}{CANONICAL_PART_SUFFIX}"
+    return f"{geometry_id}{TREATED_PART_STEM_SUFFIX}_{chamfer_size_token(request.setback_mm)}"
+
+
+def logical_treated_part_filename(
+    geometry_id: str,
+    request: EdgeTreatmentRequest,
+) -> str:
+    """Deterministic sibling SLDPRT name for a requested edge treatment.
+
+    Treatment is not a new ``geometry_id``. The untreated
+    ``{geometry_id}.SLDPRT`` name is never returned here.
+    """
+    return f"{treated_artifact_key(geometry_id, request)}{CANONICAL_PART_SUFFIX}"
 
 
 def is_treated_artifact_filename(filename: str) -> bool:
-    """True when filename is a known treated sibling of a canonical part."""
-    return filename in {
-        logical_treated_part_filename(
-            gid,
-            EdgeTreatmentRequest(kind=EdgeTreatmentKind.CHAMFER_EQUAL_SETBACK),
+    """True when filename is a size-specific treated sibling.
+
+    The historical generic ``{geometry_id}_chamfer.SLDPRT`` name is not
+    a treated artifact under this contract.
+    """
+    if not filename or Path(filename).name != filename:
+        return False
+    if any(sep in filename for sep in ("/", "\\")):
+        return False
+    match = _TREATED_FILENAME_RE.fullmatch(filename)
+    if match is None:
+        return False
+    geometry_id, raw_size = match.group(1), match.group(2)
+    if geometry_id not in _library_geometry_ids():
+        return False
+    try:
+        setback = validate_chamfer_setback_mm(float(raw_size))
+        expected = logical_treated_part_filename(
+            geometry_id,
+            EdgeTreatmentRequest(
+                kind=EdgeTreatmentKind.CHAMFER_EQUAL_SETBACK,
+                setback_mm=setback,
+            ),
         )
-        for gid in _library_geometry_ids()
-    }
+    except (TypeError, ValueError, TreatmentError, UnknownCanonicalPartError):
+        return False
+    return filename == expected
 
 
 def logical_assembly_part_filename(

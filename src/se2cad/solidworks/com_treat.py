@@ -12,7 +12,7 @@ from typing import Any
 
 from se2cad.library import (
     EDGE_TREATMENT_CHAMFER,
-    EDGE_TREATMENT_SETBACK_MM,
+    EdgeTreatmentRequest,
     NativeSolidRecipe,
     apply_edge_treatment,
     mesh_edges,
@@ -266,16 +266,18 @@ def apply_equal_setback_chamfer(
     session: Any,
     model: Any,
     recipe: NativeSolidRecipe,
+    request: EdgeTreatmentRequest | None = None,
 ) -> int:
     """Chamfer live-convex recipe edges. Return the chamfered edge count.
 
     Concave live edges (the InvCorner notch) are skipped: a local CAD
     chamfer refuses them, which matches the S2C-10.1.1 concave rule.
     """
-    preview = apply_edge_treatment(solid_from_recipe(recipe), EDGE_TREATMENT_CHAMFER)
+    chosen = EDGE_TREATMENT_CHAMFER if request is None else request
+    preview = apply_edge_treatment(solid_from_recipe(recipe), chosen)
     if not preview.applied:
         raise SolidWorksComError("CAD-neutral treatment was not applied")
-    setback_m = mm_to_metres(EDGE_TREATMENT_SETBACK_MM)
+    setback_m = mm_to_metres(chosen.setback_mm)
     live_edges = _live_solid_edges(session, model)
     selected = _match_convex_edges(recipe, live_edges)
     _clear_selection(model)

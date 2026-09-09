@@ -84,6 +84,8 @@ A listed prerequisite is met at DEV-COMPLETE unless the later unit consumes that
 
 A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. That change does not create a tenth milestone, does not reorder M7–M15, and does not invalidate S2C-11.1.1. STATE records the exception and the next executable unit.
 
+A later 2026-09-09 human-authorized amendment inserted S2C-10.4.1 into M10 after S2C-12.2.1 was already QUALIFIED and before S2C-13.1.1. That repair improves already-qualified M10 edge-treatment behavior. It does not rewrite original M10 planning, does not start M13, and does not invalidate S2C-10.3.1, M11, or M12. STATE records the exception and the next executable unit.
+
 ## Qualification model
 
 Status words are defined in [SE2CAD_ENGINEERING_PROCESS.md](SE2CAD_ENGINEERING_PROCESS.md). STATE is the only live status.

@@ -291,7 +291,7 @@ class SolidWorksIntegrationTests(unittest.TestCase):
             self.assertTrue(result.treatment_applied)
             self.assertEqual(
                 result.locator.identity.filename,
-                f"{geometry_id}_chamfer.SLDPRT",
+                f"{geometry_id}_chamfer_50mm.SLDPRT",
             )
             self.assertTrue(result.locator.path.is_file())
             self.assertTrue(result.locator.path.is_relative_to(self.config.generated_root))
@@ -414,7 +414,7 @@ class SolidWorksIntegrationTests(unittest.TestCase):
             self.assertEqual(reopened.placement.geometry_id, block.geometry_id)
             self.assertEqual(
                 reopened.placement.part_filename,
-                f"{block.geometry_id}_chamfer.SLDPRT",
+                f"{block.geometry_id}_chamfer_50mm.SLDPRT",
             )
             expected_name = component_name_from_block(block)
             self.assertEqual(reopened.component_name, expected_name)
@@ -522,6 +522,165 @@ class SolidWorksIntegrationTests(unittest.TestCase):
             filler.component_name, component_name_from_block(ir_filler)
         )
         self.assertTrue(filler.geometry_applied)
+
+    def test_configurable_chamfer_is_demand_driven_and_reusable(self) -> None:
+        from se2cad.catalog import FILLER_GEOMETRY_ID, load_default_catalog
+        from se2cad.library import chamfer_treatment
+        from se2cad.parser import parse_blueprint
+        from se2cad.policy import ConversionPolicy, convert_blueprint
+        from se2cad.solidworks.assemble import generate_assembly_from_ir
+        from se2cad.solidworks.com_session import (
+            SolidWorksSession,
+            session_environment_report,
+        )
+        from se2cad.solidworks.generate import generate_canonical_parts
+
+        root = self.config.generated_root
+        with SolidWorksSession(self.config) as session:
+            start_report = session_environment_report(session)
+            start_documents = int(session.app.GetDocumentCount)
+        untreated_path = root / "large_armor_block.SLDPRT"
+        if not untreated_path.is_file():
+            generate_canonical_parts(
+                self.config, geometry_ids=("large_armor_block",)
+            )
+        untreated_hash = hashlib.sha256(untreated_path.read_bytes()).hexdigest()
+
+        xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-chamfer-75" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "chamfer-75.sbc"
+            path.write_text(xml, encoding="utf-8")
+            parsed = parse_blueprint(path)
+        ir = convert_blueprint(parsed, load_default_catalog()).ir
+        first = generate_assembly_from_ir(ir, self.config, chamfer_treatment(75))
+        part_75 = root / "large_armor_block_chamfer_75mm.SLDPRT"
+        self.assertTrue(part_75.is_file())
+        self.assertEqual(
+            first.after_reopen[0].part_path.name,
+            "large_armor_block_chamfer_75mm.SLDPRT",
+        )
+        self.assertEqual(first.treatment_report.requested_setback_mm, 75)
+        self.assertEqual(first.treatment_report.treated_component_count, 1)
+        self.assertEqual(first.treatment_report.untreated_fallback_component_count, 0)
+        self.assertNotIn("_chamfer", first.after_reopen[0].component_name)
+        self.assertFalse(
+            any(root.glob("large_heavy_block_*_chamfer_75mm.SLDPRT"))
+        )
+        hash_75 = hashlib.sha256(part_75.read_bytes()).hexdigest()
+
+        second = generate_assembly_from_ir(ir, self.config, chamfer_treatment(75))
+        self.assertEqual(hashlib.sha256(part_75.read_bytes()).hexdigest(), hash_75)
+        self.assertEqual(
+            second.after_reopen[0].part_path.name,
+            "large_armor_block_chamfer_75mm.SLDPRT",
+        )
+        self.assertEqual(
+            hashlib.sha256(untreated_path.read_bytes()).hexdigest(),
+            untreated_hash,
+        )
+
+        fifty = generate_assembly_from_ir(ir, self.config, chamfer_treatment(50))
+        part_50 = root / "large_armor_block_chamfer_50mm.SLDPRT"
+        self.assertTrue(part_50.is_file())
+        self.assertEqual(
+            fifty.after_reopen[0].part_path.name,
+            "large_armor_block_chamfer_50mm.SLDPRT",
+        )
+        self.assertNotEqual(
+            hashlib.sha256(part_50.read_bytes()).hexdigest(),
+            hash_75,
+        )
+        self.assertEqual(
+            hashlib.sha256(untreated_path.read_bytes()).hexdigest(),
+            untreated_hash,
+        )
+
+        filler_xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-chamfer-fallback" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>NotACatalogSubtype</SubtypeName>
+              <Min x="1" y="0" z="0" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fallback.sbc"
+            path.write_text(filler_xml, encoding="utf-8")
+            parsed = parse_blueprint(path)
+        fallback_ir = convert_blueprint(
+            parsed, load_default_catalog(), ConversionPolicy.PERMISSIVE
+        ).ir
+        generate_canonical_parts(
+            self.config, geometry_ids=(FILLER_GEOMETRY_ID,)
+        )
+        fallback = generate_assembly_from_ir(
+            fallback_ir, self.config, chamfer_treatment(75)
+        )
+        self.assertEqual(len(fallback.after_reopen), 2)
+        by_geometry = {
+            item.placement.geometry_id: item for item in fallback.after_reopen
+        }
+        self.assertEqual(
+            by_geometry["large_armor_block"].part_path.name,
+            "large_armor_block_chamfer_75mm.SLDPRT",
+        )
+        self.assertEqual(
+            by_geometry[FILLER_GEOMETRY_ID].part_path.name,
+            "se2cad_unknown_filler.SLDPRT",
+        )
+        self.assertEqual(fallback.treatment_report.treated_component_count, 1)
+        self.assertEqual(fallback.treatment_report.untreated_fallback_component_count, 1)
+        self.assertEqual(
+            fallback.treatment_report.fallbacks[0].geometry_id, FILLER_GEOMETRY_ID
+        )
+        self.assertEqual(
+            fallback.treatment_report.fallbacks[0].subtype_id, "NotACatalogSubtype"
+        )
+        self.assertFalse((root / "se2cad_unknown_filler_chamfer_75mm.SLDPRT").exists())
+        self.assertEqual(
+            hashlib.sha256(untreated_path.read_bytes()).hexdigest(),
+            untreated_hash,
+        )
+
+        with SolidWorksSession(self.config) as session:
+            end_report = session_environment_report(session)
+            end_documents = int(session.app.GetDocumentCount)
+        self.assertTrue(start_report["solidworks_revision"])
+        self.assertEqual(end_report["started_application"], "False")
+        self.assertEqual(end_documents, start_documents)
 
 
 if __name__ == "__main__":
