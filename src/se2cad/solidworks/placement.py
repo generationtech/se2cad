@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from se2cad.ir.model import CanonicalBlock, CanonicalBlueprint
+from se2cad.ir.naming import component_name_from_block, component_names_from_blocks
 from se2cad.solidworks.artifacts import (
     artifact_path_for,
     canonical_geometry_ids,
@@ -28,6 +29,7 @@ class ComponentPlacement:
     subtype_id: str
     geometry_id: str
     part_filename: str
+    component_name: str
     grid_min: tuple[int, int, int]
     position_mm: tuple[int, int, int]
     rotation: RotationMatrix
@@ -37,6 +39,7 @@ class ComponentPlacement:
 def placements_from_ir(ir: CanonicalBlueprint) -> tuple[ComponentPlacement, ...]:
     """Preserve IR document order and exact block multiplicity."""
     allowed = set(canonical_geometry_ids())
+    component_names_from_blocks(ir.grid.blocks)
     placements: list[ComponentPlacement] = []
     for block in ir.grid.blocks:
         placements.append(_placement_from_block(block, allowed))
@@ -56,6 +59,7 @@ def _placement_from_block(
         subtype_id=block.subtype_id,
         geometry_id=block.geometry_id,
         part_filename=logical_part_filename(block.geometry_id),
+        component_name=component_name_from_block(block),
         grid_min=(block.grid_min.x, block.grid_min.y, block.grid_min.z),
         position_mm=block.position_mm.as_tuple(),
         rotation=block.rotation,

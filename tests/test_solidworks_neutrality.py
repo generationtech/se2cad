@@ -76,6 +76,7 @@ class NeutralityTests(unittest.TestCase):
         self.assertTrue(hasattr(se2cad, "parse_blueprint"))
         self.assertTrue(hasattr(se2cad, "lookup_recipe"))
         self.assertTrue(hasattr(se2cad, "compute_blueprint_statistics"))
+        self.assertTrue(hasattr(se2cad, "component_name"))
         self.assertFalse(hasattr(se2cad, "generate_canonical_parts"))
 
     def test_solidworks_package_imports_without_pywin32(self) -> None:

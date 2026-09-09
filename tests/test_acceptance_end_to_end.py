@@ -17,7 +17,7 @@ from se2cad.catalog import (
     UnknownSubtypeError,
     load_default_catalog,
 )
-from se2cad.ir import build_canonical_blueprint
+from se2cad.ir import build_canonical_blueprint, component_name_from_block
 from se2cad.library import lookup_recipe
 from se2cad.parser import Direction, GridSize, parse_blueprint
 from se2cad.solidworks.artifacts import canonical_geometry_ids
@@ -115,6 +115,9 @@ class AcceptanceEndToEndTests(unittest.TestCase):
             self.assertEqual(placement.source_index, parsed.source_index)
             self.assertEqual(placement.geometry_id, canonical.geometry_id)
             self.assertEqual(placement.part_filename, f"{canonical.geometry_id}.SLDPRT")
+            self.assertEqual(
+                placement.component_name, component_name_from_block(canonical)
+            )
             self.assertEqual(
                 placement.grid_min, (parsed.min.x, parsed.min.y, parsed.min.z)
             )

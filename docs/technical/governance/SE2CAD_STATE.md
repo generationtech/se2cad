@@ -17,13 +17,13 @@ No implementation milestone is ACTIVE. Cold-storage backlog remains outside this
 
 **Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
-The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
+The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. Remaining M8–M15 features are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics and QUALIFIED S2C-8.1.1 component names. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. Remaining M9–M15 features are approved, not implemented.
 
 ## Next executable unit
 
-S2C-8.1.1 — Deterministic component names from IR. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
+S2C-9.1.1 — Parse color and carry CAD-neutral appearance. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
 
 ## Unit status
 
@@ -47,7 +47,7 @@ S2C-8.1.1 — Deterministic component names from IR. Defined in [SE2CAD_PLAN_M7.
 | --- | --- | --- |
 | M7–M15 program authorization | QUALIFIED | Current program/plan exist; historical M0–M6 preserved; ratchet/onboarding/process/rules point at STATE-named current docs; no product implementation; no named opschecks; next unit S2C-7.1.1 is PLANNED. Distinct assessment recorded below. |
 | S2C-7.1.1 | QUALIFIED | CAD-neutral `se2cad.statistics` exists; fixture identity/counts/extents/occupancy/orientations/catalog coverage match the qualified parser/catalog/IR record; synthetic single-cell, negative, mixed-orientation, unknown-subtype, and parser-rejected cases covered; ordinary suite 198 tests, 2 skipped, OK. External validation was not required. Distinct assessment recorded below. |
-| S2C-8.1.1 | PLANNED | |
+| S2C-8.1.1 | QUALIFIED | CAD-neutral `component_name` from subtype/`Min`/Forward/Up/`source_index`; assembly writer sets Name2 at insert. Ordinary suite 212 tests, 2 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: all 24 save/reopen short names match the IR encoding; transforms and canonical `.SLDPRT` filenames unchanged. Distinct assessment recorded below. |
 | S2C-9.1.1 | PLANNED | |
 | S2C-9.2.1 | PLANNED | |
 | S2C-10.1.1 | PLANNED | |
@@ -69,6 +69,24 @@ S2C-8.1.1 — Deterministic component names from IR. Defined in [SE2CAD_PLAN_M7.
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-08 — S2C-8.1.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-9.1.1. Did not invent color, edges, library expansion, preflight, Small Grid, symmetry, or print-shell. Did not create a general CLI or UI. Did not change the qualified parser, catalog JSON, IR transform contract, recipes, or canonical part filenames. Did not commit, tag, or push.
+
+Implemented `se2cad.ir.naming` as a CAD-neutral derived identifier: `{subtype}_x{X}_y{Y}_z{Z}_{Forward}_{Up}_{source_index}`. Unsafe subtype characters are rejected. `COMPONENT_NAME_MAX_LENGTH` is 80 with prefix truncation plus `_{source_index}`. Omitted and explicit identity Forward/Up produce the same name. `geometry_id` and filesystem paths are not encoded. The assembly writer applies the short name via `IComponent2.Name2` after `Select`. Official Name2 remarks plus live 34.3.2: set is a no-op while `swExtRefUpdateCompNames` (enum 18) is True, and an unselected assignment is also a no-op. The writer forces that toggle False from insert through SaveAs/reopen, then restores the prior value.
+
+Acceptance-fixture names (SHA-256 unchanged; all 24 unique; max length 50):
+
+| Cell | Name |
+| --- | --- |
+| `(0,0,0)` | `LargeBlockArmorBlock_x0_y0_z0_Forward_Up_0` |
+| `(1,0,0)` | `LargeBlockArmorBlock_x1_y0_z0_Forward_Up_1` |
+| `(0,0,-1)` Down/Forward | `LargeBlockArmorSlope_x0_y0_z-1_Down_Forward_14` |
+| `(1,1,0)` Down/Right | `LargeBlockArmorSlope_x1_y1_z0_Down_Right_15` |
+| `(5,2,-2)` | `LargeBlockArmorBlock_x5_y2_z-2_Forward_Up_23` |
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 212 tests, 2 skipped, 0.250 s, OK. `SE2CAD_SOLIDWORKS_INTEGRATION=1` `unittest tests.test_solidworks_integration -v` — 2 tests, OK, 39.180 s. Generated artifacts stayed under `generated/` and are gitignored. Canonical part filenames remain `large_armor_*.SLDPRT`.
 
 ### 2026-09-08 — S2C-7.1.1 QUALIFIED
 
@@ -298,7 +316,7 @@ These are human-architect technology selections recorded as live decisions. They
 
 These are not invitations to decide them inside an unrelated unit.
 
-- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-7.1.1 added `python -m se2cad.statistics <blueprint.sbc>` on the same terms. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
+- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-7.1.1 added `python -m se2cad.statistics <blueprint.sbc>` on the same terms. S2C-8.1.1 applied names on the existing assemble path and did not add an operator entry. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
 - Optional local game or SDK install path. Still a human technology-selection item. S2C-11.1.1 must reuse the established env / `se2cad.local.json` pattern or stop and ask. The Windows SolidWorks conversion path does not require it.
 
 Resolved in S2C-6.1.1 and no longer open: numeric position/orientation comparison method. IR `(R, t)` is exact. SolidWorks `ArrayData` allowance is `BACKEND_LENGTH_TOLERANCE_M` (`1e-6` m). Recorded in [INITIAL_ACCEPTANCE_FIXTURE.md](../../testing/INITIAL_ACCEPTANCE_FIXTURE.md) and in this file.
@@ -307,7 +325,7 @@ Resolved in S2C-4.2.1 and no longer open: generated SLDPRT location (local gener
 
 ## Known blockers
 
-None. The next approved unit is S2C-8.1.1 (PLANNED).
+None. The next approved unit is S2C-9.1.1 (PLANNED).
 
 ## S2C-1.1.1 fixture inspection
 
@@ -565,6 +583,32 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-8.1.1)
+
+Hypotheses tested after the name function, placement field, and Name2 writer existed, including after live 34.3.2 rename/reopen. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Path or identifier injection via subtype strings | Disproven. Allowlist `^[A-Za-z][A-Za-z0-9_]*$` rejects `../`, separators, spaces, dots, Unicode, and `foo.SLDPRT`. Tests cover those cases. |
+| Same subtype at different cells collides | Disproven. Fixture 24 names are unique. Min and `source_index` both change the encoding. Duplicate identity fails closed. |
+| Omitted vs explicit orientation invents two names | Disproven. Same Forward/Up and `source_index` produce the same name. Serialization flags are not encoded. |
+| Names include machine paths or `geometry_id` | Disproven. Encoding uses subtype/`Min`/Forward/Up/`source_index` only. Naming source has no `C:`, `/home/`, or `.SLDPRT`. |
+| Transforms change while renaming | Disproven. Live reopen still matches all 24 packed IR `ArrayData` values. MateGroup stays empty. |
+| Canonical `.SLDPRT` files are renamed | Disproven. Live `GetPathName` basenames remain `large_armor_*.SLDPRT`. Generated directory listing is the four parts plus `se2cad-test1.SLDASM`. |
+| Name2 set always sticks | Confirmed false, then remediated. Unselected assignment is a no-op (`large_armor_block-1` remained). Select then set works (`ProbeName2-1`). |
+| `swExtRefUpdateCompNames` True allows Name2 | Confirmed false (official remarks + live no-op). Toggle 18 is forced False for insert/save/reopen and restored. |
+| Restoring the toggle before SaveAs persists names | Confirmed false, then remediated. Reopen showed filename stems until the toggle stayed False through SaveAs. |
+| Ordinary suite attaches to SolidWorks | Disproven. 212 tests, 2 skipped, 0.250 s with `SE2CAD_SOLIDWORKS_INTEGRATION` unset. |
+| Parser/catalog/IR transform/recipe contract changed | Disproven. Parser, catalog JSON, transform engine, and recipe geometry were not modified. |
+| Proprietary assets or fixture rewrite | Disproven. SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. `git check-ignore` reports `/generated/`. |
+| S2C-9.1.1 or later M7–M15 work started | Disproven. No color, edges, library expansion, preflight, Small Grid, symmetry, or print-shell implementation. |
+
+Remediated: Name2 requires Select; `swExtRefUpdateCompNames` must stay False through SaveAs/reopen. Ordinary suite and live integration re-run after those fixes.
+
+Accepted residual risk: if the process dies after forcing the toggle False and before restore, the operator SolidWorks session may keep `swExtRefUpdateCompNames` False until it is set again. `COMPONENT_NAME_MAX_LENGTH` 80 is an SE2CAD identifier cap; the fixture max name length is 50, so live truncation was not exercised. Name2 get is compared after stripping a numeric `-{instance}` suffix.
+
+Not claimed: a general CLI; color; renaming library geometry identities; publication of generated CAD.
 
 ## Quality/security assessment (S2C-7.1.1)
 

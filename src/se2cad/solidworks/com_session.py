@@ -34,6 +34,8 @@ _FALLBACK_CONSTANTS = {
     "swCreateFeatureBodySimplify": 2,
     "SWBODYCUT": 1593,
     "swAddComponentConfigOptions_CurrentSelectedConfig": 0,
+    # Official Name2 remarks: set fails when this toggle is True.
+    "swExtRefUpdateCompNames": 18,
 }
 
 

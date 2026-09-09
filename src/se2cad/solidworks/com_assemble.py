@@ -161,11 +161,117 @@ def document_type(model: Any) -> int:
         raise _com_fail(exc, "GetType failed") from exc
 
 
+def read_name2(component: Any) -> str:
+    try:
+        raw = com_get(component, "Name2")
+    except Exception as exc:
+        raise _com_fail(exc, "Name2 read failed") from exc
+    if not raw:
+        raise AssemblyValidationError("component Name2 is empty")
+    return str(raw)
+
+
+def feature_manager_short_name(name2: str) -> str:
+    """Strip the SolidWorks instance suffix from a Name2 get value.
+
+    Name2 set takes the short name. Name2 get returns ``{short}-{instance}``
+    for a top-level non-virtual component. ``/`` (parent path) and ``^``
+    (virtual context) are rejected: this writer inserts only top-level
+    non-virtual parts.
+    """
+    if "/" in name2 or "\\" in name2 or "^" in name2:
+        raise AssemblyValidationError(
+            f"component Name2 {name2!r} is not a top-level non-virtual name"
+        )
+    head, sep, tail = name2.rpartition("-")
+    if not sep or not tail.isdigit():
+        raise AssemblyValidationError(
+            f"component Name2 {name2!r} has no instance suffix"
+        )
+    return head
+
+
+def apply_component_name(assembly: Any, component: Any, name: str) -> str:
+    """Set Name2 to the CAD-neutral short name and confirm it stuck.
+
+    Live 34.3.2: assignment without ``Select`` is a silent no-op even when
+    ``swExtRefUpdateCompNames`` is False. Select, set, then clear.
+    """
+    try:
+        com_get(component, "Select", True)
+        component.Name2 = name
+        com_get(assembly, "ClearSelection2", True)
+    except Exception as exc:
+        raise _com_fail(exc, f"setting Name2 to {name!r} failed") from exc
+    observed = read_name2(component)
+    short = feature_manager_short_name(observed)
+    if short != name:
+        raise AssemblyValidationError(
+            f"Name2 did not stick: requested {name!r}, observed {observed!r}"
+        )
+    return observed
+
+
+_SW_EXT_REF_UPDATE_COMP_NAMES = 18
+
+
+def _ext_ref_update_comp_names_constant(session: Any) -> int:
+    constants = getattr(session, "constants", None) if session is not None else None
+    if constants is not None:
+        try:
+            return int(constants.swExtRefUpdateCompNames)
+        except Exception:
+            pass
+    return _SW_EXT_REF_UPDATE_COMP_NAMES
+
+
+def allow_component_name2_set(session: Any) -> bool | None:
+    """Return the prior swExtRefUpdateCompNames value after forcing False.
+
+    Official IComponent2.Name2 remarks: set fails when this toggle is True.
+    Live 34.3.2 confirmed a silent no-op (``large_armor_block-1`` remained).
+    ``None`` means there is no SolidWorks app (hermetic tests).
+    """
+    app = getattr(session, "app", None) if session is not None else None
+    if app is None:
+        return None
+    constant = _ext_ref_update_comp_names_constant(session)
+    try:
+        previous = bool(com_get(app, "GetUserPreferenceToggle", constant))
+    except Exception as exc:
+        raise _com_fail(exc, "GetUserPreferenceToggle(swExtRefUpdateCompNames) failed") from exc
+    if previous:
+        try:
+            app.SetUserPreferenceToggle(constant, False)
+        except Exception as exc:
+            raise _com_fail(
+                exc, "SetUserPreferenceToggle(swExtRefUpdateCompNames, False) failed"
+            ) from exc
+    return previous
+
+
+def restore_component_name2_preference(session: Any, previous: bool | None) -> None:
+    """Restore swExtRefUpdateCompNames when this writer changed it."""
+    if previous is None or previous is False:
+        return
+    app = getattr(session, "app", None) if session is not None else None
+    if app is None:
+        return
+    constant = _ext_ref_update_comp_names_constant(session)
+    try:
+        app.SetUserPreferenceToggle(constant, True)
+    except Exception as exc:
+        raise _com_fail(
+            exc, "SetUserPreferenceToggle(swExtRefUpdateCompNames, True) failed"
+        ) from exc
+
+
 @dataclass(frozen=True)
 class PlacedComponent:
     placement: ComponentPlacement
     part_path: Path
     arraydata: tuple[float, ...]
+    component_name: str
 
 
 def insert_placements(
@@ -176,9 +282,11 @@ def insert_placements(
 ) -> tuple[PlacedComponent, ...]:
     """Insert one component per placement and apply the IR transform directly."""
     placed: list[PlacedComponent] = []
+    allow_component_name2_set(session)
     for placement in placements:
         part_path = part_paths[placement.geometry_id]
         component = add_component(assembly, part_path)
+        apply_component_name(assembly, component, placement.component_name)
         unfix_component(assembly, component)
         data = solidworks_arraydata(placement.rotation, placement.position_mm)
         apply_arraydata(component, data)
@@ -187,6 +295,12 @@ def insert_placements(
             raise AssemblyValidationError(
                 "component was substituted: "
                 f"expected {placement.part_filename}, got {observed_path}"
+            )
+        observed_name = feature_manager_short_name(read_name2(component))
+        if observed_name != placement.component_name:
+            raise AssemblyValidationError(
+                "component name changed after placement: "
+                f"expected {placement.component_name!r}, got {observed_name!r}"
             )
         observed = read_arraydata(component)
         _assert_arraydata_close(observed, data, placement)
@@ -199,6 +313,7 @@ def insert_placements(
                 placement=placement,
                 part_path=observed_path,
                 arraydata=observed,
+                component_name=observed_name,
             )
         )
     com_get(assembly, "EditRebuild3")
@@ -270,11 +385,12 @@ def assert_assembly_matches(
         mates = com_get(component, "GetMates")
         if mates not in (None, (), []):
             raise AssemblyValidationError(f"component {path.name} has mates")
-        index = _index_matching_placement(remaining, path.name, data)
+        short_name = feature_manager_short_name(read_name2(component))
+        index = _index_matching_placement(remaining, path.name, data, short_name)
         if index is None:
             raise AssemblyValidationError(
-                f"no remaining IR placement matches {path.name} "
-                f"transform {data[:12]}"
+                f"no remaining IR placement matches name {short_name!r} "
+                f"file {path.name} transform {data[:12]}"
             )
         placement = remaining.pop(index)
         if path.name != placement.part_filename:
@@ -282,8 +398,18 @@ def assert_assembly_matches(
                 "component was substituted: "
                 f"expected {placement.part_filename}, got {path}"
             )
+        if short_name != placement.component_name:
+            raise AssemblyValidationError(
+                "component name mismatch: "
+                f"expected {placement.component_name!r}, got {short_name!r}"
+            )
         matched.append(
-            PlacedComponent(placement=placement, part_path=path, arraydata=data)
+            PlacedComponent(
+                placement=placement,
+                part_path=path,
+                arraydata=data,
+                component_name=short_name,
+            )
         )
     if remaining:
         raise AssemblyValidationError(
@@ -296,9 +422,12 @@ def _index_matching_placement(
     remaining: Iterable[ComponentPlacement],
     filename: str,
     data: tuple[float, ...],
+    short_name: str,
 ) -> int | None:
     remaining_list = list(remaining)
     for index, placement in enumerate(remaining_list):
+        if placement.component_name != short_name:
+            continue
         if placement.part_filename != filename:
             continue
         expected = solidworks_arraydata(placement.rotation, placement.position_mm)

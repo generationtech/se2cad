@@ -3,7 +3,8 @@
 S2C-1.2.1 exposes the blueprint parser. S2C-2.1.1 exposes the definition
 catalog. S2C-3.1.1 exposes the CAD-neutral IR and placement transforms.
 S2C-4.1.1 exposes the canonical block-library recipes. S2C-7.1.1 exposes
-CAD-neutral blueprint statistics. The SolidWorks backend lives in
+CAD-neutral blueprint statistics. S2C-8.1.1 exposes CAD-neutral
+component names from IR fields. The SolidWorks backend lives in
 ``se2cad.solidworks`` and is not imported here.
 """
 
@@ -21,10 +22,16 @@ from se2cad.catalog import (
     load_default_catalog,
 )
 from se2cad.ir import (
+    COMPONENT_NAME_MAX_LENGTH,
     CanonicalBlock,
     CanonicalBlueprint,
     CanonicalGrid,
+    ComponentNameError,
+    IrError,
     build_canonical_blueprint,
+    component_name,
+    component_name_from_block,
+    component_names_from_blocks,
 )
 from se2cad.library import (
     CANONICAL_CELL_ENVELOPE,
@@ -84,6 +91,7 @@ from se2cad.transform import (
 __all__ = [
     "CANONICAL_CELL_ENVELOPE",
     "CANONICAL_LOCAL_FRAME",
+    "COMPONENT_NAME_MAX_LENGTH",
     "IDENTITY_ROTATION",
     "LARGE_GRID_CELL_PITCH_MM",
     "SE_DIRECTION_VECTORS",
@@ -99,12 +107,14 @@ __all__ = [
     "CatalogValidationError",
     "CellExtents",
     "CellSize",
+    "ComponentNameError",
     "DefinitionCatalog",
     "Direction",
     "GridCoordinate",
     "GridSize",
     "InvalidFieldError",
     "InvalidOrientationError",
+    "IrError",
     "LibraryError",
     "LibraryRecord",
     "MalformedXmlError",
@@ -131,6 +141,9 @@ __all__ = [
     "build_canonical_blueprint",
     "cell_center_mm",
     "cell_half_extent_mm",
+    "component_name",
+    "component_name_from_block",
+    "component_names_from_blocks",
     "compute_blueprint_statistics",
     "compute_blueprint_statistics_from_path",
     "compute_blueprint_statistics_from_xml",

@@ -56,7 +56,7 @@ These remain current truth. Do not reopen them while executing this program.
 - Geometry support and appearance support stay independently reportable.
 - Blender is not on the runtime conversion path.
 - CubeTopology and TriangleMesh remain different geometry classes. Do not force one production mechanism.
-- SolidWorks is the first backend. Core parser, catalog, IR, transforms, statistics, preflight, and symmetry stay backend-neutral.
+- SolidWorks is the first backend. Core parser, catalog, IR, transforms, statistics, component names, preflight, and symmetry stay backend-neutral.
 - Generated CAD remains local cache and is not committed or published by default.
 - Apache-2.0 does not relicense Keen, Microsoft, SolidWorks, or other third-party assets ([ADR-004](../adr/ADR-004_THIRD_PARTY_ASSET_BOUNDARY.md)).
 

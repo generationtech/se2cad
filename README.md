@@ -268,9 +268,10 @@ blocks**: 9 blocks, 12 slopes, 2 corners, and 1 inverse corner.
 Qualification proved that all 24 source blocks parse and resolve; all 24
 become CAD-neutral IR instances; all four native `.SLDPRT` artifacts
 generate and survive save/close/reopen; the native `.SLDASM` contains
-exactly 24 components; and all 24 reopened SolidWorks transforms match
-the IR-derived transforms. Large Grid placement uses the established 2.5
-m pitch with no half-cell offset, and no placement mates are required.
+exactly 24 components; all 24 reopened SolidWorks transforms match the
+IR-derived transforms; and all 24 reopened component short names match
+the IR-derived names. Large Grid placement uses the established 2.5 m
+pitch with no half-cell offset, and no placement mates are required.
 
 Qualification was performed with SolidWorks 2026 on Windows.
 
@@ -279,6 +280,12 @@ identity, grid size, block and geometry counts, cell extents, millimetre
 size, occupancy coverage, orientation histogram, and catalog-resolution
 coverage. They are derived from the same parser and catalog fields as
 the qualified conversion path.
+
+CAD-neutral **component names** are derived from existing IR fields
+(subtype, `Min`, Forward/Up, and `source_index`) and applied at
+SolidWorks component insertion. Live SolidWorks 2026 save/reopen names
+match those IR-derived short names. They do not rename canonical
+`.SLDPRT` files or change placement transforms.
 
 ### Current scope
 

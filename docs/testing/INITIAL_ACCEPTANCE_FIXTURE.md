@@ -59,6 +59,7 @@ Do not invent a substitute `bp.sbc` if the human-authored file is missing.
 | Parse | S2C-1.2.1 | Parser emits one grid and one record per block: subtype, grid coordinate, Forward, Up. No dropped blocks. |
 | Catalog / IR | S2C-2.1.1, S2C-3.1.1 | Each subtype resolves; each block gets a canonical transform. Automated orientation tests may use this fixture plus synthetic poses. |
 | Statistics | S2C-7.1.1 | Fixture-derived identity, subtype/geometry counts, cell extents, millimetre size, unique-`Min` occupancy, and orientation histogram match the qualified parser/catalog/IR record. |
+| Component names | S2C-8.1.1 | Each IR block has a deterministic unique name from subtype, `Min`, Forward/Up, and `source_index`. The assembly writer requests that name at insertion. Live save/reopen names match the IR-derived short names. Transforms and canonical part filenames stay the S2C-6.1.1 contract. |
 | End-to-end | S2C-6.1.1 | Assembly block count equals fixture block count. Each component position and orientation matches the IR transform / fixture-derived expected pose within the tolerance recorded in that unit. Comparison uses the four canonical library parts. Fail closed if any unsupported subtype appears. |
 
 SolidWorks and observed Space Engineers comparison are external validation for S2C-6.1.1. They are not required to define the fixture, only to qualify the program end state.
@@ -72,7 +73,9 @@ S2C-6.1.1 comparison. Authoritative input is the registered `bp.sbc`. Expected p
 | Fixture identity | SHA-256 of `bp.sbc` | Exact match of the registered digest |
 | Parser / catalog / IR | subtype, `Min`, Forward/Up, `geometry_id`, integer `R`, millimetre `t = Min * LARGE_GRID_CELL_PITCH_MM` | Exact |
 | Placement vs IR | document order, multiplicity, part filename, `(R, t)` | Exact |
+| Component name | CAD-neutral short name from subtype, `Min`, Forward/Up, `source_index` | Exact |
 | SolidWorks `ArrayData` vs packed IR | 16 doubles: axis columns, translation metres, scale 1 | `BACKEND_LENGTH_TOLERANCE_M` = `1e-6` m |
+| SolidWorks Name2 vs IR name | FeatureManager short name after save/reopen (instance suffix stripped) | Exact |
 | Save / close / reopen | same `ArrayData` comparison against the packed IR | `1e-6` m |
 
 Omitted `BlockOrientation` remains identity Forward/Up. Do not loosen these allowances to hide orientation defects.

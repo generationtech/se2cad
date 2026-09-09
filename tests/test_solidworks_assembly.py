@@ -8,7 +8,7 @@ from collections import Counter
 from pathlib import Path
 
 from se2cad.catalog import LARGE_GRID_CELL_PITCH_MM, load_default_catalog
-from se2cad.ir import build_canonical_blueprint
+from se2cad.ir import build_canonical_blueprint, component_name_from_block
 from se2cad.parser import Direction, parse_blueprint
 from se2cad.solidworks import (
     AssemblyIdentityError,
@@ -116,6 +116,14 @@ class FixturePlacementTests(unittest.TestCase):
             [item.part_filename for item in self.placements],
             [f"{item.geometry_id}.SLDPRT" for item in self.placements],
         )
+        self.assertEqual(
+            [item.component_name for item in self.placements],
+            [component_name_from_block(block) for block in self.ir.grid.blocks],
+        )
+        self.assertEqual(
+            len({item.component_name for item in self.placements}),
+            24,
+        )
 
     def test_subtype_maps_to_canonical_part(self) -> None:
         expected = {
@@ -128,6 +136,9 @@ class FixturePlacementTests(unittest.TestCase):
             self.assertEqual(placement.subtype_id, block.subtype_id)
             self.assertEqual(placement.geometry_id, block.geometry_id)
             self.assertEqual(placement.part_filename, expected[block.subtype_id])
+            self.assertEqual(
+                placement.component_name, component_name_from_block(block)
+            )
             self.assertEqual(placement.position_mm, block.position_mm.as_tuple())
             self.assertEqual(placement.rotation, block.rotation)
 
@@ -237,6 +248,10 @@ class ComAssembleContractTests(unittest.TestCase):
         source = path.read_text(encoding="utf-8")
         self.assertIn("AddComponent5", source)
         self.assertIn("UnfixComponent", source)
+        self.assertIn("apply_component_name", source)
+        self.assertIn("Name2", source)
+        self.assertIn("swExtRefUpdateCompNames", source)
+        self.assertIn("Select", source)
         self.assertIn("VT_ARRAY", source)
         self.assertIn("VT_R8", source)
 
@@ -250,6 +265,134 @@ class ComAssembleContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         for token in ("AddMate", "CreateMate", "MateFeature", "InsertMate"):
             self.assertNotIn(token, source)
+
+
+class _FakeTransform:
+    def __init__(self) -> None:
+        self.ArrayData = (
+            1.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 0.0,
+            1.0, 0.0, 0.0, 0.0,
+        )
+
+
+class _FakeComponent:
+    def __init__(self, part_path: Path) -> None:
+        self._short = part_path.stem
+        self._path = part_path
+        self.IsFixed = False
+        self.Transform2 = _FakeTransform()
+
+    @property
+    def Name2(self) -> str:
+        return f"{self._short}-1"
+
+    @Name2.setter
+    def Name2(self, value: str) -> None:
+        self._short = value
+
+    def GetPathName(self) -> str:
+        return str(self._path)
+
+    def GetMates(self):
+        return None
+
+    def Select(self, _flag: bool) -> bool:
+        return True
+
+
+class _FakeAssembly:
+    def __init__(self) -> None:
+        self.components: list[_FakeComponent] = []
+        self.FirstFeature = None
+
+    def AddComponent5(self, path: str, *_args):
+        component = _FakeComponent(Path(path))
+        self.components.append(component)
+        return component
+
+    def UnfixComponent(self) -> None:
+        return None
+
+    def ClearSelection2(self, _flag: bool) -> None:
+        return None
+
+    def EditRebuild3(self) -> bool:
+        return True
+
+    def GetComponents(self, _top_level: bool) -> list[_FakeComponent]:
+        return list(self.components)
+
+    def GetType(self) -> int:
+        return 2
+
+
+class _FakeApp:
+    def __init__(self) -> None:
+        self.update_comp_names = True
+
+    def GetUserPreferenceToggle(self, _pref: int) -> bool:
+        return self.update_comp_names
+
+    def SetUserPreferenceToggle(self, _pref: int, value: bool) -> None:
+        self.update_comp_names = bool(value)
+
+
+class _FakeSession:
+    def __init__(self) -> None:
+        self.app = _FakeApp()
+        self.constants = type("C", (), {"swExtRefUpdateCompNames": 18})()
+
+
+class HermeticInsertionNameTests(unittest.TestCase):
+    def test_insert_requests_ir_derived_names(self) -> None:
+        from unittest.mock import patch
+
+        from se2cad.solidworks.com_assemble import (
+            apply_component_name,
+            assert_assembly_matches,
+            feature_manager_short_name,
+            insert_placements,
+        )
+
+        parsed = parse_blueprint(FIXTURE_PATH)
+        ir = build_canonical_blueprint(parsed, load_default_catalog())
+        placements = placements_from_ir(ir)[:3]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            part_paths = {}
+            for item in placements:
+                dest = root / item.part_filename
+                dest.write_bytes(b"stub")
+                part_paths[item.geometry_id] = dest
+            assembly = _FakeAssembly()
+            session = _FakeSession()
+            with patch(
+                "se2cad.solidworks.com_assemble.variant_r8",
+                side_effect=lambda values: tuple(float(v) for v in values),
+            ):
+                placed = insert_placements(session, assembly, placements, part_paths)
+            self.assertFalse(session.app.update_comp_names)
+            self.assertEqual(len(placed), 3)
+            for item, component in zip(placed, assembly.components, strict=True):
+                self.assertEqual(item.component_name, item.placement.component_name)
+                self.assertEqual(
+                    feature_manager_short_name(component.Name2),
+                    item.placement.component_name,
+                )
+                self.assertEqual(
+                    apply_component_name(
+                        assembly, component, item.placement.component_name
+                    ),
+                    f"{item.placement.component_name}-1",
+                )
+            matched = assert_assembly_matches(assembly, placements, root)
+            self.assertEqual(
+                [item.component_name for item in matched],
+                [item.component_name for item in placements],
+            )
 
 
 if __name__ == "__main__":

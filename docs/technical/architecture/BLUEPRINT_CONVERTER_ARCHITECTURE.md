@@ -22,6 +22,7 @@ Responsibilities:
 | Block library | Return canonical part + reference metadata | Parse blueprints |
 | SolidWorks backend | Insert parts by transform; save assembly | Recalculate SE orientation; call Blender; build mate networks for fixed SE placement |
 | Statistics | Derive a CAD-neutral summary from parser + catalog fields | Call SolidWorks; invent identities; drop unresolvable blocks; change conversion policy |
+| Component names | Derive a CAD-neutral instance name from existing IR fields | Rename canonical `.SLDPRT` identities; invent a catalog key; change `(R, t)` |
 
 ## Statistics
 
@@ -34,6 +35,16 @@ The result uses existing identities only: ShipBlueprint / CubeGrid names, `GridS
 Occupancy is unique `Min` cells versus the inclusive axis-aligned cell bounding box of those cells. Millimetre size is each axis span in cells times the catalog pitch. Multi-cell `Size` occupancy is not generalized here.
 
 Unsupported document shapes fail at the parser, with the same errors as direct parse. Statistics must not invent a second fail-closed policy.
+
+## Component names
+
+Component names are a CAD-neutral derived identifier, not a second `subtype_id` / `geometry_id` scheme. Public entrypoints: `se2cad.component_name`, `component_name_from_block`, and `component_names_from_blocks`.
+
+Encoding: `{subtype_id}_x{X}_y{Y}_z{Z}_{Forward}_{Up}_{source_index}`. Negative `Min` values keep a leading ASCII hyphen (`z-1`). Omitted and explicit identity Forward/Up produce the same name. `geometry_id`, filesystem paths, and orientation-serialization flags are not part of the name.
+
+`subtype_id` must match `^[A-Za-z][A-Za-z0-9_]*$`. Path separators, spaces, dots, and other FeatureManager-reserved characters (`/ \\ : * ? " < > | ^`) are rejected. The requested identifier is at most `COMPONENT_NAME_MAX_LENGTH` (80). If the full encoding is longer, the prefix is truncated and the unique `_{source_index}` suffix is preserved so the name stays traceable to the IR block. A set of names for one assembly must be unique.
+
+The SolidWorks writer applies the name at insertion via `IComponent2.Name2` set (short name). Name2 get returns `{short}-{instance}` for a top-level non-virtual component. Matching after save/reopen compares the short name to the IR-derived name. Canonical part filenames and placement transforms are unchanged.
 
 ## Intermediate representation
 
@@ -162,7 +173,7 @@ SolidWorks `IMathTransform.ArrayData` is sixteen doubles. Official CreateTransfo
 
 Those axes are the qualified rotation columns (local +X/+Y/+Z in world). Translation is `position_mm / 1000`. No transpose, no corrective rotation, no half-cell offset, no mate network.
 
-Live SolidWorks 2026 late-bound CDispatch (`RevisionNumber` 34.3.2) cannot call `IMathUtility.CreateTransform` (server fault, same class as the rejected IModeler array calls). The working write is `Transform2.ArrayData = VARIANT(VT_ARRAY|VT_R8, tuple-of-16)` after `AddComponent5` of a pre-opened part. A raw Python list corrupts translation. The first inserted component is auto-fixed; `Select(True)` plus `UnfixComponent` clears that Fixed state without adding placement mates. The assembly `MateGroup` folder remains empty. `OpenDoc(path, swDocASSEMBLY=2)` reopens a native `.SLDASM`.
+Live SolidWorks 2026 late-bound CDispatch (`RevisionNumber` 34.3.2) cannot call `IMathUtility.CreateTransform` (server fault, same class as the rejected IModeler array calls). The working write is `Transform2.ArrayData = VARIANT(VT_ARRAY|VT_R8, tuple-of-16)` after `AddComponent5` of a pre-opened part. A raw Python list corrupts translation. The first inserted component is auto-fixed; `Select(True)` plus `UnfixComponent` clears that Fixed state without adding placement mates. The assembly `MateGroup` folder remains empty. `OpenDoc(path, swDocASSEMBLY=2)` reopens a native `.SLDASM`. After insert, `IComponent2.Name2` is set to the CAD-neutral short name; Name2 get includes the instance suffix. Official Name2 remarks: set fails while `swExtRefUpdateCompNames` (enum 18) is True. Live 34.3.2 also requires `Select` before the Name2 put; an unselected assignment is a silent no-op. The writer forces that toggle False from insert through SaveAs and reopen so the SLDASM stores the alternate names; it then restores the prior toggle. Canonical part filenames are unchanged.
 
 ## Initial-program limits
 

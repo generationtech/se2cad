@@ -126,7 +126,7 @@ class SolidWorksIntegrationTests(unittest.TestCase):
         )
 
         from se2cad.catalog import load_default_catalog
-        from se2cad.ir import build_canonical_blueprint
+        from se2cad.ir import build_canonical_blueprint, component_name_from_block
         from se2cad.parser import parse_blueprint
 
         ir = build_canonical_blueprint(parse_blueprint(FIXTURE_PATH), load_default_catalog())
@@ -147,6 +147,10 @@ class SolidWorksIntegrationTests(unittest.TestCase):
             self.assertEqual(
                 reopened.placement.part_filename, f"{block.geometry_id}.SLDPRT"
             )
+            expected_name = component_name_from_block(block)
+            self.assertEqual(reopened.placement.component_name, expected_name)
+            self.assertEqual(reopened.component_name, expected_name)
+            self.assertEqual(saved.component_name, expected_name)
             self.assertEqual(reopened.part_path.name, reopened.placement.part_filename)
             self.assertTrue(reopened.part_path.is_relative_to(self.config.generated_root))
             self.assertEqual(

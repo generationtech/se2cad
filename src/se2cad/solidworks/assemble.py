@@ -17,9 +17,11 @@ from se2cad.solidworks.artifacts import (
 from se2cad.solidworks.availability import require_solidworks_backend
 from se2cad.solidworks.com_assemble import (
     PlacedComponent,
+    allow_component_name2_set,
     assert_assembly_matches,
     document_type,
     insert_placements,
+    restore_component_name2_preference,
 )
 from se2cad.solidworks.com_session import SolidWorksSession
 from se2cad.solidworks.config import SolidWorksBackendConfig, load_solidworks_backend_config
@@ -68,32 +70,36 @@ def generate_assembly_from_ir(
     opened_parts: list[object] = []
     assembly = None
     with SolidWorksSession(resolved) as session:
+        previous_update_names = allow_component_name2_set(session)
         try:
-            for path in part_paths.values():
-                opened_parts.append(session.open_part(path))
-            assembly = session.new_assembly()
-            if document_type(assembly) != 2:
-                raise AssemblyValidationError(
-                    f"NewDocument did not produce swDocASSEMBLY, got {document_type(assembly)}"
+            try:
+                for path in part_paths.values():
+                    opened_parts.append(session.open_part(path))
+                assembly = session.new_assembly()
+                if document_type(assembly) != 2:
+                    raise AssemblyValidationError(
+                        f"NewDocument did not produce swDocASSEMBLY, got {document_type(assembly)}"
+                    )
+                insert_placements(session, assembly, placements, part_paths)
+                after_save = assert_assembly_matches(
+                    assembly, placements, resolved.generated_root
                 )
-            insert_placements(session, assembly, placements, part_paths)
-            after_save = assert_assembly_matches(
-                assembly, placements, resolved.generated_root
-            )
-            session.save_as(assembly, destination)
-        finally:
-            if assembly is not None:
-                session.close_doc(assembly)
-            for part in opened_parts:
-                session.close_doc(part)
+                session.save_as(assembly, destination)
+            finally:
+                if assembly is not None:
+                    session.close_doc(assembly)
+                for part in opened_parts:
+                    session.close_doc(part)
 
-        reopened = session.open_assembly(destination)
-        try:
-            after_reopen = assert_assembly_matches(
-                reopened, placements, resolved.generated_root
-            )
+            reopened = session.open_assembly(destination)
+            try:
+                after_reopen = assert_assembly_matches(
+                    reopened, placements, resolved.generated_root
+                )
+            finally:
+                session.close_doc(reopened)
         finally:
-            session.close_doc(reopened)
+            restore_component_name2_preference(session, previous_update_names)
 
     return GeneratedAssembly(
         path=destination,
