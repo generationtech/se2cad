@@ -15,6 +15,7 @@ CAD_NEUTRAL = (
     SRC / "ir",
     SRC / "transform",
     SRC / "library",
+    SRC / "statistics",
 )
 BACKEND_NEUTRAL_MODULES = (
     SRC / "solidworks" / "__init__.py",
@@ -74,6 +75,7 @@ class NeutralityTests(unittest.TestCase):
 
         self.assertTrue(hasattr(se2cad, "parse_blueprint"))
         self.assertTrue(hasattr(se2cad, "lookup_recipe"))
+        self.assertTrue(hasattr(se2cad, "compute_blueprint_statistics"))
         self.assertFalse(hasattr(se2cad, "generate_canonical_parts"))
 
     def test_solidworks_package_imports_without_pywin32(self) -> None:

@@ -34,7 +34,7 @@ Do not add placeholder implementation modules solely to populate `src/`, `tests/
 - Generated assemblies place components by calculated transform. Do not reconstruct fixed Space Engineers placement with a mate network.
 - The runtime converter asks the canonical block library for a part and its reference metadata. It does not call Blender. See [ADR-001](../technical/adr/ADR-001_CANONICAL_BLOCK_LIBRARY.md) and [ADR-003](../technical/adr/ADR-003_SOLIDWORKS_BACKEND.md).
 - CubeTopology armor and TriangleMesh functional blocks are different geometry classes. Do not force one production mechanism. TriangleMesh work is outside the initial program.
-- Core parser, catalog, IR, and transforms stay CAD-backend-neutral. SolidWorks is the first backend, not the name of the core.
+- Core parser, catalog, IR, transforms, library, and statistics stay CAD-backend-neutral. SolidWorks is the first backend, not the name of the core.
 
 ## Asset invariants
 

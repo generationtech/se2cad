@@ -274,6 +274,12 @@ m pitch with no half-cell offset, and no placement mates are required.
 
 Qualification was performed with SolidWorks 2026 on Windows.
 
+CAD-neutral **blueprint statistics** are also available without SolidWorks:
+identity, grid size, block and geometry counts, cell extents, millimetre
+size, occupancy coverage, orientation histogram, and catalog-resolution
+coverage. They are derived from the same parser and catalog fields as
+the qualified conversion path.
+
 ### Current scope
 
 SE2CAD is **not yet a universal Space Engineers ship converter**. The
@@ -291,20 +297,26 @@ on that foundation.
 
 ## Try it
 
-Current SolidWorks workflow requirements:
-
--   Windows
--   Python 3.10+ (the qualified Windows run used Python 3.14)
--   SolidWorks (qualified against SolidWorks 2026)
--   `pywin32`
--   this repository
-
-Create an environment and install the SolidWorks dependency:
+Create an environment:
 
 ``` cmd
 python -m venv .venv
 .venv\Scripts\activate
 python -m pip install --upgrade pip
+python -m pip install -e .
+```
+
+Blueprint statistics do not require SolidWorks:
+
+``` cmd
+python -m se2cad.statistics fixtures\acceptance\four-block-armor-asymmetric\bp.sbc
+```
+
+SolidWorks workflow requirements: Windows; Python 3.10+ (the qualified
+Windows run used Python 3.14); SolidWorks 2026; `pywin32`; this
+repository.
+
+``` cmd
 python -m pip install -e .[solidworks]
 ```
 

@@ -19,11 +19,11 @@ No implementation milestone is ACTIVE. Cold-storage backlog remains outside this
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability: generated parts and assemblies are local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. M7–M15 features are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. Remaining M8–M15 features are approved, not implemented.
 
 ## Next executable unit
 
-S2C-7.1.1 — Blueprint and conversion statistics. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED, not ACTIVE. Do not start it in the session that only authorized the program.
+S2C-8.1.1 — Deterministic component names from IR. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
 
 ## Unit status
 
@@ -41,12 +41,12 @@ S2C-7.1.1 — Blueprint and conversion statistics. Defined in [SE2CAD_PLAN_M7.md
 | S2C-5.1.1 | QUALIFIED | Ordinary suite 167 tests OK (2 integration skipped). Live SW 2026 `RevisionNumber` 34.3.2 inserted 24 fixture components from qualified SLDPRT files, applied IR ArrayData transforms, saved a native `se2cad-test1.SLDASM`, closed, reopened, and revalidated counts 9/12/2/1, representative translations/orientations, identity defaults, empty MateGroup, and generated-root containment. No generated assembly committed. |
 | S2C-6.1.1 | QUALIFIED | Ordinary suite 176 tests OK (2 integration skipped). Live SW 2026 `RevisionNumber` 34.3.2 regenerated the four canonical parts, wrote `se2cad-test1.SLDASM` from the unchanged fixture, and matched all 24 reopened component transforms to the qualified IR. Fixture SHA-256 unchanged. No generated CAD committed. |
 
-### M7–M15 program (approved, not started)
+### M7–M15 program
 
 | Unit | Status | Evidence |
 | --- | --- | --- |
 | M7–M15 program authorization | QUALIFIED | Current program/plan exist; historical M0–M6 preserved; ratchet/onboarding/process/rules point at STATE-named current docs; no product implementation; no named opschecks; next unit S2C-7.1.1 is PLANNED. Distinct assessment recorded below. |
-| S2C-7.1.1 | PLANNED | |
+| S2C-7.1.1 | QUALIFIED | CAD-neutral `se2cad.statistics` exists; fixture identity/counts/extents/occupancy/orientations/catalog coverage match the qualified parser/catalog/IR record; synthetic single-cell, negative, mixed-orientation, unknown-subtype, and parser-rejected cases covered; ordinary suite 198 tests, 2 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-8.1.1 | PLANNED | |
 | S2C-9.1.1 | PLANNED | |
 | S2C-9.2.1 | PLANNED | |
@@ -69,6 +69,25 @@ S2C-7.1.1 — Blueprint and conversion statistics. Defined in [SE2CAD_PLAN_M7.md
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-08 — S2C-7.1.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-8.1.1. Did not invent a conversion policy, color, Small Grid, unknown-block filler, symmetry, print-shell, or library expansion. Did not create a general CLI or UI. Did not change the qualified parser, catalog, IR, transform, recipe, or SolidWorks contracts. Did not commit, tag, or push.
+
+Implemented `se2cad.statistics` as a CAD-neutral derived report from parsed blueprint fields plus per-block catalog lookup. Unknown subtypes stay in block and subtype counts and are reported as unresolved; they are not assigned a `geometry_id` and are not dropped. Occupancy is unique `Min` cells versus the inclusive cell AABB. Millimetre size is cell span times `catalog.large_grid_cell_pitch_mm`. Narrow operator entry: `python -m se2cad.statistics <blueprint.sbc>`.
+
+Acceptance-fixture statistics (SHA-256 unchanged):
+
+| Check | Result |
+| --- | --- |
+| Identity | `se2cad-test1`; ShipBlueprint display U+E030 + `Kolyma`; grid `se2cad-test1`; Large |
+| Blocks | 24; subtypes 9 / 2 / 1 / 12 (sorted names); geometry IDs 9 / 2 / 1 / 12 |
+| Extents | x 0..5, y 0..2, z -2..1; size 15000 × 7500 × 10000 mm |
+| Occupancy | 24 unique `Min` / 72 AABB cells; coverage `1/3` |
+| Orientations | Forward/Up 15, Down/Forward 5, Down/Right 1, Forward/Right 1, Down/Left 1, Backward/Down 1 |
+| Catalog | 24/24 resolved |
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 198 tests, 2 skipped, 0.231 s, OK. Operator path printed the table above (U+E030 escaped as `\ue030` on cp1252). No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. No `src/` parser, catalog, IR, transform, library, or SolidWorks product edits.
 
 ### 2026-09-08 — M7–M15 program authorization QUALIFIED
 
@@ -279,7 +298,7 @@ These are human-architect technology selections recorded as live decisions. They
 
 These are not invitations to decide them inside an unrelated unit.
 
-- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
+- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-7.1.1 added `python -m se2cad.statistics <blueprint.sbc>` on the same terms. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
 - Optional local game or SDK install path. Still a human technology-selection item. S2C-11.1.1 must reuse the established env / `se2cad.local.json` pattern or stop and ask. The Windows SolidWorks conversion path does not require it.
 
 Resolved in S2C-6.1.1 and no longer open: numeric position/orientation comparison method. IR `(R, t)` is exact. SolidWorks `ArrayData` allowance is `BACKEND_LENGTH_TOLERANCE_M` (`1e-6` m). Recorded in [INITIAL_ACCEPTANCE_FIXTURE.md](../../testing/INITIAL_ACCEPTANCE_FIXTURE.md) and in this file.
@@ -288,7 +307,7 @@ Resolved in S2C-4.2.1 and no longer open: generated SLDPRT location (local gener
 
 ## Known blockers
 
-None. The next approved unit is S2C-7.1.1 (PLANNED).
+None. The next approved unit is S2C-8.1.1 (PLANNED).
 
 ## S2C-1.1.1 fixture inspection
 
@@ -546,6 +565,31 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-7.1.1)
+
+Hypotheses tested after the statistics module and operator entry existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Untrusted path is opened as something other than the parser's blueprint read | Disproven. `compute_blueprint_statistics_from_path` calls `parse_blueprint` only. Statistics source has no `open`/`write_text`. |
+| Structured result stores the filesystem path | Disproven. `BlueprintStatistics` has identity and count fields only. Fixture-path `repr` test does not contain the path. |
+| Unknown subtypes are dropped or given a invented geometry_id | Disproven. Synthetic unknown blocks remain in `block_count` and `subtype_counts`, increment unresolved coverage, and do not appear in `geometry_id_counts`. |
+| Unsupported documents are accepted to make counts look complete | Disproven. Zero-grid, Small Grid, and malformed XML raise the same parser errors as direct parse. |
+| Pitch literals were copied | Disproven. Statistics source has no `2500`. Millimetre size uses `catalog.large_grid_cell_pitch_mm`. |
+| A second identity system was invented | Disproven. Subtype, geometry_id, grid size, and Forward/Up are parser/catalog tokens. |
+| Operator entry is a general CLI | Disproven. One positional path; usage-on-wrong-arity; no flags or subcommands. |
+| Operator print of the qualified fixture crashes on Windows cp1252 | Confirmed, then remediated. U+E030 in ShipBlueprint `DisplayName` raised `UnicodeEncodeError`. Console write now uses `backslashreplace`. Structured result still stores the exact Unicode. Regression test added. |
+| Ordinary suite attaches to SolidWorks | Disproven. 198 tests, 2 skipped, 0.231 s with `SE2CAD_SOLIDWORKS_INTEGRATION` unset. |
+| Parser/catalog/IR/transform/library/SolidWorks product code changed | Disproven. Those trees were not modified. |
+| Proprietary assets or fixture rewrite | Disproven. SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+| S2C-8.1.1 or later M7–M15 work started | Disproven. No component naming, color, edges, library expansion, preflight, Small Grid, symmetry, or print-shell implementation. |
+
+Remediated: operator stdout encoding for non-cp1252 blueprint display names. Tests re-run after remediation: 198 OK, 2 skipped.
+
+Accepted residual risk: parser error messages still include the operator-supplied path (existing `parse_blueprint` contract). Occupancy uses unique `Min` cells only and does not expand catalog `Size`. Empty `CubeBlocks` is parseable and reports no invented extents.
+
+Not claimed: conversion of unknown blocks; a general CLI; SolidWorks involvement; any M8–M15 feature.
 
 ## Quality/security assessment (M7–M15 program authorization)
 

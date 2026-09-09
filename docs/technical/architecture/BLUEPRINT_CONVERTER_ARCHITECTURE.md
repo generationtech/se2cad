@@ -21,6 +21,19 @@ Responsibilities:
 | Transform engine | Compute exact placement from grid coordinate + orientation + pitch | Insert components; apply mates |
 | Block library | Return canonical part + reference metadata | Parse blueprints |
 | SolidWorks backend | Insert parts by transform; save assembly | Recalculate SE orientation; call Blender; build mate networks for fixed SE placement |
+| Statistics | Derive a CAD-neutral summary from parser + catalog fields | Call SolidWorks; invent identities; drop unresolvable blocks; change conversion policy |
+
+## Statistics
+
+Statistics is a CAD-neutral derived report, not a conversion backend. It reads a parsed blueprint and performs catalog lookup per block. It does not import SolidWorks types and does not require IR construction.
+
+Public entrypoints: `se2cad.statistics.compute_blueprint_statistics`, `compute_blueprint_statistics_from_path`, and `compute_blueprint_statistics_from_xml`. A narrow operator entry is `python -m se2cad.statistics <blueprint.sbc>`.
+
+The result uses existing identities only: ShipBlueprint / CubeGrid names, `GridSize`, parser `subtype_id`, catalog `geometry_id` when lookup succeeds, Forward/Up pairs, unique `Min` cells, and `catalog.large_grid_cell_pitch_mm` (the named Large Grid pitch constant). Unknown subtypes stay in block and subtype counts and are reported as unresolved catalog coverage. They are not assigned a geometry identity and are not omitted to make coverage look complete.
+
+Occupancy is unique `Min` cells versus the inclusive axis-aligned cell bounding box of those cells. Millimetre size is each axis span in cells times the catalog pitch. Multi-cell `Size` occupancy is not generalized here.
+
+Unsupported document shapes fail at the parser, with the same errors as direct parse. Statistics must not invent a second fail-closed policy.
 
 ## Intermediate representation
 
@@ -128,7 +141,7 @@ Solid recipes and the library-side record that agrees with this frame: [BLOCK_LI
 
 First CAD backend, isolated behind a boundary. Core parser, catalog, IR, and transforms must not import SolidWorks types.
 
-The backend package is `se2cad.solidworks`. All pywin32 / COM code stays inside that package and is imported only when a SolidWorks session is requested. Importing `se2cad`, `se2cad.parser`, `se2cad.catalog`, `se2cad.ir`, `se2cad.transform`, or `se2cad.library` on Linux must not require pywin32. Requesting the backend where COM, pywin32, or SolidWorks is unavailable is a clear backend-availability failure.
+The backend package is `se2cad.solidworks`. All pywin32 / COM code stays inside that package and is imported only when a SolidWorks session is requested. Importing `se2cad`, `se2cad.parser`, `se2cad.catalog`, `se2cad.ir`, `se2cad.transform`, `se2cad.library`, or `se2cad.statistics` on Linux must not require pywin32. Requesting the backend where COM, pywin32, or SolidWorks is unavailable is a clear backend-availability failure.
 
 Execution model (human-architect, S2C-4.2.1): the Windows process runs the needed SE2CAD stages locally. Windows is not a remote worker. Linux-to-Windows remoting is out of scope. See [ADR-003](../adr/ADR-003_SOLIDWORKS_BACKEND.md).
 
