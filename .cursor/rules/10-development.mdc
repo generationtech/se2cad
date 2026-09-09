@@ -13,10 +13,10 @@ Execute exactly one bounded unit, then stop. Never start the next unit in the sa
 
 1. Read [SE2CAD_STATE.md](docs/technical/governance/SE2CAD_STATE.md) first. It is the only live status.
 2. Take the single next executable unit from STATE.
-3. Read that unit's full definition in [SE2CAD_PLAN.md](docs/technical/governance/SE2CAD_PLAN.md).
-4. Read [SE2CAD_PROGRAM.md](docs/technical/governance/SE2CAD_PROGRAM.md) and only the architecture/specification documents that unit touches.
+3. Read that unit's full definition in the plan document STATE names (currently [SE2CAD_PLAN_M7.md](docs/technical/governance/SE2CAD_PLAN_M7.md)).
+4. Read the program charter STATE names (currently [SE2CAD_PROGRAM_M7.md](docs/technical/governance/SE2CAD_PROGRAM_M7.md)) and only the architecture/specification documents that unit touches.
 
-[SE2CAD_PLAN.md](docs/technical/governance/SE2CAD_PLAN.md) defines units. It carries no live status. Do not choose work from the plan alone.
+The current plan defines units. It carries no live status. Do not choose work from the plan alone. Do not invent units beyond the approved program.
 
 ## Ratchet
 

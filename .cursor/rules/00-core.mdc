@@ -32,5 +32,7 @@ Do not commit, tag, push, publish, or release unless the human architect explici
 ## Authority documents
 
 - How work is done: [docs/technical/governance/SE2CAD_ENGINEERING_PROCESS.md](docs/technical/governance/SE2CAD_ENGINEERING_PROCESS.md)
-- Why the initial program exists: [docs/technical/governance/SE2CAD_PROGRAM.md](docs/technical/governance/SE2CAD_PROGRAM.md)
+- Current program: [docs/technical/governance/SE2CAD_PROGRAM_M7.md](docs/technical/governance/SE2CAD_PROGRAM_M7.md)
+- Current plan (no live status): [docs/technical/governance/SE2CAD_PLAN_M7.md](docs/technical/governance/SE2CAD_PLAN_M7.md)
+- Historical initial program (complete): [docs/technical/governance/SE2CAD_PROGRAM.md](docs/technical/governance/SE2CAD_PROGRAM.md)
 - Live status (only here): [docs/technical/governance/SE2CAD_STATE.md](docs/technical/governance/SE2CAD_STATE.md)

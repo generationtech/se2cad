@@ -2,7 +2,8 @@
 
 Responsibility: definition and expected validation behavior of the four-block vertical-slice fixture. Not live status.
 
-Program use: [SE2CAD_PROGRAM.md](../technical/governance/SE2CAD_PROGRAM.md).
+Program use: the completed initial program [SE2CAD_PROGRAM.md](../technical/governance/SE2CAD_PROGRAM.md). This fixture remains the permanent M0–M6 regression asset and a baseline for later units.
+Current program: [SE2CAD_PROGRAM_M7.md](../technical/governance/SE2CAD_PROGRAM_M7.md).
 Units: S2C-1.1.1 (register), S2C-1.2.1 (parse), S2C-6.1.1 (qualify).
 Provenance policy: [ADR-004](../technical/adr/ADR-004_THIRD_PARTY_ASSET_BOUNDARY.md).
 

@@ -468,10 +468,14 @@ construction, CAD validation, placement behavior, and regression
 coverage. Please read the repository architecture, state, ADRs, and
 development rules before making structural changes.
 
-There is intentionally **no automatically invented next program** after
-the qualified initial milestone. Broader block support, a polished CLI,
-additional CAD backends, and optional game/SDK-assisted geometry paths
-are possible directions, not promises.
+The initial proof-of-concept program (M0–M6) is **complete**. The
+current approved development program is **M7–M15** (statistics, CAD
+component naming, block color, printable block-edge definition,
+vanilla library expansion, compatibility/unknown blocks, Small Grid,
+symmetry detection, and print-shell generation). Live status and the
+next work unit are only in
+[docs/technical/governance/SE2CAD_STATE.md](docs/technical/governance/SE2CAD_STATE.md).
+Do not invent work beyond that program.
 
 ------------------------------------------------------------------------
 

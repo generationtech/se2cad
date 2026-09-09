@@ -2,7 +2,7 @@
 
 Responsibility: durable contract for parsing a blueprint into a CAD assembly via IR, catalog, transforms, and the block library. Not a capability claim.
 
-This document is decided design. Whether converter stages exist is recorded only in [SE2CAD_STATE.md](../governance/SE2CAD_STATE.md). Initial-program units are S2C-1.2.1 through S2C-6.1.1.
+This document is decided design. Whether converter stages exist is recorded only in [SE2CAD_STATE.md](../governance/SE2CAD_STATE.md). Initial-program units are S2C-1.2.1 through S2C-6.1.1. Current-program converter expansions are defined in [SE2CAD_PLAN_M7.md](../governance/SE2CAD_PLAN_M7.md) and are not implied by this contract until STATE records them.
 
 Companion decisions: [ADR-002](../adr/ADR-002_INTERMEDIATE_REPRESENTATION.md), [ADR-003](../adr/ADR-003_SOLIDWORKS_BACKEND.md). Library side: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md).
 
@@ -34,9 +34,9 @@ The IR is CAD-neutral. It must be able to represent at least:
 - up direction
 - resolved geometry identity
 - canonical transform
-- information needed by downstream CAD backends that can be expressed without backend API types
+- information needed by downstream CAD backends that can be expressed without backend API types, including per-instance appearance when that program unit exists
 
-It must not contain SolidWorks COM objects or API structures.
+It must not contain SolidWorks COM objects or API structures. Per-instance appearance must not be stored as a change to reusable geometry identity.
 
 ## Definition catalog
 
@@ -153,12 +153,14 @@ Live SolidWorks 2026 late-bound CDispatch (`RevisionNumber` 34.3.2) cannot call 
 
 ## Initial-program limits
 
-The converter success path for this program is:
+The completed initial program’s converter success path was:
 
 - one grid
 - Large Grid
 - only the four armor subtypes in [SE2CAD_PROGRAM.md](../governance/SE2CAD_PROGRAM.md)
 
-Fail closed on multiple grids, unsupported grid size, missing required fields, or unknown subtypes. Do not silently drop blocks or substitute unsupported types.
+That path remains the qualified baseline. Fail closed on multiple grids and missing required fields. Do not silently drop blocks.
 
-Blender is not a converter stage. Print preparation is not a converter stage.
+Unknown-subtype handling, Small Grid, instance appearance, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed.
+
+Blender is not a converter stage. A general print/slicer pipeline is not a converter stage.

@@ -2,9 +2,10 @@
 
 Responsibility: how engineering work is performed — authority, bounded intent, ratchet, verification, status words, and stopping behavior.
 
-Program objective and exclusions: [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
-Unit definitions: [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
-Live status: [SE2CAD_STATE.md](SE2CAD_STATE.md) only.
+Current program objective and exclusions: [SE2CAD_PROGRAM_M7.md](SE2CAD_PROGRAM_M7.md).
+Current unit definitions: [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md).
+Historical initial program (complete): [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md), [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
+Live status: [SE2CAD_STATE.md](SE2CAD_STATE.md) only. STATE names which program and plan are current.
 
 ## Authority
 
@@ -43,12 +44,27 @@ Examples:
 
 Never update status prospectively. STATE is the only live status location. The plan must not duplicate live status.
 
+## Programs
+
+The repository may contain more than one program charter. Only the program and plan named by STATE are executable.
+
+- The initial M0–M6 proof-of-concept is complete. Its documents are historical.
+- The current approved program is M7–M15. Do not invent units beyond it. Cold-storage backlog items stay outside executable scope.
+
+## Opschecks
+
+An opscheck is an exceptional operator procedure used only when automated tests and the existing live-integration machinery cannot establish a required external fact. Do not add routine opschecks because SolidWorks, Space Engineers, the ModSDK, Windows, Blender, or physical printing appear in a workflow.
+
+Prefer automated tests, fixtures, generated artifacts, and programmatic inspection. Units that must prove a live SolidWorks document fact use the existing `SE2CAD_SOLIDWORKS_INTEGRATION` pattern when they name that evidence.
+
+Named opschecks, if any, are defined in the current plan. The M7–M15 program defines none.
+
 ## Ratchet
 
 Execute this sequence once per session, for one unit.
 
 1. **Read repository state.** Establish current truth from STATE, implementation, tests, and the contracts the unit needs.
-2. **Select and understand the approved unit.** Take the next executable unit from STATE. Read its full definition in the plan. Confirm prerequisites, boundaries, and completion criteria.
+2. **Select and understand the approved unit.** Take the next executable unit from STATE. Read its full definition in the plan STATE names. Confirm prerequisites, boundaries, and completion criteria.
 3. **Implement.** Only that bounded objective.
 4. **Test / functionally verify.** Produce evidence that the intended behavior exists. Add regression tests as appropriate.
 5. **Perform a distinct quality/security assessment.** Change posture after functional work. Search for weaknesses such as unsafe path handling, XML parser hazards, malformed blueprint handling, arbitrary file overwrite, unsafe subprocess or command injection, COM automation misuse, temp-file leakage, proprietary asset leakage, coordinate/orientation edge cases, silent unsupported-block handling, nondeterministic generation, dependency/provenance problems, and tests that assert implementation details without proving behavior. Scale depth to actual risk.

@@ -2,7 +2,7 @@
 
 Responsibility: durable contract for canonical reusable block parts and their metadata. Not a catalog implementation and not a capability claim.
 
-This document is decided design. Whether library code or parts exist is recorded only in [SE2CAD_STATE.md](../governance/SE2CAD_STATE.md). Initial-program work is S2C-4.1.1 and S2C-4.2.1.
+This document is decided design. Whether library code or parts exist is recorded only in [SE2CAD_STATE.md](../governance/SE2CAD_STATE.md). Initial-program work is S2C-4.1.1 and S2C-4.2.1. Current-program library expansions are defined in [SE2CAD_PLAN_M7.md](../governance/SE2CAD_PLAN_M7.md) and are not implied by this contract until STATE records them.
 
 Companion: [ADR-001](../adr/ADR-001_CANONICAL_BLOCK_LIBRARY.md). Converter use of the library: [BLUEPRINT_CONVERTER_ARCHITECTURE.md](BLUEPRINT_CONVERTER_ARCHITECTURE.md).
 

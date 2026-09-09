@@ -48,23 +48,29 @@ Definition   Transform
 
 The runtime converter does not care how a canonical part was created. It asks the library for the part and its reference metadata.
 
-**C. Print preparation** (consolidated printable geometry) is a possible future process. It is not part of the initial program.
+**C. Print preparation** (consolidated printable geometry) was out of the initial program. The current approved program authorizes only automatic print-shell generation (M15), not a general slicer or physical-print pipeline. See [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md).
 
 ## Established decisions
 
 1. **CAD-neutral IR** between parsing and backends. No SolidWorks COM or API types in the IR.
-2. **Independent transform engine.** Placement is fully calculated before the SolidWorks backend runs. Large Grid cell pitch is **2500 mm** and must be one named constant. The proven SE2CAD coordinate/orientation contract is in [BLUEPRINT_CONVERTER_ARCHITECTURE.md](BLUEPRINT_CONVERTER_ARCHITECTURE.md).
+2. **Independent transform engine.** Placement is fully calculated before the SolidWorks backend runs. Large Grid cell pitch is **2500 mm** and must be the named constant `LARGE_GRID_CELL_PITCH_MM`. Small Grid, when authorized and implemented, uses a second named constant rather than scattered literals or a forked engine. The proven SE2CAD coordinate/orientation contract is in [BLUEPRINT_CONVERTER_ARCHITECTURE.md](BLUEPRINT_CONVERTER_ARCHITECTURE.md).
 3. **Transform placement, not mate reconstruction.** A ship with hundreds or thousands of blocks must not create an equivalent mate network.
 4. **Reusable canonical parts** for supported block types. Geometry-strategy names (`native_procedural`, `sdk_mesh_direct`, `sdk_mesh_manifold`, `hand_authored`, `unsupported`) are architectural vocabulary. The initial program covers only `native_procedural` for four Large Grid armor types.
 5. **Blender is not on the runtime path.** Blender may later be an optional library-build tool for complex TriangleMesh parts. Runtime remains `converter → canonical block library`.
-6. **Geometry classes differ.** CubeTopology armor can often be native CAD. TriangleMesh functional/detail blocks may need source/model assets and a different library recipe. Do not force one production mechanism. TriangleMesh is outside the initial program.
+6. **Geometry classes differ.** CubeTopology armor can often be native CAD. TriangleMesh functional/detail blocks may need source/model assets and a different library recipe. Do not force one production mechanism. A completed TriangleMesh library remains cold storage, outside M7–M15 executable scope. M11 may classify and except such blocks.
 7. **SolidWorks is the first backend**, not the only conceivable backend. Do not rename core abstractions to imply SolidWorks exclusivity.
 8. **OS / tool split.** Space Engineers and the ModSDK stay on Linux as authoring and verification evidence. SolidWorks 2026 stays in the Windows VM. The Windows SolidWorks-backed path operates from a repository clone, an operator-supplied `bp.sbc`, the repository catalog and recipes, Python, pywin32, and SolidWorks 2026. It does not require a Space Engineers install. Linux and Windows may use separate Git clones; the operator synchronizes them. Blueprint transfer is operator-managed. Linux-to-Windows automation and remoting are out of scope. Details: [ADR-003](../adr/ADR-003_SOLIDWORKS_BACKEND.md).
 9. **Generated canonical SolidWorks parts** are reproducible artifacts under a configurable local generated root. They are not authoritative source and are not committed or published. Authority is catalog + canonical frame + native recipes + backend implementation. [ADR-004](../adr/ADR-004_THIRD_PARTY_ASSET_BOUNDARY.md) remains the publication boundary.
 
 ## Initial program scope
 
-Single-grid Large Grid only. Four subtypes: `LargeBlockArmorBlock`, `LargeBlockArmorSlope`, `LargeBlockArmorCorner`, `LargeBlockArmorCornerInv`. See [SE2CAD_PROGRAM.md](../governance/SE2CAD_PROGRAM.md).
+The completed initial program was single-grid Large Grid only, four subtypes: `LargeBlockArmorBlock`, `LargeBlockArmorSlope`, `LargeBlockArmorCorner`, `LargeBlockArmorCornerInv`. See [SE2CAD_PROGRAM.md](../governance/SE2CAD_PROGRAM.md).
+
+## Current approved program
+
+M7–M15 continues the same architecture. Authorized expansions (not implemented by this sentence) are listed in [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md): statistics, component naming, instance appearance, optional block-edge treatment, vanilla library expansion, preflight/unknown-block policy, Small Grid, symmetry detection, and print-shell generation. Whether any of those exist is recorded only in [SE2CAD_STATE.md](../governance/SE2CAD_STATE.md).
+
+Do not fork the pipeline for Small Grid. Do not bake instance appearance into reusable geometry. Do not invent work beyond that program.
 
 ## Open questions
 

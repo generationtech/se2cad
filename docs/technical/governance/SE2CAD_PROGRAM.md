@@ -1,8 +1,12 @@
 # SE2CAD initial program
 
-Responsibility: why the initial program exists — objective, doctrine, architectural boundaries, end state, and exclusions. Not live status and not a unit catalog.
+Responsibility: why the initial proof-of-concept program existed — objective, doctrine, architectural boundaries, end state, and exclusions. Historical charter. Not live status and not a unit catalog.
 
-Units: [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
+This program is complete. Do not select work from this file.
+
+Current approved program: [SE2CAD_PROGRAM_M7.md](SE2CAD_PROGRAM_M7.md).
+Current units (no live status): [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md).
+Historical units: [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 Live status: [SE2CAD_STATE.md](SE2CAD_STATE.md).
 Architecture: [ARCHITECTURE_OVERVIEW.md](../architecture/ARCHITECTURE_OVERVIEW.md).
 

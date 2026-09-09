@@ -8,7 +8,7 @@ Responsibility: repository layout and structural/semantic invariants. Not live p
 .cursor/rules/                 Session constraints (point to docs; not a second governance tree)
 docs/cursor/                   Onboarding, this contract, ratchet prompt
 docs/technical/architecture/   Durable architectural contracts
-docs/technical/governance/     Process, program, plan, state
+docs/technical/governance/     Process, current and historical program/plan, state
 docs/technical/adr/            Individual accepted decisions
 docs/testing/                  Test and fixture specifications
 fixtures/                      Committed test data with recorded provenance
@@ -21,8 +21,8 @@ Do not add placeholder implementation modules solely to populate `src/`, `tests/
 
 ## Document invariants
 
-- [SE2CAD_STATE.md](../technical/governance/SE2CAD_STATE.md) is the only document that may carry live unit status.
-- [SE2CAD_PLAN.md](../technical/governance/SE2CAD_PLAN.md) defines units and must not duplicate live status.
+- [SE2CAD_STATE.md](../technical/governance/SE2CAD_STATE.md) is the only document that may carry live unit status. It names the current program and plan.
+- The current plan (presently [SE2CAD_PLAN_M7.md](../technical/governance/SE2CAD_PLAN_M7.md)) defines executable units and must not duplicate live status. [SE2CAD_PLAN.md](../technical/governance/SE2CAD_PLAN.md) is the completed initial-program unit catalog.
 - Architecture documents describe decided design. They are not capability claims and must not carry a live implementation ledger.
 - The public README may describe user-visible capability. It must not run ahead of evidence in STATE.
 - Cursor rules stay short and refer here and to governance documents for detail.

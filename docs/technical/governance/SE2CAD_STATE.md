@@ -3,21 +3,31 @@
 Responsibility: what has actually happened. This is the only authoritative live program-status location.
 
 How status words are used: [SE2CAD_ENGINEERING_PROCESS.md](SE2CAD_ENGINEERING_PROCESS.md).
-Unit definitions (no live status): [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
+Current unit definitions (no live status): [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md).
+Current program: [SE2CAD_PROGRAM_M7.md](SE2CAD_PROGRAM_M7.md).
+Historical initial units: [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 ## Current program
 
-Initial program: four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
+**Current approved program:** M7–M15. Charter [SE2CAD_PROGRAM_M7.md](SE2CAD_PROGRAM_M7.md). Units [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md).
+
+The nine milestones, in order, are: blueprint statistics; CAD component naming; block-color preservation; printable block-edge definition; SDK-driven vanilla library expansion; compatibility and unknown-block handling; Small Grid; symmetry detection; automatic print-shell generation.
+
+No implementation milestone is ACTIVE. Cold-storage backlog remains outside this program. Do not invent work beyond it.
+
+**Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches this: generated parts and assemblies are local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability: generated parts and assemblies are local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. M7–M15 features are approved, not implemented.
 
 ## Next executable unit
 
-None. The initial program defined in [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) has no further approved unit. Do not invent a follow-on program or roadmap unit.
+S2C-7.1.1 — Blueprint and conversion statistics. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED, not ACTIVE. Do not start it in the session that only authorized the program.
 
 ## Unit status
+
+### Initial program (complete)
 
 | Unit | Status | Evidence |
 | --- | --- | --- |
@@ -31,7 +41,42 @@ None. The initial program defined in [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) has 
 | S2C-5.1.1 | QUALIFIED | Ordinary suite 167 tests OK (2 integration skipped). Live SW 2026 `RevisionNumber` 34.3.2 inserted 24 fixture components from qualified SLDPRT files, applied IR ArrayData transforms, saved a native `se2cad-test1.SLDASM`, closed, reopened, and revalidated counts 9/12/2/1, representative translations/orientations, identity defaults, empty MateGroup, and generated-root containment. No generated assembly committed. |
 | S2C-6.1.1 | QUALIFIED | Ordinary suite 176 tests OK (2 integration skipped). Live SW 2026 `RevisionNumber` 34.3.2 regenerated the four canonical parts, wrote `se2cad-test1.SLDASM` from the unchanged fixture, and matched all 24 reopened component transforms to the qualified IR. Fixture SHA-256 unchanged. No generated CAD committed. |
 
+### M7–M15 program (approved, not started)
+
+| Unit | Status | Evidence |
+| --- | --- | --- |
+| M7–M15 program authorization | QUALIFIED | Current program/plan exist; historical M0–M6 preserved; ratchet/onboarding/process/rules point at STATE-named current docs; no product implementation; no named opschecks; next unit S2C-7.1.1 is PLANNED. Distinct assessment recorded below. |
+| S2C-7.1.1 | PLANNED | |
+| S2C-8.1.1 | PLANNED | |
+| S2C-9.1.1 | PLANNED | |
+| S2C-9.2.1 | PLANNED | |
+| S2C-10.1.1 | PLANNED | |
+| S2C-10.2.1 | PLANNED | |
+| S2C-11.1.1 | PLANNED | |
+| S2C-11.2.1 | PLANNED | |
+| S2C-11.3.1 | PLANNED | |
+| S2C-11.4.1 | PLANNED | |
+| S2C-11.5.1 | PLANNED | |
+| S2C-12.1.1 | PLANNED | |
+| S2C-12.2.1 | PLANNED | |
+| S2C-13.1.1 | PLANNED | |
+| S2C-13.2.1 | PLANNED | |
+| S2C-14.1.1 | PLANNED | |
+| S2C-14.2.1 | PLANNED | |
+| S2C-15.1.1 | PLANNED | |
+| S2C-15.2.1 | PLANNED | |
+| S2C-15.3.1 | PLANNED | |
+| S2C-15.4.1 | PLANNED | |
+
 ## Session history
+
+### 2026-09-08 — M7–M15 program authorization QUALIFIED
+
+Executed the human-authorized documentation/planning unit. Did not implement product features. Did not start S2C-7.1.1. Did not move cold-storage backlog into executable scope. Did not commit, tag, or push.
+
+Created the current program charter and unit catalog. Preserved the completed initial M0–M6 program as historical. Updated STATE, process, onboarding, repository contract, ratchet, Cursor rules, architecture pointers, fixture spec pointer, fixtures README, and public README so a fresh session can select only the next approved unit from this file.
+
+Verification: 154 local Markdown/MDC links resolve. `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 176 tests, 2 skipped, 0.262 s, OK. No `src/` or `tests/` product changes. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed `.sldprt`/`.sldasm`. One-off link-check script was not left in `tools/`.
 
 ### 2026-09-08 — S2C-6.1.1 QUALIFIED
 
@@ -234,8 +279,8 @@ These are human-architect technology selections recorded as live decisions. They
 
 These are not invitations to decide them inside an unrelated unit.
 
-- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-6.1.1 did not invent a general CLI.
-- How a later unit configures an optional local game or SDK install path when that unit needs it. The Windows SolidWorks path does not.
+- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
+- Optional local game or SDK install path. Still a human technology-selection item. S2C-11.1.1 must reuse the established env / `se2cad.local.json` pattern or stop and ask. The Windows SolidWorks conversion path does not require it.
 
 Resolved in S2C-6.1.1 and no longer open: numeric position/orientation comparison method. IR `(R, t)` is exact. SolidWorks `ArrayData` allowance is `BACKEND_LENGTH_TOLERANCE_M` (`1e-6` m). Recorded in [INITIAL_ACCEPTANCE_FIXTURE.md](../../testing/INITIAL_ACCEPTANCE_FIXTURE.md) and in this file.
 
@@ -243,7 +288,7 @@ Resolved in S2C-4.2.1 and no longer open: generated SLDPRT location (local gener
 
 ## Known blockers
 
-None. The initial program has no remaining approved executable unit.
+None. The next approved unit is S2C-7.1.1 (PLANNED).
 
 ## S2C-1.1.1 fixture inspection
 
@@ -501,6 +546,32 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (M7–M15 program authorization)
+
+Hypotheses tested after drafting the current program and updating governance pointers. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Initial M0–M6 program was treated as still executable | Disproven. Historical PROGRAM/PLAN say they are complete; STATE names M7–M15 as current; next unit is S2C-7.1.1. |
+| M0–M6 historical status or evidence was rewritten | Disproven. Initial unit table remains QUALIFIED with original evidence. Session history for S2C-0.1.1 through S2C-6.1.1 is unchanged. |
+| An implementation milestone was marked ACTIVE | Disproven. S2C-7.1.1 through S2C-15.4.1 are PLANNED. No product code was started. |
+| Approved features were reordered, merged, or duplicated | Disproven. Nine milestones M7–M15 match the authorized sequence, each feature once. |
+| Cold-storage items became executable units | Disproven. PROGRAM_M7 exclusions list multi-grid/mechanical, reverse conversion, Blender runtime, general FBX product, completed TriangleMesh library, slicer/physical print, extra backends, GUI/general CLI, and external backlog. M11 classifies TriangleMesh; it does not deliver the class. |
+| Named opschecks were added without necessity | Disproven. The program defines none. Live SolidWorks units reuse `SE2CAD_SOLIDWORKS_INTEGRATION`. |
+| Ratchet cannot drive the program without chat history | Disproven. Ratchet/rules/onboarding read STATE for the current program, plan, and next unit. Unit detail lives in PLAN_M7. |
+| Architecture was silently redesigned | Disproven. ADRs were not rewritten. Architecture notes authorized expansions and keeps IR neutrality, transform placement, pitch constants, asset boundary, and Windows-local COM. |
+| Planned features were described as implemented capability | Disproven. STATE and README say M7–M15 are approved, not implemented. Architecture says expansions are not implied until STATE records them. |
+| Product code or tests were modified | Disproven. Ordinary suite 176 tests, 2 skipped, OK. No `src/` or `tests/` edits. |
+| Broken local documentation links | Disproven. 154 local Markdown/MDC links resolve (Cursor rule paths from workspace root; others from the file). |
+| Proprietary assets added | Disproven. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+| A follow-on program beyond the nine features was invented | Disproven. Executable scope is exactly M7–M15. |
+
+Remediated during review: sequencing rule clarified so a DEV-COMPLETE SolidWorks unit does not freeze later CAD-neutral units; architecture decision 2 notes a second named Small Grid pitch constant; historical vs current program pointers were added wherever a fresh session would otherwise read only M0–M6.
+
+Accepted residual risk: S2C-11.4.1’s “representative automatable subset” and S2C-13.2.1’s optional operator-authored Small Grid fixture are bounded in the plan but still require judgment in those sessions. S2C-11.1.1 must reuse existing local-config or stop if install-path configuration is treated as a new architecture. Color omitted-field semantics and the print-shell product definition remain stop-and-ask items if evidence or two defensible definitions conflict.
+
+Not claimed: any M7–M15 product implementation; publication; a general CLI.
 
 ## Quality/security assessment (S2C-6.1.1)
 

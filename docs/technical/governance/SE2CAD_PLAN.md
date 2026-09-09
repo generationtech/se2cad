@@ -1,14 +1,16 @@
 # SE2CAD initial plan
 
-Responsibility: what bounded units constitute the initial program. This file carries no live status. Do not select work from this file.
+Responsibility: what bounded units constituted the initial proof-of-concept program. This file carries no live status. Do not select work from this file.
 
+The initial program is complete. Current units: [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md).
+Current program: [SE2CAD_PROGRAM_M7.md](SE2CAD_PROGRAM_M7.md).
 Live status and the next executable unit: [SE2CAD_STATE.md](SE2CAD_STATE.md).
-Program objective and exclusions: [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
+Historical program objective: [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md).
 How to execute a unit: [SE2CAD_ENGINEERING_PROCESS.md](SE2CAD_ENGINEERING_PROCESS.md).
 
 Unit IDs use `S2C-<milestone>.<workstream>.<sequence>`.
 
-Do not add milestones for TriangleMesh, Blender, print preparation, multi-grid, or mechanical subgrids. Those require a future human-authorized program.
+This historical plan was not extended with TriangleMesh, Blender, print preparation, multi-grid, or mechanical-subgrid milestones. A later human-authorized program now exists in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). Do not add units here.
 
 ---
 
