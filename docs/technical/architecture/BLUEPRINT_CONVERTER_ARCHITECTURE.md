@@ -20,7 +20,7 @@ Responsibilities:
 | Definition catalog | Map exact subtype → geometry identity; expose grid pitch from one named constant | Load meshes; contain COM types; scan a game install |
 | Transform engine | Compute exact placement from grid coordinate + orientation + pitch | Insert components; apply mates |
 | Block library | Return canonical part + reference metadata | Parse blueprints |
-| SolidWorks backend | Insert parts by transform; save assembly | Recalculate SE orientation; call Blender; build mate networks for fixed SE placement |
+| SolidWorks backend | Insert parts by transform; assign instance appearance; save assembly | Recalculate SE orientation; call Blender; build mate networks for fixed SE placement; paint canonical `.SLDPRT` files |
 | Statistics | Derive a CAD-neutral summary from parser + catalog fields | Call SolidWorks; invent identities; drop unresolvable blocks; change conversion policy |
 | Component names | Derive a CAD-neutral instance name from existing IR fields | Rename canonical `.SLDPRT` identities; invent a catalog key; change `(R, t)` |
 
@@ -50,7 +50,9 @@ The SolidWorks writer applies the name at insertion via `IComponent2.Name2` set 
 
 Per-instance appearance is CAD-neutral Space Engineers `ColorMaskHSV`, not a second `geometry_id` and not a SolidWorks material. The on-disk field is `ColorMaskHSV` with `x`/`y`/`z` attributes (`SerializableVector3`). XmlSerializer omits the element when it equals `SerializableVector3(0, -1, 0)`; that omitted default is `DEFAULT_COLOR_MASK_HSV` `(0.0, -1.0, 0.0)` (HSV-offset). The parser records `color_serialized` so an explicit default vector is distinct from omission.
 
-`AppearanceSupport` is independently reportable from catalog geometry `SupportStatus`: `default` for the omitted mapping, `explicit` for a serialized payload. Unknown appearance is not a current parser state. Malformed `ColorMaskHSV` fails closed. RGB / SolidWorks conversion is a backend concern and is not performed here.
+`AppearanceSupport` is independently reportable from catalog geometry `SupportStatus`: `default` for the omitted mapping, `explicit` for a serialized payload. Unknown appearance is not a current parser state. Malformed `ColorMaskHSV` fails closed.
+
+RGB conversion and SolidWorks assignment live in the SolidWorks package (`se2cad.solidworks.appearance` and the assembly writer). Parser, catalog, and IR do not produce RGB or COM types. Conversion is Keen `HSVOffsetToHSV` (add published `SATURATION_DELTA` 0.8 and `VALUE_DELTA` 0.45, clamp S/V to `[0, 1]`) then standard HSV-to-RGB. The omitted default becomes display HSV `(0, 0, 0.45)` / RGB `(0.45, 0.45, 0.45)`. The writer assigns that RGB as an `IComponent2.MaterialPropertyValues` instance override at insertion. Two instances of the same `geometry_id` keep one canonical part file and different instance appearances. Canonical part generation stays color-agnostic. Geometry applied and appearance applied are independently reportable on the placed-component result.
 
 ## Intermediate representation
 
@@ -179,7 +181,7 @@ SolidWorks `IMathTransform.ArrayData` is sixteen doubles. Official CreateTransfo
 
 Those axes are the qualified rotation columns (local +X/+Y/+Z in world). Translation is `position_mm / 1000`. No transpose, no corrective rotation, no half-cell offset, no mate network.
 
-Live SolidWorks 2026 late-bound CDispatch (`RevisionNumber` 34.3.2) cannot call `IMathUtility.CreateTransform` (server fault, same class as the rejected IModeler array calls). The working write is `Transform2.ArrayData = VARIANT(VT_ARRAY|VT_R8, tuple-of-16)` after `AddComponent5` of a pre-opened part. A raw Python list corrupts translation. The first inserted component is auto-fixed; `Select(True)` plus `UnfixComponent` clears that Fixed state without adding placement mates. The assembly `MateGroup` folder remains empty. `OpenDoc(path, swDocASSEMBLY=2)` reopens a native `.SLDASM`. After insert, `IComponent2.Name2` is set to the CAD-neutral short name; Name2 get includes the instance suffix. Official Name2 remarks: set fails while `swExtRefUpdateCompNames` (enum 18) is True. Live 34.3.2 also requires `Select` before the Name2 put; an unselected assignment is a silent no-op. The writer forces that toggle False from insert through SaveAs and reopen so the SLDASM stores the alternate names; it then restores the prior toggle. Canonical part filenames are unchanged.
+Live SolidWorks 2026 late-bound CDispatch (`RevisionNumber` 34.3.2) cannot call `IMathUtility.CreateTransform` (server fault, same class as the rejected IModeler array calls). The working write is `Transform2.ArrayData = VARIANT(VT_ARRAY|VT_R8, tuple-of-16)` after `AddComponent5` of a pre-opened part. A raw Python list corrupts translation. The first inserted component is auto-fixed; `Select(True)` plus `UnfixComponent` clears that Fixed state without adding placement mates. The assembly `MateGroup` folder remains empty. `OpenDoc(path, swDocASSEMBLY=2)` reopens a native `.SLDASM`. After insert, `IComponent2.Name2` is set to the CAD-neutral short name; Name2 get includes the instance suffix. Official Name2 remarks: set fails while `swExtRefUpdateCompNames` (enum 18) is True. Live 34.3.2 also requires `Select` before the Name2 put; an unselected assignment is a silent no-op. The writer forces that toggle False from insert through SaveAs and reopen so the SLDASM stores the alternate names; it then restores the prior toggle. Canonical part filenames are unchanged. After the IR transform is written, the writer sets `IComponent2.MaterialPropertyValues` to the converted instance RGB (nine doubles, RGB in `[0, 1]`, 8-bit truncated to match live 34.3.2 storage). That override is on the assembly component, not on the reusable `.SLDPRT`. Default and explicit `ColorMaskHSV` both receive a converted appearance; omitted fixture color must not fail insertion. Comparison allowance is one 8-bit LSB (`1/255`).
 
 ## Initial-program limits
 
@@ -191,6 +193,6 @@ The completed initial program’s converter success path was:
 
 That path remains the qualified baseline. Fail closed on multiple grids and missing required fields. Do not silently drop blocks.
 
-Unknown-subtype handling, Small Grid, SolidWorks instance-appearance assignment, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1.
+Unknown-subtype handling, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1.
 
 Blender is not a converter stage. A general print/slicer pipeline is not a converter stage.

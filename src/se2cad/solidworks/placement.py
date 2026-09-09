@@ -12,6 +12,8 @@ from pathlib import Path
 
 from se2cad.ir.model import CanonicalBlock, CanonicalBlueprint
 from se2cad.ir.naming import component_name_from_block, component_names_from_blocks
+from se2cad.parser.model import AppearanceSupport, ColorMaskHSV
+from se2cad.solidworks.appearance import color_mask_hsv_to_rgb
 from se2cad.solidworks.artifacts import (
     artifact_path_for,
     canonical_geometry_ids,
@@ -34,6 +36,9 @@ class ComponentPlacement:
     position_mm: tuple[int, int, int]
     rotation: RotationMatrix
     orientation_serialized: bool
+    color_mask_hsv: ColorMaskHSV
+    appearance_support: AppearanceSupport
+    appearance_rgb: tuple[float, float, float]
 
 
 def placements_from_ir(ir: CanonicalBlueprint) -> tuple[ComponentPlacement, ...]:
@@ -64,6 +69,9 @@ def _placement_from_block(
         position_mm=block.position_mm.as_tuple(),
         rotation=block.rotation,
         orientation_serialized=block.orientation_serialized,
+        color_mask_hsv=block.color_mask_hsv,
+        appearance_support=block.appearance_support,
+        appearance_rgb=color_mask_hsv_to_rgb(block.color_mask_hsv),
     )
 
 

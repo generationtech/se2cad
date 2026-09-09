@@ -6,7 +6,9 @@ SE2CAD_SOLIDWORKS_INTEGRATION=1 in the Windows VM to require a real run.
 
 from __future__ import annotations
 
+import hashlib
 import os
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -165,6 +167,91 @@ class SolidWorksIntegrationTests(unittest.TestCase):
                 self.assertTrue(block.rotation.is_identity())
                 self.assertEqual(arraydata_axes(reopened.arraydata), IDENTITY_ROTATION.columns)
         self.assertEqual(omitted_identity, 15)
+
+        from se2cad.parser import AppearanceSupport, DEFAULT_COLOR_MASK_HSV
+        from se2cad.solidworks.appearance import color_mask_hsv_to_rgb, rgb_close
+
+        default_rgb = color_mask_hsv_to_rgb(DEFAULT_COLOR_MASK_HSV)
+        for block in ir.grid.blocks:
+            reopened = reopen_by_index[block.source_index]
+            self.assertEqual(reopened.appearance_support, AppearanceSupport.DEFAULT)
+            self.assertTrue(rgb_close(reopened.appearance_rgb, default_rgb))
+            self.assertTrue(reopened.geometry_applied)
+            self.assertTrue(reopened.appearance_applied)
+
+    def test_instance_appearance_two_colors_and_default(self) -> None:
+        from se2cad.parser import AppearanceSupport, DEFAULT_COLOR_MASK_HSV
+        from se2cad.solidworks.appearance import color_mask_hsv_to_rgb, rgb_close
+        from se2cad.solidworks.assemble import generate_assembly
+        from se2cad.solidworks.generate import generate_canonical_parts
+
+        parts = generate_canonical_parts(self.config)
+        part_hashes = {
+            result.locator.path.name: hashlib.sha256(
+                result.locator.path.read_bytes()
+            ).hexdigest()
+            for result in parts
+        }
+        xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-color1" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+              <Min x="1" y="0" z="0" />
+              <ColorMaskHSV x="0" y="0.2" z="0.55" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+              <Min x="2" y="0" z="0" />
+              <ColorMaskHSV x="0.6666667" y="0.2" z="0.55" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            blueprint = Path(tmp) / "bp.sbc"
+            blueprint.write_text(xml, encoding="utf-8")
+            result = generate_assembly(blueprint, self.config)
+        self.assertEqual(result.identity, "se2cad-color1")
+        self.assertEqual(result.path.name, "se2cad-color1.SLDASM")
+        self.assertEqual(len(result.after_reopen), 3)
+        by_min = {item.placement.grid_min: item for item in result.after_reopen}
+        expected = {
+            (0, 0, 0): (AppearanceSupport.DEFAULT, color_mask_hsv_to_rgb(DEFAULT_COLOR_MASK_HSV)),
+            (1, 0, 0): (AppearanceSupport.EXPLICIT, (1.0, 0.0, 0.0)),
+            (2, 0, 0): (AppearanceSupport.EXPLICIT, (0.0, 0.0, 1.0)),
+        }
+        filenames = set()
+        for cell, (support, rgb) in expected.items():
+            item = by_min[cell]
+            self.assertTrue(item.geometry_applied)
+            self.assertTrue(item.appearance_applied)
+            self.assertEqual(item.appearance_support, support)
+            self.assertEqual(item.placement.part_filename, "large_armor_block.SLDPRT")
+            self.assertTrue(
+                rgb_close(item.appearance_rgb, rgb),
+                msg=f"{cell} {item.appearance_rgb} != {rgb}",
+            )
+            filenames.add(item.part_path.name)
+        self.assertEqual(filenames, {"large_armor_block.SLDPRT"})
+        after_hashes = {
+            name: hashlib.sha256((self.config.generated_root / name).read_bytes()).hexdigest()
+            for name in part_hashes
+        }
+        self.assertEqual(after_hashes, part_hashes)
 
 
 if __name__ == "__main__":

@@ -289,9 +289,10 @@ match those IR-derived short names. They do not rename canonical
 
 CAD-neutral **instance appearance** is carried from blueprint
 `ColorMaskHSV` on the parser and IR. Omitted color is the evidenced
-Space Engineers default `(0, -1, 0)`. Appearance is not baked into
-canonical part identity. SolidWorks component appearance assignment is
-not part of this capability.
+Space Engineers default `(0, -1, 0)`. The SolidWorks backend converts
+that HSV-offset to RGB and assigns it as a per-component appearance at
+assembly insertion. Two instances of the same canonical part can have
+different colors; the reusable `.SLDPRT` files stay uncolored.
 
 ### Current scope
 

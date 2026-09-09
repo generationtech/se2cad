@@ -141,6 +141,8 @@ class FixturePlacementTests(unittest.TestCase):
             )
             self.assertEqual(placement.position_mm, block.position_mm.as_tuple())
             self.assertEqual(placement.rotation, block.rotation)
+            self.assertEqual(placement.color_mask_hsv, block.color_mask_hsv)
+            self.assertEqual(placement.appearance_support, block.appearance_support)
 
     def test_unknown_geometry_id_fails_closed(self) -> None:
         from dataclasses import replace
@@ -249,6 +251,8 @@ class ComAssembleContractTests(unittest.TestCase):
         self.assertIn("AddComponent5", source)
         self.assertIn("UnfixComponent", source)
         self.assertIn("apply_component_name", source)
+        self.assertIn("apply_component_appearance", source)
+        self.assertIn("MaterialPropertyValues", source)
         self.assertIn("Name2", source)
         self.assertIn("swExtRefUpdateCompNames", source)
         self.assertIn("Select", source)
@@ -282,6 +286,7 @@ class _FakeComponent:
     def __init__(self, part_path: Path) -> None:
         self._short = part_path.stem
         self._path = part_path
+        self._material: tuple[float, ...] | None = None
         self.IsFixed = False
         self.Transform2 = _FakeTransform()
 
@@ -292,6 +297,14 @@ class _FakeComponent:
     @Name2.setter
     def Name2(self, value: str) -> None:
         self._short = value
+
+    @property
+    def MaterialPropertyValues(self):
+        return self._material
+
+    @MaterialPropertyValues.setter
+    def MaterialPropertyValues(self, value) -> None:
+        self._material = tuple(float(v) for v in value)
 
     def GetPathName(self) -> str:
         return str(self._path)
@@ -393,6 +406,100 @@ class HermeticInsertionNameTests(unittest.TestCase):
                 [item.component_name for item in matched],
                 [item.component_name for item in placements],
             )
+
+
+class HermeticInsertionAppearanceTests(unittest.TestCase):
+    def test_insert_requests_per_instance_appearance(self) -> None:
+        from unittest.mock import patch
+
+        from se2cad.parser import AppearanceSupport, parse_blueprint_xml
+        from se2cad.solidworks.appearance import (
+            color_mask_hsv_to_rgb,
+            quantize_rgb_8bit,
+            rgb_close,
+        )
+        from se2cad.solidworks.com_assemble import insert_placements
+
+        xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-color1" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+              <Min x="1" y="0" z="0" />
+              <ColorMaskHSV x="0" y="0.2" z="0.55" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+              <Min x="2" y="0" z="0" />
+              <ColorMaskHSV x="0.6666667" y="0.2" z="0.55" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        ir = build_canonical_blueprint(
+            parse_blueprint_xml(xml, source="hermetic-color"),
+            load_default_catalog(),
+        )
+        placements = placements_from_ir(ir)
+        self.assertEqual(len(placements), 3)
+        self.assertEqual(
+            [item.appearance_support for item in placements],
+            [
+                AppearanceSupport.DEFAULT,
+                AppearanceSupport.EXPLICIT,
+                AppearanceSupport.EXPLICIT,
+            ],
+        )
+        self.assertEqual(
+            {item.part_filename for item in placements},
+            {"large_armor_block.SLDPRT"},
+        )
+        self.assertEqual(len({item.appearance_rgb for item in placements}), 3)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            part_path = root / "large_armor_block.SLDPRT"
+            part_path.write_bytes(b"stub")
+            part_paths = {"large_armor_block": part_path}
+            assembly = _FakeAssembly()
+            session = _FakeSession()
+            with patch(
+                "se2cad.solidworks.com_assemble.variant_r8",
+                side_effect=lambda values: tuple(float(v) for v in values),
+            ):
+                placed = insert_placements(session, assembly, placements, part_paths)
+            self.assertEqual(len(placed), 3)
+            for item, component in zip(placed, assembly.components, strict=True):
+                self.assertTrue(item.geometry_applied)
+                self.assertTrue(item.appearance_applied)
+                self.assertEqual(item.appearance_support, item.placement.appearance_support)
+                self.assertTrue(
+                    rgb_close(
+                        item.appearance_rgb,
+                        color_mask_hsv_to_rgb(item.placement.color_mask_hsv),
+                    )
+                )
+                self.assertEqual(
+                    tuple(component.MaterialPropertyValues)[:3],
+                    quantize_rgb_8bit(item.placement.appearance_rgb),
+                )
+            from se2cad.solidworks.com_assemble import assert_assembly_matches
+
+            matched = assert_assembly_matches(assembly, placements, root)
+            for item, placement in zip(matched, placements, strict=True):
+                self.assertTrue(rgb_close(item.appearance_rgb, placement.appearance_rgb))
 
 
 if __name__ == "__main__":

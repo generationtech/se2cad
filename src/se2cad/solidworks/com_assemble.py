@@ -22,6 +22,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
+from se2cad.parser.model import AppearanceSupport
+from se2cad.solidworks.appearance import (
+    material_property_values,
+    quantize_rgb_8bit,
+    rgb_close,
+)
 from se2cad.solidworks.com_bind import com_get
 from se2cad.solidworks.errors import AssemblyValidationError, SolidWorksComError
 from se2cad.solidworks.placement import ComponentPlacement
@@ -58,6 +64,46 @@ def read_arraydata(component: Any) -> tuple[float, ...]:
             f"Transform2.ArrayData returned {len(data)} values, expected 16"
         )
     return data
+
+
+def read_component_appearance(component: Any) -> tuple[float, float, float]:
+    """Read instance RGB from IComponent2.MaterialPropertyValues."""
+    try:
+        raw = com_get(component, "MaterialPropertyValues")
+    except Exception as exc:
+        raise _com_fail(exc, "MaterialPropertyValues read failed") from exc
+    if raw is None:
+        raise AssemblyValidationError("MaterialPropertyValues returned None")
+    data = tuple(float(v) for v in raw)
+    if len(data) < 3:
+        raise AssemblyValidationError(
+            f"MaterialPropertyValues returned {len(data)} values, expected at least 3"
+        )
+    return (data[0], data[1], data[2])
+
+
+def apply_component_appearance(
+    component: Any,
+    rgb: tuple[float, float, float],
+) -> tuple[float, float, float]:
+    """Set instance MaterialPropertyValues and confirm RGB stuck.
+
+    This is an IComponent2 override. It must not be written onto the
+    reusable canonical part document.
+    """
+    values = material_property_values(rgb)
+    expected = quantize_rgb_8bit(rgb)
+    try:
+        component.MaterialPropertyValues = variant_r8(values)
+    except Exception as exc:
+        raise _com_fail(exc, "setting MaterialPropertyValues failed") from exc
+    observed = read_component_appearance(component)
+    if not rgb_close(observed, expected):
+        raise AssemblyValidationError(
+            f"MaterialPropertyValues RGB did not stick: requested {expected}, "
+            f"observed {observed}"
+        )
+    return observed
 
 
 def apply_arraydata(component: Any, data: Sequence[float]) -> None:
@@ -272,6 +318,10 @@ class PlacedComponent:
     part_path: Path
     arraydata: tuple[float, ...]
     component_name: str
+    appearance_support: AppearanceSupport
+    appearance_rgb: tuple[float, float, float]
+    geometry_applied: bool
+    appearance_applied: bool
 
 
 def insert_placements(
@@ -290,6 +340,7 @@ def insert_placements(
         unfix_component(assembly, component)
         data = solidworks_arraydata(placement.rotation, placement.position_mm)
         apply_arraydata(component, data)
+        observed_rgb = apply_component_appearance(component, placement.appearance_rgb)
         observed_path = component_path(component)
         if observed_path.name != placement.part_filename:
             raise AssemblyValidationError(
@@ -314,6 +365,10 @@ def insert_placements(
                 part_path=observed_path,
                 arraydata=observed,
                 component_name=observed_name,
+                appearance_support=placement.appearance_support,
+                appearance_rgb=observed_rgb,
+                geometry_applied=True,
+                appearance_applied=True,
             )
         )
     com_get(assembly, "EditRebuild3")
@@ -386,6 +441,7 @@ def assert_assembly_matches(
         if mates not in (None, (), []):
             raise AssemblyValidationError(f"component {path.name} has mates")
         short_name = feature_manager_short_name(read_name2(component))
+        observed_rgb = read_component_appearance(component)
         index = _index_matching_placement(remaining, path.name, data, short_name)
         if index is None:
             raise AssemblyValidationError(
@@ -403,12 +459,22 @@ def assert_assembly_matches(
                 "component name mismatch: "
                 f"expected {placement.component_name!r}, got {short_name!r}"
             )
+        if not rgb_close(observed_rgb, placement.appearance_rgb):
+            raise AssemblyValidationError(
+                "component appearance mismatch: "
+                f"expected {placement.appearance_rgb}, got {observed_rgb} "
+                f"for {short_name!r}"
+            )
         matched.append(
             PlacedComponent(
                 placement=placement,
                 part_path=path,
                 arraydata=data,
                 component_name=short_name,
+                appearance_support=placement.appearance_support,
+                appearance_rgb=observed_rgb,
+                geometry_applied=True,
+                appearance_applied=True,
             )
         )
     if remaining:

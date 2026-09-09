@@ -4,6 +4,16 @@ CAD-neutral surfaces import without pywin32. COM modules are loaded only
 when a SolidWorks session is requested.
 """
 
+from se2cad.solidworks.appearance import (
+    APPEARANCE_RGB_TOLERANCE,
+    SATURATION_DELTA,
+    VALUE_DELTA,
+    color_mask_hsv_to_rgb,
+    hsv_offset_to_hsv,
+    hsv_to_rgb,
+    material_property_values,
+    quantize_rgb_8bit,
+)
 from se2cad.solidworks.artifacts import (
     assembly_path_for,
     artifact_path_for,
@@ -63,7 +73,10 @@ def generate_assembly(blueprint_path, config: SolidWorksBackendConfig | None = N
 
 
 __all__ = [
+    "APPEARANCE_RGB_TOLERANCE",
     "GENERATED_ROOT_ENV",
+    "SATURATION_DELTA",
+    "VALUE_DELTA",
     "AssemblyIdentityError",
     "AssemblyValidationError",
     "BoundPartLocator",
@@ -83,6 +96,11 @@ __all__ = [
     "assembly_path_for",
     "artifact_path_for",
     "canonical_geometry_ids",
+    "color_mask_hsv_to_rgb",
+    "hsv_offset_to_hsv",
+    "hsv_to_rgb",
+    "material_property_values",
+    "quantize_rgb_8bit",
     "contained_destination",
     "generate_assembly",
     "generate_canonical_parts",

@@ -19,11 +19,11 @@ No implementation milestone is ACTIVE. Cold-storage backlog remains outside this
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, and QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. SolidWorks instance-appearance assignment and remaining M10–M15 features are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, and QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. Remaining M10–M15 features are approved, not implemented.
 
 ## Next executable unit
 
-S2C-9.2.1 — Per-instance SolidWorks component appearance. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
+S2C-10.1.1 — Optional block-edge treatment contract. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
 
 ## Unit status
 
@@ -49,7 +49,7 @@ S2C-9.2.1 — Per-instance SolidWorks component appearance. Defined in [SE2CAD_P
 | S2C-7.1.1 | QUALIFIED | CAD-neutral `se2cad.statistics` exists; fixture identity/counts/extents/occupancy/orientations/catalog coverage match the qualified parser/catalog/IR record; synthetic single-cell, negative, mixed-orientation, unknown-subtype, and parser-rejected cases covered; ordinary suite 198 tests, 2 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-8.1.1 | QUALIFIED | CAD-neutral `component_name` from subtype/`Min`/Forward/Up/`source_index`; assembly writer sets Name2 at insert. Ordinary suite 212 tests, 2 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: all 24 save/reopen short names match the IR encoding; transforms and canonical `.SLDPRT` filenames unchanged. Distinct assessment recorded below. |
 | S2C-9.1.1 | QUALIFIED | Parser/IR carry CAD-neutral `ColorMaskHSV`; omitted maps to `(0.0, -1.0, 0.0)`; `AppearanceSupport` independent of geometry `SupportStatus`. Ordinary suite 233 tests, 2 skipped, OK. External validation was not required. Distinct assessment recorded below. |
-| S2C-9.2.1 | PLANNED | |
+| S2C-9.2.1 | QUALIFIED | HSV-offset → RGB in `se2cad.solidworks.appearance`; `IComponent2.MaterialPropertyValues` instance override at insert. Ordinary suite 251 tests, 3 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: fixture 24 default appearances; synthetic two colors plus default on one `large_armor_block.SLDPRT`; canonical part SHA-256 unchanged. Distinct assessment recorded below. |
 | S2C-10.1.1 | PLANNED | |
 | S2C-10.2.1 | PLANNED | |
 | S2C-11.1.1 | PLANNED | |
@@ -69,6 +69,26 @@ S2C-9.2.1 — Per-instance SolidWorks component appearance. Defined in [SE2CAD_P
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-09 — S2C-9.2.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-10.1.1. Did not invent edges, library expansion, preflight, Small Grid, symmetry, or print-shell. Did not create a general CLI or UI. Did not bake color into `geometry_id`, recipes, catalog identity, canonical part filenames, or part-generation plans. Did not change omitted `Min` / `BlockOrientation` / `ColorMaskHSV` defaults. Did not commit, tag, or push.
+
+Conversion is inside the SolidWorks package: Keen `HSVOffsetToHSV` deltas (`SATURATION_DELTA` 0.8, `VALUE_DELTA` 0.45 from the official wiki citing those methods), clamp S/V to `[0, 1]`, then standard HSV-to-RGB. Omitted `(0, -1, 0)` becomes display HSV `(0, 0, 0.45)` / RGB `(0.45, 0.45, 0.45)`. The assembly writer assigns 8-bit-truncated RGB as `IComponent2.MaterialPropertyValues` on the inserted component. `PlacedComponent` reports `geometry_applied` and `appearance_applied` independently. Default appearance does not fail the qualified fixture.
+
+Conversion mapping is recorded in [S2C-9.2.1 appearance conversion](#s2c-921-appearance-conversion). This Windows host still has no local `VRage.Game.dll`; deltas are published-wiki plus current ModAPI method names.
+
+Live SW 2026 `RevisionNumber` 34.3.2 (`SE2CAD_GENERATED_ROOT=generated`):
+
+| Check | Result |
+| --- | --- |
+| Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+| Fixture assembly | `generated/se2cad-test1.SLDASM`; 24 default instance RGB `114/255` (0.45 truncated); names and transforms unchanged |
+| Color assembly | `generated/se2cad-color1.SLDASM`; three `large_armor_block` instances: default gray, red `(1,0,0)`, blue `(0,0,1)` |
+| Canonical parts | SHA-256 unchanged across the color assembly write; filenames remain `large_armor_*.SLDPRT` |
+| MaterialPropertyValues | 8-bit truncation: written 0.45 reads back `114/255`; comparison allowance `1/255` |
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 251 tests, 3 skipped, 0.271 s, OK. `SE2CAD_SOLIDWORKS_INTEGRATION=1` `unittest tests.test_solidworks_integration -v` — 3 tests, OK, 69.481 s after remediations. Generated artifacts stayed under `generated/` and are gitignored. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-08 — S2C-9.1.1 QUALIFIED
 
@@ -417,6 +437,24 @@ Internet / published-source corroboration:
 
 RGB conversion and SolidWorks assignment are out of scope for S2C-9.1.1.
 
+## S2C-9.2.1 appearance conversion
+
+**HSV-offset → display HSV** is Keen `MyColorPickerConstants.HSVOffsetToHSV`: add `SATURATION_DELTA` 0.8 to S and `VALUE_DELTA` 0.45 to V, wrap H into `[0, 1)`, clamp S/V to `[0, 1]`.
+
+**Display HSV → RGB** is standard 0–1 HSV-to-RGB (`ColorExtensions.HSVtoColor` hue contract).
+
+**Omitted / explicit default** `(0, -1, 0)` → HSV `(0, 0, 0.45)` → RGB `(0.45, 0.45, 0.45)` → SolidWorks 8-bit `114/255`.
+
+**Backend assignment** is `IComponent2.MaterialPropertyValues` (nine doubles, RGB prefix) on the assembly component. Canonical `.SLDPRT` generation does not receive color.
+
+Published-source corroboration:
+
+- Official Space Engineers wiki Data Types cites `HSVOffsetToHSV` / `HSVToHSVOffset` as saturation minus 0.8 and value minus 0.45.
+- Current Keen ModAPI still lists `MyColorPickerConstants.HSVOffsetToHSV`, `SATURATION_DELTA`, `VALUE_DELTA`, and `ColorExtensions.HSVtoColor`.
+- Live SolidWorks 2026 revision 34.3.2 stores component RGB as 8-bit truncated channels.
+
+This host still has no local `VRage.Game.dll`, so the float deltas were not re-exported from a game install.
+
 ## S2C-2.1.1 catalog evidence
 
 Authoritative catalog: `src/se2cad/catalog/large_grid_armor.json`. Loader: `src/se2cad/catalog/`. Public entrypoints `load_default_catalog()`, `DefinitionCatalog.lookup(subtype_id)`, and `LARGE_GRID_CELL_PITCH_MM`.
@@ -615,6 +653,28 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-9.2.1)
+
+Hypotheses tested after conversion, instance assignment, ordinary tests, and live 34.3.2 runs existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Color is baked into shared canonical parts | Disproven. Part-generation modules have no `ColorMask` / `MaterialPropertyValues`. Live color-assembly write left all four `.SLDPRT` SHA-256 values unchanged. Two explicit colors plus default share `large_armor_block.SLDPRT`. |
+| Appearance is applied in a second frame | Disproven. Assignment is `IComponent2.MaterialPropertyValues` on the same inserted component after `Transform2`, before rebuild. Transforms and names still match the qualified IR. |
+| Color is silently dropped | Disproven. Readback mismatch raises `AssemblyValidationError`. Default and explicit paths both require a stuck RGB. |
+| Conversion lives in parser/catalog/IR | Disproven. Those packages do not import `se2cad.solidworks.appearance`. RGB exists only in the SolidWorks package. |
+| Default appearance fails the qualified fixture | Disproven. All 24 omitted fixture blocks convert and live-reopen with default instance RGB. SHA-256 unchanged. |
+| Untrusted color payloads reach COM | Disproven. Malformed `ColorMaskHSV` still fails at the parser. Conversion receives already-validated finite floats. |
+| Ordinary suite attaches to SolidWorks | Disproven. 251 tests, 3 skipped, 0.271 s with `SE2CAD_SOLIDWORKS_INTEGRATION` unset. |
+| Proprietary assets or fixture rewrite | Disproven. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+| S2C-10.1.1 or later M7–M15 work started | Disproven. No edge treatment, library expansion, preflight, Small Grid, symmetry, or print-shell. |
+
+Remediated during review: live 34.3.2 quantizes component RGB to 8-bit (`0.45` → `114/255`); writer now writes truncated channels and compares with a one-LSB allowance. Hermetic appearance assertions compare with `rgb_close` rather than exact full-precision tuples. Ordinary suite re-run: 251 OK, 3 skipped. Live suite re-run: 3 OK, 69.481 s.
+
+Accepted residual risk: this host could not re-export `SATURATION_DELTA` / `VALUE_DELTA` from a local `VRage.Game.dll`. Deltas rest on the official wiki citation of `HSVOffsetToHSV`. Some community decompilations list `VALUE_DELTA` as `0.55`; a later local DLL export could change default brightness by 0.10. `SkinSubtypeId` remains unparsed. Material lighting extras (ambient/diffuse/specular/shininess) are SE2CAD choices, not Keen facts.
+
+Not claimed: paint skins; a material library product; print-shell coloring; a general CLI.
 
 ## Quality/security assessment (S2C-9.1.1)
 
