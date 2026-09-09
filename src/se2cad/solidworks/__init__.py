@@ -22,6 +22,7 @@ from se2cad.solidworks.artifacts import (
     contained_destination,
     is_treated_artifact_filename,
     logical_assembly_filename,
+    logical_assembly_part_filename,
     logical_part_filename,
     logical_treated_part_filename,
     part_artifact_path,
@@ -77,11 +78,19 @@ def generate_canonical_parts(
     return impl(config, treatment=treatment)
 
 
-def generate_assembly(blueprint_path, config: SolidWorksBackendConfig | None = None):
-    """Generate a transform-placed SLDASM. Requires Windows + pywin32 + SolidWorks."""
+def generate_assembly(
+    blueprint_path,
+    config: SolidWorksBackendConfig | None = None,
+    treatment=None,
+):
+    """Generate a transform-placed SLDASM. Requires Windows + pywin32 + SolidWorks.
+
+    Default inserts untreated ``{geometry_id}.SLDPRT``. Pass
+    ``EDGE_TREATMENT_CHAMFER`` to insert treated siblings.
+    """
     from se2cad.solidworks.assemble import generate_assembly as impl
 
-    return impl(blueprint_path, config)
+    return impl(blueprint_path, config, treatment=treatment)
 
 
 __all__ = [
@@ -120,6 +129,7 @@ __all__ = [
     "is_treated_artifact_filename",
     "load_solidworks_backend_config",
     "logical_assembly_filename",
+    "logical_assembly_part_filename",
     "logical_part_filename",
     "logical_treated_part_filename",
     "part_artifact_path",

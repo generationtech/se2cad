@@ -21,11 +21,11 @@ A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-1
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, and QUALIFIED S2C-11.1.1 operator-local definition discovery. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. Explicit assembly consumption of treated sibling parts (S2C-10.3.1) is approved and not implemented. S2C-11.2.1 catalog identity expansion remains PLANNED and is deferred until S2C-10.3.1 is QUALIFIED. Remaining later M11 units through M15 are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, DEV-COMPLETE S2C-10.3.1 explicit treated-part assembly selection, and QUALIFIED S2C-11.1.1 operator-local definition discovery. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. S2C-10.3.1 is not QUALIFIED; live treated-assembly evidence is still required. S2C-11.2.1 catalog identity expansion remains PLANNED and is deferred until S2C-10.3.1 is QUALIFIED. Remaining later M11 units through M15 are approved, not implemented.
 
 ## Next executable unit
 
-S2C-10.3.1 — Assemble using optional treated parts. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
+S2C-10.3.1 live SolidWorks qualification. Implementation is DEV-COMPLETE. Remaining work is `SE2CAD_SOLIDWORKS_INTEGRATION` evidence only. Do not re-implement assembly selection. Do not start S2C-11.2.1. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md).
 
 ## Unit status
 
@@ -54,7 +54,7 @@ S2C-10.3.1 — Assemble using optional treated parts. Defined in [SE2CAD_PLAN_M7
 | S2C-9.2.1 | QUALIFIED | HSV-offset → RGB in `se2cad.solidworks.appearance`; `IComponent2.MaterialPropertyValues` instance override at insert. Ordinary suite 251 tests, 3 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: fixture 24 default appearances; synthetic two colors plus default on one `large_armor_block.SLDPRT`; canonical part SHA-256 unchanged. Distinct assessment recorded below. |
 | S2C-10.1.1 | QUALIFIED | CAD-neutral equal-setback chamfer on convex manifold edges; default off; not a new `geometry_id`. Ordinary suite 267 tests, 3 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-10.2.1 | QUALIFIED | Sibling `{geometry_id}_chamfer.SLDPRT` under the generated root when `EDGE_TREATMENT_CHAMFER` is requested. Untreated `large_armor_*.SLDPRT` remain the default. Ordinary suite 283 tests, 4 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: treated and untreated parts, one solid body, S2C-10.1.1 measurables. Distinct assessment recorded below. |
-| S2C-10.3.1 | PLANNED | Next executable unit. Inserted by 2026-09-09 human-authorized amendment after S2C-11.1.1 QUALIFIED, to close treated-part assembly consumption. |
+| S2C-10.3.1 | DEV-COMPLETE | Default assemble still names untreated `{geometry_id}.SLDPRT`. Explicit `--edge-treatment chamfer` names `{geometry_id}_chamfer.SLDPRT` and fails closed if siblings are missing. Ordinary suite 323 tests, 5 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2 was attached but could not reopen/save while same-named parts were already open in the operator session. QUALIFIED still required. Distinct assessment recorded below. |
 | S2C-11.1.1 | QUALIFIED | Library-build `se2cad.discovery` reads operator-configured game/SDK `.sbc` trees into observed catalog fields. Ordinary suite 309 tests, 4 skipped, OK. Runtime conversion remains install-free. External validation was not required. Distinct assessment recorded below. |
 | S2C-11.2.1 | PLANNED | Execution deferred until S2C-10.3.1 is QUALIFIED. Has not started. |
 | S2C-11.3.1 | PLANNED | |
@@ -72,6 +72,14 @@ S2C-10.3.1 — Assemble using optional treated parts. Defined in [SE2CAD_PLAN_M7
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-09 — S2C-10.3.1 DEV-COMPLETE
+
+Executed the next unit named by STATE. Did not start S2C-11.2.1. Did not invent catalog identity expansion, recipe selection, preflight, Small Grid, symmetry, or print-shell. Did not create a general CLI or UI. Did not bake `_chamfer` into catalog or IR identity. Did not change qualified `(R, t)`, component names, or per-instance appearance. Did not overwrite untreated `{geometry_id}.SLDPRT`. Did not commit, tag, or push.
+
+Default `generate_assembly()` / `python -m se2cad.solidworks.assemble <blueprint.sbc>` still resolves untreated `{geometry_id}.SLDPRT`. Explicit `python -m se2cad.solidworks.assemble <blueprint.sbc> --edge-treatment chamfer` resolves treated siblings. Missing treated artifacts raise `MissingCanonicalPartError` and do not fall back to untreated files.
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 323 tests, 5 skipped, 0.524 s, OK. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. Live `SE2CAD_SOLIDWORKS_INTEGRATION=1` `unittest tests.test_solidworks_integration -v` — 5 tests, ERROR. Attached SW 2026 `RevisionNumber` 34.3.2 already had `large_armor_*.SLDPRT` and `se2cad-test1.SLDASM` open from `C:\SE2CAD-generated\` plus an untitled `Part1`. OpenDoc returned None / SaveAs returned false for same-named parts. Operator documents were not closed. Two leftover repo-`generated/` documents from the failed run were closed. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-09 — S2C-10.3.1 inserted (human-authorized sequencing amendment)
 
@@ -384,7 +392,7 @@ These are human-architect technology selections recorded as live decisions. They
 
 These are not invitations to decide them inside an unrelated unit.
 
-- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-7.1.1 added `python -m se2cad.statistics <blueprint.sbc>` on the same terms. S2C-8.1.1 applied names on the existing assemble path and did not add an operator entry. S2C-10.2.1 added only `--edge-treatment chamfer` on the existing part-generation entry. S2C-11.1.1 added `python -m se2cad.discovery` on the same terms. S2C-10.3.1 is authorized to add the same `--edge-treatment chamfer` spelling on the existing assemble entry. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
+- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-7.1.1 added `python -m se2cad.statistics <blueprint.sbc>` on the same terms. S2C-8.1.1 applied names on the existing assemble path and did not add an operator entry. S2C-10.2.1 added only `--edge-treatment chamfer` on the existing part-generation entry. S2C-11.1.1 added `python -m se2cad.discovery` on the same terms. S2C-10.3.1 added the same `--edge-treatment chamfer` spelling on the existing assemble entry. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
 
 Resolved in S2C-6.1.1 and no longer open: numeric position/orientation comparison method. IR `(R, t)` is exact. SolidWorks `ArrayData` allowance is `BACKEND_LENGTH_TOLERANCE_M` (`1e-6` m). Recorded in [INITIAL_ACCEPTANCE_FIXTURE.md](../../testing/INITIAL_ACCEPTANCE_FIXTURE.md) and in this file.
 
@@ -394,7 +402,7 @@ Resolved in S2C-11.1.1 and no longer open: optional local game or SDK install pa
 
 ## Known blockers
 
-None. The next approved unit is S2C-10.3.1 (PLANNED). S2C-11.2.1 remains PLANNED and is deferred until S2C-10.3.1 is QUALIFIED.
+S2C-10.3.1 live SolidWorks qualification is blocked while an operator `SldWorks.Application` session holds same-named documents open. Observed 2026-09-09 on revision 34.3.2: `C:\SE2CAD-generated\large_armor_*.SLDPRT`, `C:\SE2CAD-generated\se2cad-test1.SLDASM`, and untitled `Part1`. Implementation is DEV-COMPLETE. Do not start S2C-11.2.1.
 
 ## S2C-1.1.1 fixture inspection
 
@@ -543,6 +551,27 @@ Live SW 2026 `RevisionNumber` 34.3.2 (`SE2CAD_GENERATED_ROOT=generated`):
 | `large_armor_corner_inv` | 9 (3 notch edges skipped) | 7 → 20 | 13.020833 → 12.993208 | 0.997878 |
 
 Every treated part stayed inside the untreated envelope and the cell envelope. Volume decreased and stayed above `EDGE_TREATMENT_MIN_VOLUME_RATIO` 0.85. Face count increased. InvCorner’s notch edges are live-concave; a local chamfer of those edges returns None, so they are not treated.
+
+## S2C-10.3.1 treated assembly selection
+
+Optional assemble selection consumes treated siblings only when requested. Default assemble still inserts untreated `{geometry_id}.SLDPRT`.
+
+| Selection | Insert name |
+| --- | --- |
+| Default / `--edge-treatment off` | `{geometry_id}.SLDPRT` |
+| `--edge-treatment chamfer` | `{geometry_id}_chamfer.SLDPRT` |
+
+Ordinary evidence:
+
+| Check | Result |
+| --- | --- |
+| Fixture placements default | 24 untreated filenames; geometry_id / names / `(R, t)` / appearance unchanged |
+| Explicit chamfer placements | 24 `{geometry_id}_chamfer.SLDPRT`; same IR identity, names, transforms, appearance |
+| Missing treated siblings | `MissingCanonicalPartError` even when untreated files exist; no fallback |
+| Operator argv | `<blueprint.sbc>` untreated; `<blueprint.sbc> --edge-treatment chamfer` treated; unknown flags fail closed |
+| Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+
+Live SW 2026 qualification was attempted and did not complete. See Known blockers.
 
 ## S2C-2.1.1 catalog evidence
 
@@ -742,6 +771,28 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-10.3.1)
+
+Hypotheses tested after assembly selection, ordinary tests, and the failed live attach existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Explicit chamfer assemble silently falls back to untreated parts | Disproven. `require_canonical_part_files(..., EDGE_TREATMENT_CHAMFER)` looks up `{geometry_id}_chamfer.SLDPRT` only and raises `MissingCanonicalPartError` when untreated files exist and siblings do not. |
+| Treated assemble overwrites untreated `{geometry_id}.SLDPRT` | Disproven. Assemble writes only the identity `.SLDASM`. Part destinations still go through `part_artifact_path`, which refuses a treated name equal to the untreated canonical name. |
+| `_chamfer` is baked into catalog or IR identity | Disproven. Parser, catalog JSON, and IR are unchanged. `ComponentPlacement.geometry_id` stays the IR value; `component_name` has no `_chamfer`. |
+| Path escape from treated part lookup | Disproven. Lookup uses `part_artifact_path` → `contained_destination`. Filenames are single-segment `{geometry_id}_chamfer.SLDPRT`. |
+| Transforms or mates changed | Disproven. Placement copies IR rotation/translation/appearance. `com_assemble.py` still has no mate-creation tokens. Ordinary fixture comparisons remain exact. |
+| Default assemble now inserts treated parts | Disproven. Omitted and `EDGE_TREATMENT_OFF` still name `{geometry_id}.SLDPRT`. `generate_assembly` treatment default is `None`. |
+| Operator documents were closed to force live evidence | Disproven. `C:\SE2CAD-generated\` parts/assembly and untitled `Part1` were left open. Only two leftover repo-`generated/` documents from the failed run were closed. |
+| S2C-11.2.1 or later M7–M15 work started | Disproven. Packaged catalog identities, recipes, and conversion contracts are unchanged. |
+| Proprietary assets added | Disproven. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+
+No verified product findings required remediation. One ordinary test assertion was tightened so “no fallback” is proved by the missing-sibling diagnostic rather than an empty set.
+
+Accepted residual risk: attaching to a running SolidWorks instance that already has `large_armor_*.SLDPRT` open makes OpenDoc/SaveAs fail for the same filenames in another generated root. That blocked QUALIFIED in this session. Treated assemble of the same blueprint identity overwrites the untreated `.SLDASM` name; untreated parts are not modified.
+
+Not claimed: QUALIFIED live treated assembly; catalog identity expansion; print-shell; a general CLI.
 
 ## Quality/security assessment (S2C-10.3.1 sequencing amendment)
 

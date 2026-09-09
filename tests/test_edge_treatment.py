@@ -295,8 +295,6 @@ class LibraryIdentityTests(unittest.TestCase):
         for name in (
             "recipe_plan.py",
             "pipeline.py",
-            "assemble.py",
-            "placement.py",
             "com_construct.py",
         ):
             text = (backend / name).read_text(encoding="utf-8")

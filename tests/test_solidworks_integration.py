@@ -324,6 +324,95 @@ class SolidWorksIntegrationTests(unittest.TestCase):
         }
         self.assertEqual(after_hashes, untreated_hashes)
 
+    def test_treated_assembly_consumes_treated_siblings(self) -> None:
+        from collections import Counter
+
+        from se2cad.catalog import load_default_catalog
+        from se2cad.ir import build_canonical_blueprint, component_name_from_block
+        from se2cad.library import EDGE_TREATMENT_CHAMFER
+        from se2cad.parser import AppearanceSupport, DEFAULT_COLOR_MASK_HSV, parse_blueprint
+        from se2cad.solidworks.appearance import color_mask_hsv_to_rgb, rgb_close
+        from se2cad.solidworks.assemble import generate_assembly
+        from se2cad.solidworks.generate import generate_canonical_parts
+        from se2cad.solidworks.transform_pack import solidworks_arraydata
+
+        untreated = generate_canonical_parts(self.config)
+        untreated_hashes = {
+            result.locator.path.name: hashlib.sha256(
+                result.locator.path.read_bytes()
+            ).hexdigest()
+            for result in untreated
+        }
+        generate_canonical_parts(self.config, treatment=EDGE_TREATMENT_CHAMFER)
+
+        treated_result = generate_assembly(
+            FIXTURE_PATH, self.config, treatment=EDGE_TREATMENT_CHAMFER
+        )
+        self.assertEqual(treated_result.identity, "se2cad-test1")
+        self.assertEqual(treated_result.path.name, "se2cad-test1.SLDASM")
+        self.assertTrue(treated_result.path.is_relative_to(self.config.generated_root))
+        self.assertEqual(len(treated_result.after_reopen), 24)
+        self.assertEqual(
+            Counter(item.placement.geometry_id for item in treated_result.after_reopen),
+            Counter(
+                {
+                    "large_armor_block": 9,
+                    "large_armor_slope": 12,
+                    "large_armor_corner": 2,
+                    "large_armor_corner_inv": 1,
+                }
+            ),
+        )
+
+        ir = build_canonical_blueprint(parse_blueprint(FIXTURE_PATH), load_default_catalog())
+        default_rgb = color_mask_hsv_to_rgb(DEFAULT_COLOR_MASK_HSV)
+        reopen_by_index = {
+            item.placement.source_index: item for item in treated_result.after_reopen
+        }
+        save_by_index = {
+            item.placement.source_index: item for item in treated_result.after_save
+        }
+        for block in ir.grid.blocks:
+            reopened = reopen_by_index[block.source_index]
+            saved = save_by_index[block.source_index]
+            expected = solidworks_arraydata(
+                block.rotation, block.position_mm.as_tuple()
+            )
+            self.assertEqual(reopened.placement.geometry_id, block.geometry_id)
+            self.assertEqual(
+                reopened.placement.part_filename,
+                f"{block.geometry_id}_chamfer.SLDPRT",
+            )
+            expected_name = component_name_from_block(block)
+            self.assertEqual(reopened.component_name, expected_name)
+            self.assertEqual(saved.component_name, expected_name)
+            self.assertNotIn("_chamfer", reopened.component_name)
+            self.assertEqual(reopened.part_path.name, reopened.placement.part_filename)
+            self.assertTrue(
+                reopened.part_path.is_relative_to(self.config.generated_root)
+            )
+            self.assertEqual(reopened.arraydata, expected)
+            self.assertEqual(saved.arraydata, reopened.arraydata)
+            self.assertEqual(reopened.appearance_support, AppearanceSupport.DEFAULT)
+            self.assertTrue(rgb_close(reopened.appearance_rgb, default_rgb))
+            self.assertTrue(reopened.geometry_applied)
+            self.assertTrue(reopened.appearance_applied)
+
+        after_treated_hashes = {
+            name: hashlib.sha256((self.config.generated_root / name).read_bytes()).hexdigest()
+            for name in untreated_hashes
+        }
+        self.assertEqual(after_treated_hashes, untreated_hashes)
+
+        untreated_result = generate_assembly(FIXTURE_PATH, self.config)
+        self.assertEqual(len(untreated_result.after_reopen), 24)
+        for item in untreated_result.after_reopen:
+            self.assertEqual(
+                item.placement.part_filename, f"{item.placement.geometry_id}.SLDPRT"
+            )
+            self.assertEqual(item.part_path.name, item.placement.part_filename)
+
 
 if __name__ == "__main__":
     unittest.main()
+

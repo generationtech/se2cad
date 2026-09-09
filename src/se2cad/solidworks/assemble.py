@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from se2cad.ir.model import CanonicalBlueprint
+from se2cad.library import EDGE_TREATMENT_CHAMFER, EDGE_TREATMENT_OFF, EdgeTreatmentRequest
 from se2cad.solidworks.artifacts import (
     assembly_path_for,
     assert_overwrite_is_canonical,
@@ -56,15 +57,22 @@ def assembly_destination(
 def generate_assembly_from_ir(
     ir: CanonicalBlueprint,
     config: SolidWorksBackendConfig | None = None,
+    treatment: EdgeTreatmentRequest | None = None,
 ) -> GeneratedAssembly:
-    """Insert one component per IR block using the qualified (R, t)."""
+    """Insert one component per IR block using the qualified (R, t).
+
+    Default assembly inserts untreated ``{geometry_id}.SLDPRT``. Pass
+    ``EDGE_TREATMENT_CHAMFER`` to insert treated siblings. Missing
+    treated artifacts fail closed; they are not replaced by untreated
+    parts.
+    """
     require_solidworks_backend()
     resolved = config if config is not None else load_solidworks_backend_config()
     identity = ir.identity_subtype
     if not identity:
         raise AssemblyValidationError("canonical IR has no identity_subtype")
-    placements = placements_from_ir(ir)
-    part_paths = require_canonical_part_files(resolved.generated_root)
+    placements = placements_from_ir(ir, treatment)
+    part_paths = require_canonical_part_files(resolved.generated_root, treatment)
     destination = assembly_destination(resolved, identity)
 
     opened_parts: list[object] = []
@@ -113,13 +121,40 @@ def generate_assembly_from_ir(
 def generate_assembly(
     blueprint_path: Path,
     config: SolidWorksBackendConfig | None = None,
+    treatment: EdgeTreatmentRequest | None = None,
 ) -> GeneratedAssembly:
     """Parse a blueprint through the qualified pipeline and write an SLDASM."""
     resolved = resolve_recipes_from_blueprint(Path(blueprint_path))
-    return generate_assembly_from_ir(resolved.ir, config)
+    return generate_assembly_from_ir(resolved.ir, config, treatment)
 
 
-def main() -> int:
+def _parse_assemble_argv(
+    argv: list[str],
+) -> tuple[Path, EdgeTreatmentRequest] | None:
+    """Parse ``<blueprint.sbc> [--edge-treatment chamfer]``.
+
+    Matches the part-generation spelling. Unknown flags fail closed.
+    """
+    usage = (
+        "usage: python -m se2cad.solidworks.assemble "
+        "<blueprint.sbc> [--edge-treatment chamfer]"
+    )
+    if not argv or argv[0].startswith("-"):
+        print(usage)
+        return None
+    blueprint = Path(argv[0])
+    flags = argv[1:]
+    if not flags:
+        return blueprint, EDGE_TREATMENT_OFF
+    if flags == ["--edge-treatment", "off"]:
+        return blueprint, EDGE_TREATMENT_OFF
+    if flags == ["--edge-treatment", "chamfer"]:
+        return blueprint, EDGE_TREATMENT_CHAMFER
+    print(usage)
+    return None
+
+
+def main(argv: list[str] | None = None) -> int:
     import sys
 
     from se2cad.solidworks.availability import solidworks_backend_status
@@ -128,11 +163,12 @@ def main() -> int:
     if not status.available:
         print(status.reason)
         return 2
-    if len(sys.argv) != 2:
-        print("usage: python -m se2cad.solidworks.assemble <blueprint.sbc>")
+    parsed = _parse_assemble_argv(sys.argv[1:] if argv is None else argv)
+    if parsed is None:
         return 2
+    blueprint, request = parsed
     config = load_solidworks_backend_config()
-    result = generate_assembly(Path(sys.argv[1]), config)
+    result = generate_assembly(blueprint, config, treatment=request)
     print(f"generated_root={config.generated_root} source={config.source}")
     print(f"{result.identity} -> {result.path} components={len(result.after_reopen)}")
     return 0

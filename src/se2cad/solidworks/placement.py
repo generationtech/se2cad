@@ -12,12 +12,13 @@ from pathlib import Path
 
 from se2cad.ir.model import CanonicalBlock, CanonicalBlueprint
 from se2cad.ir.naming import component_name_from_block, component_names_from_blocks
+from se2cad.library import EDGE_TREATMENT_OFF, EdgeTreatmentRequest
 from se2cad.parser.model import AppearanceSupport, ColorMaskHSV
 from se2cad.solidworks.appearance import color_mask_hsv_to_rgb
 from se2cad.solidworks.artifacts import (
-    artifact_path_for,
     canonical_geometry_ids,
-    logical_part_filename,
+    logical_assembly_part_filename,
+    part_artifact_path,
 )
 from se2cad.solidworks.errors import MissingCanonicalPartError, UnknownCanonicalPartError
 from se2cad.transform.rotation import RotationMatrix
@@ -41,19 +42,29 @@ class ComponentPlacement:
     appearance_rgb: tuple[float, float, float]
 
 
-def placements_from_ir(ir: CanonicalBlueprint) -> tuple[ComponentPlacement, ...]:
-    """Preserve IR document order and exact block multiplicity."""
+def placements_from_ir(
+    ir: CanonicalBlueprint,
+    treatment: EdgeTreatmentRequest | None = None,
+) -> tuple[ComponentPlacement, ...]:
+    """Preserve IR document order and exact block multiplicity.
+
+    Default and ``EDGE_TREATMENT_OFF`` name untreated canonical parts.
+    An explicit chamfer request names treated siblings. Geometry identity,
+    component names, transforms, and appearance stay on the IR block.
+    """
     allowed = set(canonical_geometry_ids())
     component_names_from_blocks(ir.grid.blocks)
+    chosen = EDGE_TREATMENT_OFF if treatment is None else treatment
     placements: list[ComponentPlacement] = []
     for block in ir.grid.blocks:
-        placements.append(_placement_from_block(block, allowed))
+        placements.append(_placement_from_block(block, allowed, chosen))
     return tuple(placements)
 
 
 def _placement_from_block(
     block: CanonicalBlock,
     allowed: set[str],
+    treatment: EdgeTreatmentRequest,
 ) -> ComponentPlacement:
     if block.geometry_id not in allowed:
         raise UnknownCanonicalPartError(
@@ -63,7 +74,7 @@ def _placement_from_block(
         source_index=block.source_index,
         subtype_id=block.subtype_id,
         geometry_id=block.geometry_id,
-        part_filename=logical_part_filename(block.geometry_id),
+        part_filename=logical_assembly_part_filename(block.geometry_id, treatment),
         component_name=component_name_from_block(block),
         grid_min=(block.grid_min.x, block.grid_min.y, block.grid_min.z),
         position_mm=block.position_mm.as_tuple(),
@@ -75,19 +86,42 @@ def _placement_from_block(
     )
 
 
-def require_canonical_part_files(root: Path) -> dict[str, Path]:
-    """Fail closed when any of the four qualified SLDPRT files is missing."""
+def require_canonical_part_files(
+    root: Path,
+    treatment: EdgeTreatmentRequest | None = None,
+) -> dict[str, Path]:
+    """Fail closed when a required generated SLDPRT is missing.
+
+    Default looks up untreated ``{geometry_id}.SLDPRT``. An explicit
+    chamfer request looks up ``{geometry_id}_chamfer.SLDPRT`` only and
+    does not fall back to the untreated file.
+    """
+    chosen = EDGE_TREATMENT_OFF if treatment is None else treatment
     resolved: dict[str, Path] = {}
     missing: list[str] = []
     for geometry_id in canonical_geometry_ids():
-        path = artifact_path_for(root, geometry_id)
+        path = part_artifact_path(root, geometry_id, chosen)
+        if chosen.enabled and path.name == logical_assembly_part_filename(
+            geometry_id, EDGE_TREATMENT_OFF
+        ):
+            raise MissingCanonicalPartError(
+                "treated assembly refused to resolve an untreated canonical part "
+                f"for geometry_id {geometry_id!r}"
+            )
         if not path.is_file():
-            missing.append(geometry_id)
+            missing.append(path.name)
         else:
             resolved[geometry_id] = path
     if missing:
+        if chosen.enabled:
+            raise MissingCanonicalPartError(
+                "treated part artifacts are missing from the generated root: "
+                + ", ".join(missing)
+                + "; generate them with python -m se2cad.solidworks "
+                "--edge-treatment chamfer"
+            )
         raise MissingCanonicalPartError(
             "canonical part artifacts are missing from the generated root: "
-            + ", ".join(missing)
+            + ", ".join(Path(name).stem for name in missing)
         )
     return resolved

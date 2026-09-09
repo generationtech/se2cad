@@ -300,7 +300,10 @@ dimensionally the qualified M0–M6 path. The treatment is not a new
 block subtype and is not limited to the four proof-of-concept armor IDs.
 When requested, SolidWorks writes treated sibling parts
 (`*_chamfer.SLDPRT`) under the generated root and leaves the untreated
-canonical `.SLDPRT` files unchanged.
+canonical `.SLDPRT` files unchanged. Explicit assemble selection
+(`--edge-treatment chamfer`) inserts those siblings. Default assemble
+still inserts untreated `{geometry_id}.SLDPRT`. Missing treated
+artifacts fail closed; they are not replaced by untreated parts.
 
 **Library-build definition discovery** can read cube-block identities
 from an operator-configured local Space Engineers or ModSDK tree
@@ -370,7 +373,12 @@ Convert the included acceptance fixture:
 
 ``` cmd
 python -m se2cad.solidworks.assemble fixtures\acceptance\four-block-armor-asymmetric\bp.sbc
+python -m se2cad.solidworks.assemble fixtures\acceptance\four-block-armor-asymmetric\bp.sbc --edge-treatment chamfer
 ```
+
+The second command inserts treated sibling parts. It does not change
+IR identity, placement transforms, or overwrite untreated `.SLDPRT`
+files. Generate the treated parts first.
 
 Then open the generated `.SLDASM` in SolidWorks.
 

@@ -91,6 +91,22 @@ def is_treated_artifact_filename(filename: str) -> bool:
     }
 
 
+def logical_assembly_part_filename(
+    geometry_id: str,
+    request: EdgeTreatmentRequest | None = None,
+) -> str:
+    """SLDPRT name used at assembly insert for the requested treatment.
+
+    Default and ``EDGE_TREATMENT_OFF`` keep the untreated canonical name.
+    An explicit chamfer request names the treated sibling. Treatment is
+    not a new ``geometry_id``.
+    """
+    chosen = EDGE_TREATMENT_OFF if request is None else request
+    if not chosen.enabled:
+        return logical_part_filename(geometry_id)
+    return logical_treated_part_filename(geometry_id, chosen)
+
+
 def treated_artifact_path_for(
     root: Path,
     geometry_id: str,
