@@ -329,6 +329,13 @@ supported conversion. SE2CAD does not claim 100% vanilla coverage.
 Runtime conversion still uses only the packaged catalog and a `.sbc`
 blueprint; it does not require a game or SDK install.
 
+CAD-neutral **conversion preflight** diagnoses each parsed block against
+the packaged catalog before assembly generation: supported, catalog-
+unsupported, and unknown are distinct outcomes. Geometry support and
+appearance support stay independently reportable. A produced preflight
+report is not a conversion. Unknown subtypes are not aliased to armor.
+Filler substitution is not part of preflight.
+
 ### Current scope
 
 SE2CAD is **not yet a universal Space Engineers ship converter**. The
@@ -355,10 +362,11 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-Blueprint statistics do not require SolidWorks:
+Blueprint statistics and conversion preflight do not require SolidWorks:
 
 ``` cmd
 python -m se2cad.statistics fixtures\acceptance\four-block-armor-asymmetric\bp.sbc
+python -m se2cad.preflight fixtures\acceptance\four-block-armor-asymmetric\bp.sbc
 ```
 
 SolidWorks workflow requirements: Windows; Python 3.10+ (the qualified

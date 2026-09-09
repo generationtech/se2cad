@@ -6,7 +6,8 @@ S2C-4.1.1 exposes the canonical block-library recipes. S2C-7.1.1 exposes
 CAD-neutral blueprint statistics. S2C-8.1.1 exposes CAD-neutral
 component names from IR fields. S2C-9.1.1 carries CAD-neutral
 ``ColorMaskHSV`` appearance on the parser and IR. S2C-10.1.1 exposes an
-optional CAD-neutral block-edge treatment. The SolidWorks backend lives
+optional CAD-neutral block-edge treatment. S2C-12.1.1 exposes CAD-neutral
+conversion preflight. The SolidWorks backend lives
 in ``se2cad.solidworks`` and is not imported here.
 """
 
@@ -73,6 +74,14 @@ from se2cad.parser import (
     parse_blueprint,
     parse_blueprint_xml,
 )
+from se2cad.preflight import (
+    BlockPreflight,
+    CatalogOutcome,
+    ConversionPreflight,
+    compute_conversion_preflight,
+    compute_conversion_preflight_from_path,
+    compute_conversion_preflight_from_xml,
+)
 from se2cad.statistics import (
     AxisRange,
     BlueprintStatistics,
@@ -113,6 +122,7 @@ __all__ = [
     "SE_DIRECTION_VECTORS",
     "AppearanceSupport",
     "AxisRange",
+    "BlockPreflight",
     "BlueprintParseError",
     "BlueprintStatistics",
     "CanonicalBlock",
@@ -120,12 +130,14 @@ __all__ = [
     "CanonicalGrid",
     "CatalogCoverage",
     "CatalogEntry",
+    "CatalogOutcome",
     "CatalogError",
     "CatalogValidationError",
     "CellExtents",
     "CellSize",
     "ColorMaskHSV",
     "ComponentNameError",
+    "ConversionPreflight",
     "DefinitionCatalog",
     "Direction",
     "GridCoordinate",
@@ -168,6 +180,9 @@ __all__ = [
     "compute_blueprint_statistics",
     "compute_blueprint_statistics_from_path",
     "compute_blueprint_statistics_from_xml",
+    "compute_conversion_preflight",
+    "compute_conversion_preflight_from_path",
+    "compute_conversion_preflight_from_xml",
     "direction_vector",
     "is_valid_orientation",
     "legal_orientations",

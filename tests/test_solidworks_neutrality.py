@@ -16,6 +16,7 @@ CAD_NEUTRAL = (
     SRC / "transform",
     SRC / "library",
     SRC / "statistics",
+    SRC / "preflight",
 )
 BACKEND_NEUTRAL_MODULES = (
     SRC / "solidworks" / "__init__.py",
@@ -77,6 +78,7 @@ class NeutralityTests(unittest.TestCase):
         self.assertTrue(hasattr(se2cad, "parse_blueprint"))
         self.assertTrue(hasattr(se2cad, "lookup_recipe"))
         self.assertTrue(hasattr(se2cad, "compute_blueprint_statistics"))
+        self.assertTrue(hasattr(se2cad, "compute_conversion_preflight"))
         self.assertTrue(hasattr(se2cad, "component_name"))
         self.assertTrue(hasattr(se2cad, "ColorMaskHSV"))
         self.assertTrue(hasattr(se2cad, "AppearanceSupport"))
