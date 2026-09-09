@@ -302,6 +302,13 @@ When requested, SolidWorks writes treated sibling parts
 (`*_chamfer.SLDPRT`) under the generated root and leaves the untreated
 canonical `.SLDPRT` files unchanged.
 
+**Library-build definition discovery** can read cube-block identities
+from an operator-configured local Space Engineers or ModSDK tree
+(`SE2CAD_GAME_ROOT` / `SE2CAD_SDK_ROOT` or `se2cad.local.json`). It
+records observed definition facts for later catalog authoring. Runtime
+conversion still uses only the packaged catalog and a `.sbc` blueprint;
+it does not require a game or SDK install.
+
 ### Current scope
 
 SE2CAD is **not yet a universal Space Engineers ship converter**. The

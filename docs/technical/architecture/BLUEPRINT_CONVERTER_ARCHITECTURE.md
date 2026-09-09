@@ -18,6 +18,7 @@ Responsibilities:
 | --- | --- | --- |
 | Parser | Read supported `bp.sbc` safely; extract grid and per-block subtype, position, Forward, Up, and `ColorMaskHSV` appearance | Resolve geometry identity; compute CAD transforms; call SolidWorks |
 | Definition catalog | Map exact subtype → geometry identity; expose grid pitch from one named constant | Load meshes; contain COM types; scan a game install |
+| Library-build discovery | Read operator-configured game/SDK definition `.sbc` files into observed catalog fields | Change runtime lookup; copy meshes/textures; assign `geometry_id` |
 | Transform engine | Compute exact placement from grid coordinate + orientation + pitch | Insert components; apply mates |
 | Block library | Return canonical part + reference metadata; optional identity-free edge treatment | Parse blueprints; bake treatment into `geometry_id` |
 | SolidWorks backend | Insert parts by transform; assign instance appearance; save assembly | Recalculate SE orientation; call Blender; build mate networks for fixed SE placement; paint canonical `.SLDPRT` files |
@@ -56,7 +57,7 @@ RGB conversion and SolidWorks assignment live in the SolidWorks package (`se2cad
 
 ## Block-edge treatment
 
-Optional printable edge definition is a library geometry treatment, not an IR field and not a new catalog identity. Public entrypoints: `se2cad.apply_edge_treatment`, `EDGE_TREATMENT_OFF`, `EDGE_TREATMENT_CHAMFER`. Default conversion does not apply it. Placement still uses the qualified frame, cell envelope, pitch, and zero insert offset. Contract detail: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md). When STATE records S2C-10.2.1, requested SolidWorks generation writes deterministic treated siblings (`{geometry_id}_chamfer.SLDPRT`) under the generated root and leaves untreated `large_armor_*.SLDPRT` as the default conversion and insert parts.
+Optional printable edge definition is a library geometry treatment, not an IR field and not a new catalog identity. Public entrypoints: `se2cad.apply_edge_treatment`, `EDGE_TREATMENT_OFF`, `EDGE_TREATMENT_CHAMFER`. Default conversion does not apply it. Placement still uses the qualified frame, cell envelope, pitch, and zero insert offset. Contract detail: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md). When STATE records S2C-10.2.1, requested SolidWorks generation writes deterministic treated siblings (`{geometry_id}_chamfer.SLDPRT`) under the generated root and leaves untreated `large_armor_*.SLDPRT` as the default conversion and insert parts. When STATE records S2C-10.3.1, explicit chamfer assembly selection resolves those treated siblings; default assemble continues to insert untreated `{geometry_id}.SLDPRT`. `_chamfer` is an artifact treatment, not a new `geometry_id` or subtype.
 
 ## Intermediate representation
 
@@ -96,6 +97,8 @@ Lookup is an exact, case-sensitive match of the parser `subtype_id` string. Unkn
 Recipe vocabulary remains `native_procedural`, `sdk_mesh_direct`, `sdk_mesh_manifold`, `hand_authored`, and `unsupported`. Naming a recipe is not an implementation of that recipe. The initial four Large Grid armor entries use `native_procedural` only.
 
 The catalog must not store machine-specific paths or proprietary mesh/texture references. The normal conversion path must not open Space Engineers content files to resolve these four subtypes.
+
+When STATE records S2C-11.1.1, library-build discovery may read an operator-local install for catalog-authoring evidence. That scan is not part of `parse_blueprint`, `load_default_catalog`, `build_canonical_blueprint`, or assembly generation. Contract: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md).
 
 ## Transforms
 
@@ -197,6 +200,6 @@ The completed initial program’s converter success path was:
 
 That path remains the qualified baseline. Fail closed on multiple grids and missing required fields. Do not silently drop blocks.
 
-Unknown-subtype handling, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1. The optional block-edge treatment contract is present when STATE records S2C-10.1.1. SolidWorks treated-part generation is present when STATE records S2C-10.2.1; default conversion remains untreated.
+Unknown-subtype handling, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1. The optional block-edge treatment contract is present when STATE records S2C-10.1.1. SolidWorks treated-part generation is present when STATE records S2C-10.2.1; default conversion remains untreated. Explicit treated-part assembly selection is present when STATE records S2C-10.3.1; default assemble remains untreated. Operator-local definition discovery is present when STATE records S2C-11.1.1; it does not change runtime catalog lookup.
 
 Blender is not a converter stage. A general print/slicer pipeline is not a converter stage.

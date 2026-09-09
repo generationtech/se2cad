@@ -15,15 +15,17 @@ The nine milestones, in order, are: blueprint statistics; CAD component naming; 
 
 No implementation milestone is ACTIVE. Cold-storage backlog remains outside this program. Do not invent work beyond it.
 
+A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. S2C-11.1.1 remains QUALIFIED. S2C-11.2.1 remains PLANNED and is deferred until S2C-10.3.1 is QUALIFIED.
+
 **Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, and QUALIFIED S2C-10.2.1 optional treated canonical parts. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. Remaining M11–M15 features are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, and QUALIFIED S2C-11.1.1 operator-local definition discovery. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. Explicit assembly consumption of treated sibling parts (S2C-10.3.1) is approved and not implemented. S2C-11.2.1 catalog identity expansion remains PLANNED and is deferred until S2C-10.3.1 is QUALIFIED. Remaining later M11 units through M15 are approved, not implemented.
 
 ## Next executable unit
 
-S2C-11.1.1 — Operator-local definition discovery. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
+S2C-10.3.1 — Assemble using optional treated parts. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
 
 ## Unit status
 
@@ -52,8 +54,9 @@ S2C-11.1.1 — Operator-local definition discovery. Defined in [SE2CAD_PLAN_M7.m
 | S2C-9.2.1 | QUALIFIED | HSV-offset → RGB in `se2cad.solidworks.appearance`; `IComponent2.MaterialPropertyValues` instance override at insert. Ordinary suite 251 tests, 3 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: fixture 24 default appearances; synthetic two colors plus default on one `large_armor_block.SLDPRT`; canonical part SHA-256 unchanged. Distinct assessment recorded below. |
 | S2C-10.1.1 | QUALIFIED | CAD-neutral equal-setback chamfer on convex manifold edges; default off; not a new `geometry_id`. Ordinary suite 267 tests, 3 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-10.2.1 | QUALIFIED | Sibling `{geometry_id}_chamfer.SLDPRT` under the generated root when `EDGE_TREATMENT_CHAMFER` is requested. Untreated `large_armor_*.SLDPRT` remain the default. Ordinary suite 283 tests, 4 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: treated and untreated parts, one solid body, S2C-10.1.1 measurables. Distinct assessment recorded below. |
-| S2C-11.1.1 | PLANNED | |
-| S2C-11.2.1 | PLANNED | |
+| S2C-10.3.1 | PLANNED | Next executable unit. Inserted by 2026-09-09 human-authorized amendment after S2C-11.1.1 QUALIFIED, to close treated-part assembly consumption. |
+| S2C-11.1.1 | QUALIFIED | Library-build `se2cad.discovery` reads operator-configured game/SDK `.sbc` trees into observed catalog fields. Ordinary suite 309 tests, 4 skipped, OK. Runtime conversion remains install-free. External validation was not required. Distinct assessment recorded below. |
+| S2C-11.2.1 | PLANNED | Execution deferred until S2C-10.3.1 is QUALIFIED. Has not started. |
 | S2C-11.3.1 | PLANNED | |
 | S2C-11.4.1 | PLANNED | |
 | S2C-11.5.1 | PLANNED | |
@@ -69,6 +72,22 @@ S2C-11.1.1 — Operator-local definition discovery. Defined in [SE2CAD_PLAN_M7.m
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-09 — S2C-10.3.1 inserted (human-authorized sequencing amendment)
+
+Governance/planning amendment only. Did not implement S2C-10.3.1. Did not start S2C-11.2.1. Did not modify or undo QUALIFIED S2C-11.1.1. Did not modify production code or tests. Did not commit, tag, or push.
+
+Human sequencing decision after discovery of the treated-part assembly-consumption gap: S2C-10.2.1 generates `{geometry_id}_chamfer.SLDPRT` siblings, but assembly still always inserts untreated `{geometry_id}.SLDPRT`. M11 had already started. S2C-11.1.1 was already QUALIFIED. S2C-11.2.1 had not started. The architect authorized inserting S2C-10.3.1 into M10 as the next unit, then resuming at S2C-11.2.1.
+
+This does not rewrite history to imply M11 never started. S2C-10.1.1, S2C-10.2.1, and S2C-11.1.1 remain QUALIFIED with their original evidence. M10 now has three units. The program remains M7–M15.
+
+### 2026-09-09 — S2C-11.1.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-11.2.1. Did not invent catalog identity expansion, recipe selection, preflight, Small Grid conversion, symmetry, or print-shell. Did not create a general CLI or UI. Did not change runtime `parse_blueprint` / `load_default_catalog` / `build_canonical_blueprint` / assembly generation to scan an install. Did not copy meshes, FBX, MWM, or textures. Did not commit, tag, or push.
+
+Discovery is a library-build evidence tool, not a converter stage. Install roots reuse the established env / uncommitted `se2cad.local.json` pattern: `SE2CAD_GAME_ROOT` / `SE2CAD_SDK_ROOT` and JSON keys `game_root` / `sdk_root`. Shared local-config allowed keys now also include those roots so one `se2cad.local.json` can hold SolidWorks and discovery paths. Walks only `Content/Data/CubeBlocks` and `Data/CubeBlocks` `*.sbc` files. Records subtype, type, cube size, occupancy, topology tokens, and root-relative source. Small Grid and TriangleMesh identities are observed facts. `geometry_id` is not assigned.
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 309 tests, 4 skipped, 0.996 s, OK. Fixture SHA-256 unchanged. No live game/SDK tree was present on this host; QUALIFIED from synthetic tests as the unit allows. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-09 — S2C-10.2.1 QUALIFIED
 
@@ -359,21 +378,23 @@ These are human-architect technology selections recorded as live decisions. They
 | SolidWorks COM interop | pywin32, Windows-only optional extra (`solidworks`) | S2C-4.2.1. Confirmed by the human architect. |
 | SolidWorks execution | Windows-local in-process COM in the SolidWorks VM; no remoting | S2C-4.2.1. Confirmed by the human architect. |
 | Generated canonical SLDPRT home | Configurable local generated root; not committed; not catalog paths | S2C-4.2.1. Confirmed by the human architect. |
+| Optional local game / SDK install path | `SE2CAD_GAME_ROOT` / `SE2CAD_SDK_ROOT` and `game_root` / `sdk_root` in uncommitted `se2cad.local.json`; library-build only | S2C-11.1.1. Reused the established local-config pattern. |
 
 ## Open questions
 
 These are not invitations to decide them inside an unrelated unit.
 
-- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-7.1.1 added `python -m se2cad.statistics <blueprint.sbc>` on the same terms. S2C-8.1.1 applied names on the existing assemble path and did not add an operator entry. S2C-10.2.1 added only `--edge-treatment chamfer` on the existing part-generation entry. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
-- Optional local game or SDK install path. Still a human technology-selection item. S2C-11.1.1 must reuse the established env / `se2cad.local.json` pattern or stop and ask. The Windows SolidWorks conversion path does not require it.
+- CLI / entrypoint shape. S2C-4.2.1 added only `python -m se2cad.solidworks` as a Windows operator entry, not a general CLI. S2C-5.1.1 added `python -m se2cad.solidworks.assemble <blueprint.sbc>` on the same terms. S2C-7.1.1 added `python -m se2cad.statistics <blueprint.sbc>` on the same terms. S2C-8.1.1 applied names on the existing assemble path and did not add an operator entry. S2C-10.2.1 added only `--edge-treatment chamfer` on the existing part-generation entry. S2C-11.1.1 added `python -m se2cad.discovery` on the same terms. S2C-10.3.1 is authorized to add the same `--edge-treatment chamfer` spelling on the existing assemble entry. S2C-6.1.1 and the M7–M15 authorization did not invent a general CLI. Later units may add a narrow `python -m se2cad…` entry; they must not create a general CLI or GUI.
 
 Resolved in S2C-6.1.1 and no longer open: numeric position/orientation comparison method. IR `(R, t)` is exact. SolidWorks `ArrayData` allowance is `BACKEND_LENGTH_TOLERANCE_M` (`1e-6` m). Recorded in [INITIAL_ACCEPTANCE_FIXTURE.md](../../testing/INITIAL_ACCEPTANCE_FIXTURE.md) and in this file.
 
 Resolved in S2C-4.2.1 and no longer open: generated SLDPRT location (local generated root); Linux-to-Windows invocation (out of scope; operator-managed clones and blueprint copy); SolidWorks configuration for this unit (`SE2CAD_GENERATED_ROOT` / `se2cad.local.json` / optional part-template env); in-process Windows COM vs remoting (COM, no remoting); pywin32 as a Windows-only optional dependency.
 
+Resolved in S2C-11.1.1 and no longer open: optional local game or SDK install path. Library-build discovery uses `SE2CAD_GAME_ROOT` / `SE2CAD_SDK_ROOT` and `game_root` / `sdk_root` in the existing uncommitted `se2cad.local.json`. The Windows SolidWorks conversion path still does not require it.
+
 ## Known blockers
 
-None. The next approved unit is S2C-11.1.1 (PLANNED).
+None. The next approved unit is S2C-10.3.1 (PLANNED). S2C-11.2.1 remains PLANNED and is deferred until S2C-10.3.1 is QUALIFIED.
 
 ## S2C-1.1.1 fixture inspection
 
@@ -722,6 +743,64 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
 
+## Quality/security assessment (S2C-10.3.1 sequencing amendment)
+
+Hypotheses tested after the governance/planning amendment documents existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| A tenth milestone was created or M7–M15 was reordered | Disproven. Program still lists exactly nine milestones M7–M15. S2C-10.3.1 is a third M10 unit. |
+| S2C-10.1.1 or S2C-10.2.1 qualification was rewritten | Disproven. Both remain QUALIFIED with original evidence, live SolidWorks record, and assessments. |
+| S2C-11.1.1 was invalidated or its evidence rewritten | Disproven. Status, session history, discovery evidence, and assessment remain QUALIFIED. |
+| S2C-11.2.1 was started or marked other than PLANNED | Disproven. Status is PLANNED, deferred until S2C-10.3.1 is QUALIFIED. Packaged catalog still has the four armor identities. |
+| History was rewritten to imply M11 never started | Disproven. STATE current-program text, session history, and S2C-11.1.1 QUALIFIED record remain. |
+| S2C-10.3.1 was implemented in this session | Disproven. No `src/` or `tests/` edits. Assemble still has no treated-part selection. |
+| The ratchet was given M10-specific logic | Disproven. [SE2CAD_RATCHET.md](../../cursor/SE2CAD_RATCHET.md) still derives the next unit from STATE only. |
+| Named opschecks were added | Disproven. S2C-10.3.1 reuses `SE2CAD_SOLIDWORKS_INTEGRATION`. The program still defines none. |
+| Planned treated assembly was described as implemented capability | Disproven. README assemble path remains untreated. Architecture uses “when STATE records S2C-10.3.1”. |
+| Proprietary assets added | Disproven. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+
+No verified findings required remediation.
+
+Accepted residual risk: a later session could misread the out-of-sequence insertion as permission to invent further units. The ratchet still requires STATE authorization for the single next unit.
+
+Not claimed: S2C-10.3.1 implementation; treated assembly selection; any change to QUALIFIED S2C-11.1.1.
+
+## Quality/security assessment (S2C-11.1.1)
+
+Hypotheses tested after discovery, shared local-config, synthetic-tree tests, and the ordinary suite existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Discovery walks an arbitrary disk or the whole install | Disproven. Only `Content/Data/CubeBlocks` and `Data/CubeBlocks` `*.sbc` files under a configured root are read. A root without those directories fails closed. |
+| Path escape or symlink-equivalent outside the root is accepted | Disproven. `contained_file` and definition-directory resolution use `relative_to` after `resolve`. Outside paths raise `DiscoveryPathError`. |
+| XXE / DTD / XInclude in definition XML is loaded | Disproven. The same marker rejection as the blueprint parser (`<!doctype`, `<!entity`, `xinclude`) fails closed before `ElementTree`. |
+| Conversion requires a game/SDK install | Disproven. `parse_blueprint` / `load_default_catalog` / `build_canonical_blueprint` succeed with those env vars unset. `se2cad/__init__.py` and runtime packages do not import `se2cad.discovery`. |
+| Machine paths or mesh references enter the packaged catalog | Disproven. Catalog JSON is unchanged (four entries). Discovery records root-relative `source_relative` only. Model/Icon `.mwm`/`.dds` in synthetic XML are not copied into the report. |
+| Shared `se2cad.local.json` keys break SolidWorks config | Disproven. `game_root` / `sdk_root` are allowed and ignored by the SolidWorks loader. Unknown keys such as `steam_path` still fail. |
+| Ordinary suite attaches to SolidWorks or a real install | Disproven. 309 tests, 4 skipped, 0.996 s with `SE2CAD_SOLIDWORKS_INTEGRATION` unset and no game tree. |
+| S2C-11.2.1 or later M7–M15 work started | Disproven. Packaged catalog identities, recipes, and conversion contracts are unchanged. |
+
+No verified findings required remediation.
+
+Accepted residual risk: discovery error messages may include the operator-supplied root path (same class as `parse_blueprint`). An operator-local run against a real Space Engineers / ModSDK tree was not performed on this host and is not required for QUALIFIED. Nested files below `CubeBlocks/` are not walked; vanilla files in STATE evidence sit directly in that directory.
+
+Not claimed: catalog expansion; recipe selection; Small Grid conversion; TriangleMesh construction; a live install inventory.
+
+## S2C-11.1.1 discovery evidence
+
+Public entrypoints: `se2cad.discovery.discover_cube_block_definitions`, `load_discovery_config`. Narrow operator entry: `python -m se2cad.discovery`. Not imported by `se2cad/__init__.py`.
+
+| Item | Record |
+| --- | --- |
+| Config | `SE2CAD_GAME_ROOT` / `SE2CAD_SDK_ROOT` override `game_root` / `sdk_root` in `se2cad.local.json`. At least one root required. |
+| Trees walked | `{root}/Content/Data/CubeBlocks/*.sbc` and `{root}/Data/CubeBlocks/*.sbc` only |
+| Observed fields | `subtype_id`, `type_id`, `cube_size`, `size`, `block_topology`, `cube_topology` (omitted when absent), `source_kind`, `source_relative` |
+| Not recorded | `geometry_id`, `recipe_kind`, `support_status`, Model/Icon/mesh paths, absolute machine roots |
+| Fail closed | missing/non-directory root; path escape; no CubeBlocks tree; malformed XML; DTD/entity/XInclude; missing identity/size/topology; conflicting observed facts |
+| Ordinary suite | 309 tests, 4 skipped, 0.996 s, OK |
+| Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+
 ## Quality/security assessment (S2C-10.2.1)
 
 Hypotheses tested after sibling naming, ordinary tests, and live 34.3.2 treated/untreated generation existed. Outcomes:
@@ -883,7 +962,7 @@ Hypotheses tested after drafting the current program and updating governance poi
 
 Remediated during review: sequencing rule clarified so a DEV-COMPLETE SolidWorks unit does not freeze later CAD-neutral units; architecture decision 2 notes a second named Small Grid pitch constant; historical vs current program pointers were added wherever a fresh session would otherwise read only M0–M6.
 
-Accepted residual risk: S2C-11.4.1’s “representative automatable subset” and S2C-13.2.1’s optional operator-authored Small Grid fixture are bounded in the plan but still require judgment in those sessions. S2C-11.1.1 must reuse existing local-config or stop if install-path configuration is treated as a new architecture. Color omitted-field semantics and the print-shell product definition remain stop-and-ask items if evidence or two defensible definitions conflict.
+Accepted residual risk: S2C-11.4.1’s “representative automatable subset” and S2C-13.2.1’s optional operator-authored Small Grid fixture are bounded in the plan but still require judgment in those sessions. Install-path configuration was resolved in S2C-11.1.1 by reusing env / `se2cad.local.json`. Color omitted-field semantics and the print-shell product definition remain stop-and-ask items if evidence or two defensible definitions conflict.
 
 Not claimed: any M7–M15 product implementation; publication; a general CLI.
 

@@ -157,7 +157,7 @@ A listed prerequisite is met at DEV-COMPLETE unless the later unit consumes that
 
 **Objective.** Provide an optional geometry treatment that defines printable block edges without disturbing the qualified reference frame or placement dimensions.
 
-**Completion outcome.** When requested, generated solids include a defined edge treatment applicable beyond the four proof-of-concept recipes. Untreated conversion remains the default and stays dimensionally correct.
+**Completion outcome.** When requested, generated solids include a defined edge treatment applicable beyond the four proof-of-concept recipes, and explicit blueprint assembly generation consumes those treated sibling artifacts. Untreated conversion remains the default and stays dimensionally correct.
 
 ### S2C-10.1.1 — Optional block-edge treatment contract
 
@@ -205,7 +205,7 @@ A listed prerequisite is met at DEV-COMPLETE unless the later unit consumes that
 - Placement still uses the qualified `(R, t)` and untreated reference frame.
 - Mechanism (feature on a configuration, sibling artifact, or other in-boundary approach) must not require a new CAD backend or remoting. If choosing among those options is a significant architectural tradeoff, stop and ask.
 
-**Explicit boundaries / out of scope.** Physical print judgment; TriangleMesh implementation; changing M9 appearance rules; print-shell.
+**Explicit boundaries / out of scope.** Blueprint assembly consumption of treated siblings (S2C-10.3.1); physical print judgment; TriangleMesh implementation; changing M9 appearance rules; print-shell.
 
 **Development validation.** Ordinary tests assert untreated default paths are unchanged and treated generation is requested only when enabled.
 
@@ -214,6 +214,37 @@ A listed prerequisite is met at DEV-COMPLETE unless the later unit consumes that
 **External validation.** Live SolidWorks integration generates treated and untreated parts, validates one solid body, and checks the S2C-10.1.1 measurable properties. Use `SE2CAD_SOLIDWORKS_INTEGRATION`. Required for QUALIFIED.
 
 **Completion criteria.** Optional treated parts generate; untreated default and placement remain qualified; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE.
+
+### S2C-10.3.1 — Assemble using optional treated parts
+
+**Objective.** When explicitly requested, blueprint assembly generation resolves and inserts treated sibling parts without changing default untreated assembly behavior, catalog or IR identity, or placement.
+
+**Rationale.** S2C-10.2.1 produces treated sibling artifacts. Default assembly still inserts untreated `{geometry_id}.SLDPRT`. This unit closes that consumption gap.
+
+**Prerequisites.** S2C-10.2.1. This unit was inserted by a human-authorized amendment after S2C-11.1.1 was already QUALIFIED. It does not reopen or invalidate S2C-11.1.1.
+
+**Affected systems / expected areas.** SolidWorks assembly part resolution, assemble operator entry, ordinary and live tests. Do not change parser, catalog, IR, recipes, or the qualified `(R, t)` contract.
+
+**Implementation requirements.**
+
+- Default assembly remains untreated: `python -m se2cad.solidworks.assemble <blueprint.sbc>` continues resolving `{geometry_id}.SLDPRT`.
+- Add explicit treated assembly selection, preferably `python -m se2cad.solidworks.assemble <blueprint.sbc> --edge-treatment chamfer`, matching the existing part-generation spelling unless that entry’s structure requires an equivalent compatible form.
+- Explicit chamfer assembly resolves `{geometry_id}_chamfer.SLDPRT`.
+- Do not create a new `geometry_id` or subtype; do not change catalog or IR identity; do not change parsing; do not change qualified `(R, t)`; do not introduce placement corrections; do not overwrite untreated parts; do not silently fall back to untreated parts.
+- If explicitly requested treated artifacts are missing, fail closed with useful diagnostics.
+- Existing deterministic component naming and per-instance appearance must continue to operate.
+- `_chamfer` is an artifact treatment, not part of the Space Engineers block’s semantic identity.
+- Protect default untreated assembly behavior with regression tests.
+
+**Explicit boundaries / out of scope.** Catalog identity expansion (S2C-11.2.1); recipe selection; print-shell; changing untreated generation; physical print; a general CLI or UI.
+
+**Development validation.** Ordinary tests prove default assemble still names untreated `{geometry_id}.SLDPRT`, explicit chamfer selection names treated siblings, and missing treated artifacts fail closed. IR transforms, component-name requests, and appearance requests remain unchanged.
+
+**Quality/security assessment focus.** Silent fallback to untreated parts; overwrite of untreated artifacts; baking `_chamfer` into catalog/IR identity; path escape; changing transforms or adding mates.
+
+**External validation.** Ordinary tests plus the existing live SolidWorks integration path (`SE2CAD_SOLIDWORKS_INTEGRATION`). Establish, as applicable: untreated selection still resolves untreated parts; explicit chamfer selection resolves treated siblings; expected component count; unchanged IR transforms; deterministic names; per-instance appearance; save/close/reopen persistence; no unexpected mates or placement corrections; untreated artifacts are not modified. Add no named opscheck unless an important requirement cannot be established that way. Required for QUALIFIED.
+
+**Completion criteria.** Explicit treated assembly consumes treated siblings; default untreated assembly remains qualified; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE.
 
 ---
 
@@ -259,7 +290,7 @@ This milestone is expected to need more units than the others. It does not requi
 
 **Rationale.** Runtime conversion must keep using packaged catalog data, not a live game scan.
 
-**Prerequisites.** S2C-11.1.1.
+**Prerequisites.** S2C-11.1.1. Sequencing: execute only after S2C-10.3.1 is QUALIFIED (human-authorized M10 insertion after M11 had started).
 
 **Affected systems / expected areas.** Catalog schema/loader as needed; packaged catalog data; tests. Schema version must change if new fields are added; unknown fields remain rejected.
 

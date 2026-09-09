@@ -68,7 +68,7 @@ The completed initial program was single-grid Large Grid only, four subtypes: `L
 
 ## Current approved program
 
-M7–M15 continues the same architecture. Authorized expansions (not implemented by this sentence) are listed in [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md): statistics, component naming, instance appearance, optional block-edge treatment, vanilla library expansion, preflight/unknown-block policy, Small Grid, symmetry detection, and print-shell generation. Whether any of those exist is recorded only in [SE2CAD_STATE.md](../governance/SE2CAD_STATE.md).
+M7–M15 continues the same architecture. Authorized expansions (not implemented by this sentence) are listed in [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md): statistics, component naming, instance appearance, optional block-edge treatment, vanilla library expansion, preflight/unknown-block policy, Small Grid, symmetry detection, and print-shell generation. Whether any of those exist is recorded only in [SE2CAD_STATE.md](../governance/SE2CAD_STATE.md). When STATE records S2C-11.1.1, library-build discovery may read an operator-local game/SDK tree; the runtime converter still does not.
 
 Do not fork the pipeline for Small Grid. Do not bake instance appearance into reusable geometry. Do not invent work beyond that program.
 

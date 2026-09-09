@@ -124,9 +124,19 @@ Measurable contract when treatment is applied:
 | Volume | Treated volume is strictly smaller than untreated and at least `EDGE_TREATMENT_MIN_VOLUME_RATIO` (0.85) of untreated |
 | Untreated identity | Library `geometry_id`, recipe vertices/faces, and catalog entries are unchanged |
 
-The CAD-neutral realization clips by each convex edge's chamfer half-space. That coincides with a local edge chamfer on the native recipes and on convex solids. SolidWorks materialization, when STATE records S2C-10.2.1, is a sibling generated artifact (`{geometry_id}_chamfer.SLDPRT`) produced by a local equal-setback chamfer feature. It is not a new `geometry_id` and must not overwrite untreated `large_armor_*.SLDPRT`.
+The CAD-neutral realization clips by each convex edge's chamfer half-space. That coincides with a local edge chamfer on the native recipes and on convex solids. SolidWorks materialization, when STATE records S2C-10.2.1, is a sibling generated artifact (`{geometry_id}_chamfer.SLDPRT`) produced by a local equal-setback chamfer feature. It is not a new `geometry_id` and must not overwrite untreated `large_armor_*.SLDPRT`. When STATE records S2C-10.3.1, explicit assembly selection may consume that sibling; default assembly still names the untreated file.
 
 Fail closed on an open or non-manifold mesh, a non-positive setback, a setback that consumes a convex edge, a requested treatment that does not decrease volume, or a treated solid that leaves the untreated envelope.
+
+## Library-build definition discovery
+
+When STATE records S2C-11.1.1, operator-local cube-block definition discovery is a library-build evidence tool. It is not a runtime converter stage and is not imported by the public `se2cad` conversion surface.
+
+Public entrypoints: `se2cad.discovery.discover_cube_block_definitions`, `load_discovery_config`. A narrow operator entry is `python -m se2cad.discovery`.
+
+Install roots reuse the established environment / uncommitted `se2cad.local.json` pattern: `SE2CAD_GAME_ROOT` / `SE2CAD_SDK_ROOT` and JSON keys `game_root` / `sdk_root`. The same local file may also hold SolidWorks `generated_root`. Discovery reads only `*.sbc` files under the known relative trees `Content/Data/CubeBlocks` and `Data/CubeBlocks`. It does not walk the rest of an install, does not open `.mwm` / `.fbx` / `.dds` / `.hkt`, and does not copy those assets into the repository.
+
+Each discovered record is an observed identity plus the fields the catalog already models: `subtype_id`, `type_id`, `cube_size`, `size`, `block_topology`, and `cube_topology` when present. Small Grid identities may appear as observed `cube_size` facts. `geometry_id`, `recipe_kind`, and `support_status` are not assigned here. Source paths in the report are root-relative. Runtime lookup remains the packaged catalog.
 
 ## Asset boundary
 

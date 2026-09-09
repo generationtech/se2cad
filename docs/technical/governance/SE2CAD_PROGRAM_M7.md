@@ -82,6 +82,8 @@ Do not reorder, merge, or split these milestones. Do not start a later milestone
 
 A listed prerequisite is met at DEV-COMPLETE unless the later unit consumes that unit’s QUALIFIED artifact or evidence (typically a live SolidWorks part or assembly). STATE names the next executable unit.
 
+A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. That change does not create a tenth milestone, does not reorder M7–M15, and does not invalidate S2C-11.1.1. STATE records the exception and the next executable unit.
+
 ## Qualification model
 
 Status words are defined in [SE2CAD_ENGINEERING_PROCESS.md](SE2CAD_ENGINEERING_PROCESS.md). STATE is the only live status.

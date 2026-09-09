@@ -11,24 +11,24 @@ Resolution order:
 
 from __future__ import annotations
 
-import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from se2cad.local_config import (
+    DEFAULT_LOCAL_CONFIG_NAME,
+    LOCAL_CONFIG_ENV as LOCAL_CONFIG_ENV,
+    LocalConfigError,
+    discover_local_config,
+    read_local_config,
+)
 from se2cad.solidworks.artifacts import resolve_generated_root
 from se2cad.solidworks.errors import SolidWorksConfigError
 
 GENERATED_ROOT_ENV = "SE2CAD_GENERATED_ROOT"
 PART_TEMPLATE_ENV = "SE2CAD_SOLIDWORKS_PART_TEMPLATE"
-LOCAL_CONFIG_ENV = "SE2CAD_LOCAL_CONFIG"
 VISIBLE_ENV = "SE2CAD_SOLIDWORKS_VISIBLE"
-DEFAULT_LOCAL_CONFIG_NAME = "se2cad.local.json"
-
-_ALLOWED_LOCAL_KEYS = frozenset(
-    {"generated_root", "part_template", "visible"}
-)
 
 
 @dataclass(frozen=True)
@@ -43,42 +43,16 @@ class SolidWorksBackendConfig:
 
 def _read_local_config(path: Path) -> dict[str, object]:
     try:
-        raw = path.read_text(encoding="utf-8")
-    except OSError as exc:
-        raise SolidWorksConfigError(
-            f"cannot read local config {path}: {exc}"
-        ) from exc
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        raise SolidWorksConfigError(
-            f"local config {path} is not valid JSON: {exc}"
-        ) from exc
-    if not isinstance(data, dict):
-        raise SolidWorksConfigError(
-            f"local config {path} must be a JSON object"
-        )
-    unknown = set(data) - _ALLOWED_LOCAL_KEYS
-    if unknown:
-        raise SolidWorksConfigError(
-            f"local config {path} has unexpected keys: {sorted(unknown)}"
-        )
-    return data
+        return read_local_config(path)
+    except LocalConfigError as exc:
+        raise SolidWorksConfigError(str(exc)) from exc
 
 
 def _discover_local_config() -> Optional[Path]:
-    override = os.environ.get(LOCAL_CONFIG_ENV)
-    if override:
-        path = Path(override).expanduser()
-        if not path.is_file():
-            raise SolidWorksConfigError(
-                f"{LOCAL_CONFIG_ENV} does not point to a file: {path}"
-            )
-        return path
-    candidate = Path.cwd() / DEFAULT_LOCAL_CONFIG_NAME
-    if candidate.is_file():
-        return candidate
-    return None
+    try:
+        return discover_local_config()
+    except LocalConfigError as exc:
+        raise SolidWorksConfigError(str(exc)) from exc
 
 
 def _as_optional_path(value: object, *, field: str, source: str) -> Optional[Path]:

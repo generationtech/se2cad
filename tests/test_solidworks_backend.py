@@ -180,6 +180,32 @@ class ConfigTests(unittest.TestCase):
                 with self.assertRaises(SolidWorksConfigError):
                     load_solidworks_backend_config()
 
+    def test_game_and_sdk_local_keys_do_not_break_solidworks_config(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "cache"
+            root.mkdir()
+            local = Path(tmp) / "se2cad.local.json"
+            local.write_text(
+                json.dumps(
+                    {
+                        "generated_root": str(root),
+                        "game_root": str(Path(tmp) / "game"),
+                        "sdk_root": str(Path(tmp) / "sdk"),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            env = {
+                key: value
+                for key, value in os.environ.items()
+                if key
+                not in {GENERATED_ROOT_ENV, PART_TEMPLATE_ENV, VISIBLE_ENV}
+            }
+            env["SE2CAD_LOCAL_CONFIG"] = str(local)
+            with patch.dict(os.environ, env, clear=True):
+                config = load_solidworks_backend_config()
+            self.assertEqual(config.generated_root, root.resolve())
+
 
 class LocatorBindingTests(unittest.TestCase):
     def test_locator_cannot_bind_before_all_steps_succeed(self) -> None:
