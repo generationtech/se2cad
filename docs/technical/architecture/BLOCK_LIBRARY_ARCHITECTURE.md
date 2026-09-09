@@ -144,6 +144,8 @@ When STATE records S2C-11.3.1, recipe selection is library-build authoring on th
 
 When STATE records S2C-11.4.1, native recipes can be stamped from known CubeTopology tokens. Public entrypoints: `se2cad.library.recipe_for_topology`, `representative_automatable_geometry_ids`, `se2cad.solidworks.generate_representative_automatable_parts`. Box, Slope, Corner, and InvCorner reuse the qualified constructions. Other topologies fail closed; they are not forced through one technique. The representative automatable subset beyond the original four is the four Large Grid heavy-armor counterparts. Those identities keep distinct `geometry_id` values and become `supported` when a recipe and generation path exist. Default `generate_canonical_parts()` still materializes the original four. Generated `.SLDPRT` files stay local cache.
 
+When STATE records S2C-11.5.1, leftover and long-tail records live in repository-owned leftover metadata (`leftover_set.json`). Public entrypoints: `se2cad.catalog.evaluate_leftover_set`, `load_default_leftover_set`, `conversion_may_report_supported`, `stamp_automatable_remainder`. Failed generation, unclassified identities, and unsupported recipe kinds cannot be reported as successful supported conversion. Residual automatable CubeTopology tokens without a construction stay listed. Coverage is not universal vanilla. This is not M12 preflight.
+
 ## Asset boundary
 
 Native armor recipes are SE2CAD-authored constructive geometry. They must not import Keen FBX, MWM, or extracted game meshes.

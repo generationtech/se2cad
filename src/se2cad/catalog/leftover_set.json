@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "coverage_claim": "not_universal_vanilla",
+  "completed_automatable": [
+    {
+      "subtype_id": "LargeBlockArmorBlock",
+      "geometry_id": "large_armor_block",
+      "cube_topology": "Box"
+    },
+    {
+      "subtype_id": "LargeBlockArmorSlope",
+      "geometry_id": "large_armor_slope",
+      "cube_topology": "Slope"
+    },
+    {
+      "subtype_id": "LargeBlockArmorCorner",
+      "geometry_id": "large_armor_corner",
+      "cube_topology": "Corner"
+    },
+    {
+      "subtype_id": "LargeBlockArmorCornerInv",
+      "geometry_id": "large_armor_corner_inv",
+      "cube_topology": "InvCorner"
+    },
+    {
+      "subtype_id": "LargeHeavyBlockArmorBlock",
+      "geometry_id": "large_heavy_block_armor_block",
+      "cube_topology": "Box"
+    },
+    {
+      "subtype_id": "LargeHeavyBlockArmorSlope",
+      "geometry_id": "large_heavy_block_armor_slope",
+      "cube_topology": "Slope"
+    },
+    {
+      "subtype_id": "LargeHeavyBlockArmorCorner",
+      "geometry_id": "large_heavy_block_armor_corner",
+      "cube_topology": "Corner"
+    },
+    {
+      "subtype_id": "LargeHeavyBlockArmorCornerInv",
+      "geometry_id": "large_heavy_block_armor_corner_inv",
+      "cube_topology": "InvCorner"
+    }
+  ],
+  "leftovers": [
+    {
+      "kind": "missing_construction",
+      "subtype_id": "",
+      "geometry_id": "",
+      "cube_topology": "Slope2Base",
+      "detail": "CubeTopology is automatable-class but has no native construction",
+      "reported_as_supported": false
+    }
+  ]
+}

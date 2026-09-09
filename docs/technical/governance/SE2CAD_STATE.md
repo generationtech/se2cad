@@ -15,17 +15,17 @@ The nine milestones, in order, are: blueprint statistics; CAD component naming; 
 
 No implementation milestone is ACTIVE. Cold-storage backlog remains outside this program. Do not invent work beyond it.
 
-A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 remains PLANNED and is the next executable unit.
+A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-12.1.1 remains PLANNED and is the next executable unit.
 
 **Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, and QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. S2C-11.5.1 long-tail exceptions remain PLANNED. Remaining later M11 units through M15 are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, and QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M12 units through M15 are approved, not implemented.
 
 ## Next executable unit
 
-S2C-11.5.1 long-tail exceptions and expansion regression. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). Do not invent preflight, Small Grid conversion, symmetry, or print-shell.
+S2C-12.1.1 conversion preflight. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). Do not invent filler substitution, Small Grid conversion, symmetry, or print-shell.
 
 ## Unit status
 
@@ -59,7 +59,7 @@ S2C-11.5.1 long-tail exceptions and expansion regression. Defined in [SE2CAD_PLA
 | S2C-11.2.1 | QUALIFIED | Schema v2 catalog records eight Large Grid identities; original four remain `native_procedural` / `supported`; four heavy-armor counterparts are `unsupported`. `expand_catalog_identities` resolves discovery-shaped observed facts. Ordinary suite 338 tests, 5 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-11.3.1 | QUALIFIED | `select_catalog_recipes` classifies CubeTopology-class `CubeBlock` armor as `native_procedural` / automatable and TriangleMesh / unusual relationships as queryable long-tail exceptions. Packaged heavy-armor identities are `native_procedural` / `unsupported`. Ordinary suite 355 tests, 5 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-11.4.1 | QUALIFIED | `recipe_for_topology` stamps Box/Slope/Corner/InvCorner constructions onto distinct geometry IDs. Representative subset is the four heavy-armor identities; they are `native_procedural` / `supported`. Ordinary suite 367 tests, 6 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2 generated, validated, saved, closed, reopened the four heavy parts under the gitignored generated root. Distinct assessment recorded below. |
-| S2C-11.5.1 | PLANNED | |
+| S2C-11.5.1 | QUALIFIED | `evaluate_leftover_set` / packaged `leftover_set.json` record leftover and completed automatable identities. Failed generation, unclassified identities, and unsupported recipe kinds cannot report as supported conversion. Ordinary suite 385 tests, 6 skipped, OK. External validation was not required; no additional parts were generated. Distinct assessment recorded below. |
 | S2C-12.1.1 | PLANNED | |
 | S2C-12.2.1 | PLANNED | |
 | S2C-13.1.1 | PLANNED | |
@@ -72,6 +72,14 @@ S2C-11.5.1 long-tail exceptions and expansion regression. Defined in [SE2CAD_PLA
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-09 — S2C-11.5.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-12.1.1. Did not invent preflight, Small Grid conversion, symmetry, or print-shell. Did not create a general CLI or UI. Did not change runtime `parse_blueprint` / `load_default_catalog` / `build_canonical_blueprint` / default `generate_canonical_parts()` to scan an install or to generate every automatable vanilla block. Did not assign `sdk_mesh_direct` or `sdk_mesh_manifold`. Did not force Slope2Base or other residual topologies through one construction. Did not claim 100% vanilla coverage. Did not generate additional SolidWorks parts. Did not commit, tag, or push.
+
+Leftover handling is explicit and durable in `src/se2cad/catalog/leftover_set.json`. Failed generation, unclassified identities, and unsupported recipe kinds cannot appear as successful supported conversion. The classified automatable remainder with a known construction is already the packaged eight identities; `stamp_automatable_remainder` returned empty. Residual automatable CubeTopology `Slope2Base` stays listed as `missing_construction`. Coverage claim is `not_universal_vanilla`.
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 385 tests, 6 skipped, 0.617 s, OK. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. QUALIFIED from automated tests as the unit allows. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-09 — S2C-11.4.1 QUALIFIED
 
@@ -836,6 +844,28 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
 
+## Quality/security assessment (S2C-11.5.1)
+
+Hypotheses tested after leftover metadata, honesty checks, ordinary tests, and documentation existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Failed generation, unclassified identities, or unsupported recipe kinds can report as supported conversion | Disproven. `conversion_may_report_supported` is False for those leftovers. `assert_leftover_honesty` fails closed when a failed-generation leftover is still catalogued `supported`. Loader rejects `reported_as_supported` true. |
+| Residual automatable items were silently dropped | Disproven. Packaged leftover lists `Slope2Base` as `missing_construction`. `stamp_automatable_remainder` does not invent a construction. Coverage claim is `not_universal_vanilla`. |
+| Packaged leftover drifts from catalog evaluation | Disproven. `assert_packaged_leftover_matches_catalog` requires equality with `evaluate_leftover_set`. |
+| Runtime conversion now requires a game/SDK install | Disproven. Leftover and runtime modules do not import `se2cad.discovery` or mention `SE2CAD_GAME_ROOT` / `SE2CAD_SDK_ROOT`. Ordinary suite 385 tests, 6 skipped, 0.617 s with no install. |
+| Asset paths can enter leftover metadata | Disproven after remediation. Packaged leftover JSON rejects `.mwm` / paths. `evaluate_leftover_set` now rejects smuggled tokens on record construction. |
+| Original four conversion changed | Disproven. Fixture SHA-256 unchanged. All 24 IR blocks remain the original four supported native identities. |
+| Universal vanilla support was claimed | Disproven. Coverage claim cannot be anything but `not_universal_vanilla`. README and STATE say coverage is not 100%. |
+| S2C-12.1.1 or later M7–M15 work started | Disproven. No preflight, filler, Small Grid conversion, symmetry, or print-shell. |
+| Additional SolidWorks parts were generated or committed | Disproven. No live generation this session. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+
+One verified finding was remediated: `evaluate_leftover_set` initially recorded caller-supplied subtype/geometry/detail tokens without the packaged JSON asset-path checks. `_record` now rejects smuggled asset and path tokens. Affected leftover tests were re-run; ordinary suite 385 tests, 6 skipped, OK.
+
+Accepted residual risk: leftover honesty is a catalog/library consistency workflow, not M12 preflight. `build_canonical_blueprint` still copies packaged catalog `support_status`. Packaged catalog and leftover currently agree. CubeTopology tokens beyond the evidenced residual `Slope2Base` are not individually inventoried; coverage is explicitly not universal.
+
+Not claimed: 100% vanilla coverage; TriangleMesh construction; Small Grid conversion; that every automatable-class identity can generate; that leftover evaluation is conversion preflight.
+
 ## Quality/security assessment (S2C-11.4.1)
 
 Hypotheses tested after topology-stamped recipes, representative generation, ordinary tests, and live 34.3.2 evidence existed. Outcomes:
@@ -1006,6 +1036,28 @@ Public entrypoints: `se2cad.discovery.discover_cube_block_definitions`, `load_di
 | Fail closed | missing/non-directory root; path escape; no CubeBlocks tree; malformed XML; DTD/entity/XInclude; missing identity/size/topology; conflicting observed facts |
 | Ordinary suite | 309 tests, 4 skipped, 0.996 s, OK |
 | Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+
+## S2C-11.5.1 leftover and expansion-regression evidence
+
+Public entrypoints: `se2cad.catalog.evaluate_leftover_set`, `load_default_leftover_set`, `conversion_may_report_supported`, `stamp_automatable_remainder`. Authoritative leftover metadata: `src/se2cad/catalog/leftover_set.json`. Schema: `LEFTOVER_SCHEMA_VERSION` 1. Coverage claim: `not_universal_vanilla`. Runtime lookup remains `load_default_catalog`.
+
+| Group | SubtypeId | geometry_id | topology | leftover kind |
+| --- | --- | --- | --- | --- |
+| Completed automatable | `LargeBlockArmorBlock` | `large_armor_block` | Box | (none) |
+| Completed automatable | `LargeBlockArmorSlope` | `large_armor_slope` | Slope | (none) |
+| Completed automatable | `LargeBlockArmorCorner` | `large_armor_corner` | Corner | (none) |
+| Completed automatable | `LargeBlockArmorCornerInv` | `large_armor_corner_inv` | InvCorner | (none) |
+| Completed automatable | `LargeHeavyBlockArmorBlock` | `large_heavy_block_armor_block` | Box | (none) |
+| Completed automatable | `LargeHeavyBlockArmorSlope` | `large_heavy_block_armor_slope` | Slope | (none) |
+| Completed automatable | `LargeHeavyBlockArmorCorner` | `large_heavy_block_armor_corner` | Corner | (none) |
+| Completed automatable | `LargeHeavyBlockArmorCornerInv` | `large_heavy_block_armor_corner_inv` | InvCorner | (none) |
+| Residual automatable | (not catalogued) | (none) | Slope2Base | `missing_construction` |
+
+Packaged long-tail identity leftovers are empty: all eight catalogued identities are CubeTopology-class `CubeBlock` armor with known constructions. Exception states for unclassified identities, unsupported recipe kinds, failed generation, and long-tail TriangleMesh/unusual relationships are queryable from `evaluate_leftover_set` and cannot report as supported. `stamp_automatable_remainder` on the packaged catalog is empty. No additional parts were generated.
+
+Acceptance fixture: all 24 blocks still resolve to the original four supported identities. Fixture SHA-256 unchanged. Runtime modules do not open a game/SDK install. Packaged catalog and leftover JSON forbid asset paths.
+
+Ordinary suite: 385 tests, 6 skipped, 0.617 s, OK.
 
 ## S2C-11.4.1 automated generation evidence
 

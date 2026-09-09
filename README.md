@@ -321,9 +321,13 @@ generated subset beyond the original four is the four Large Grid
 heavy-armor counterparts. Those identities are supported and live
 SolidWorks 2026 has generated their canonical `.SLDPRT` files. The
 original four armor entries remain supported. Default part generation
-still writes the original four. Runtime conversion still uses only
-the packaged catalog and a `.sbc` blueprint; it does not require a
-game or SDK install.
+still writes the original four. Residual automatable CubeTopology
+tokens without a construction, and long-tail exceptions, are recorded
+in repository leftover metadata. Failed generation, unclassified
+blocks, and unsupported recipe kinds cannot be reported as successful
+supported conversion. SE2CAD does not claim 100% vanilla coverage.
+Runtime conversion still uses only the packaged catalog and a `.sbc`
+blueprint; it does not require a game or SDK install.
 
 ### Current scope
 
