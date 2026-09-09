@@ -51,7 +51,7 @@ def expand_catalog_identities(
     """Build a catalog from observed Large Grid identities.
 
     Existing SE2CAD decisions are preserved. New identities are recorded
-    as ``unsupported`` / ``unsupported`` until a later recipe decision.
+    as ``unsupported`` / ``unsupported`` until ``select_catalog_recipes``.
     Small Grid identities are not activated.
     """
     by_subtype: dict[str, CatalogEntry] = {}

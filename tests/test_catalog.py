@@ -139,7 +139,7 @@ class DefaultCatalogTests(unittest.TestCase):
             self.assertEqual(entry.support_status, SupportStatus.SUPPORTED)
         for subtype_id in EXPECTED_EXPANDED:
             entry = self.catalog.lookup(subtype_id)
-            self.assertEqual(entry.recipe_kind, RecipeKind.UNSUPPORTED)
+            self.assertEqual(entry.recipe_kind, RecipeKind.NATIVE_PROCEDURAL)
             self.assertEqual(entry.support_status, SupportStatus.UNSUPPORTED)
 
     def test_lookup_is_exact_and_case_sensitive(self) -> None:

@@ -310,10 +310,14 @@ from an operator-configured local Space Engineers or ModSDK tree
 (`SE2CAD_GAME_ROOT` / `SE2CAD_SDK_ROOT` or `se2cad.local.json`). It
 records observed definition facts for later catalog authoring. The
 packaged catalog can record additional vanilla Large Grid identities
-from those facts. New identities stay `unsupported` until a later
-recipe decision; the original four armor entries remain supported.
-Runtime conversion still uses only the packaged catalog and a `.sbc`
-blueprint; it does not require a game or SDK install.
+from those facts. CubeTopology-class armor receives an explicit
+`native_procedural` recipe decision; TriangleMesh and unusual
+relationships are recorded as long-tail exceptions and are not
+reported as supported. Naming a recipe is not generation: expanded
+identities stay `unsupported` until a later generation decision. The
+original four armor entries remain supported. Runtime conversion still
+uses only the packaged catalog and a `.sbc` blueprint; it does not
+require a game or SDK install.
 
 ### Current scope
 

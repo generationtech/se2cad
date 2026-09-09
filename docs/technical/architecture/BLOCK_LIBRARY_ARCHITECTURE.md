@@ -140,6 +140,8 @@ Each discovered record is an observed identity plus the fields the catalog alrea
 
 When STATE records S2C-11.2.1, catalog identity expansion is library-build authoring on those observed facts. Public entrypoints: `se2cad.catalog.expand_catalog_identities`, `geometry_id_for_subtype`. Existing packaged SE2CAD decisions are preserved. New Large Grid identities receive distinct `geometry_id` values and remain `unsupported` until a later recipe decision. Small Grid identities are not written into the packaged catalog. Machine paths and mesh/texture references are not stored.
 
+When STATE records S2C-11.3.1, recipe selection is library-build authoring on those catalogued identities. Public entrypoints: `se2cad.catalog.select_catalog_recipes`, `classify_observed`, `query_exception_records`, `provenance_records`. CubeTopology-class `CubeBlock` armor is classified `native_procedural` / automatable from observed facts. TriangleMesh and unusual relationships are long-tail `unsupported` with a queryable exception record. Support is never granted by selection. `sdk_mesh_direct` and `sdk_mesh_manifold` are not assigned. Runtime lookup remains the packaged catalog.
+
 ## Asset boundary
 
 Native armor recipes are SE2CAD-authored constructive geometry. They must not import Keen FBX, MWM, or extracted game meshes.

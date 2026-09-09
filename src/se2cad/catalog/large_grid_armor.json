@@ -72,7 +72,7 @@
       },
       "se2cad": {
         "geometry_id": "large_heavy_block_armor_block",
-        "recipe_kind": "unsupported",
+        "recipe_kind": "native_procedural",
         "support_status": "unsupported"
       }
     },
@@ -87,7 +87,7 @@
       },
       "se2cad": {
         "geometry_id": "large_heavy_block_armor_slope",
-        "recipe_kind": "unsupported",
+        "recipe_kind": "native_procedural",
         "support_status": "unsupported"
       }
     },
@@ -102,7 +102,7 @@
       },
       "se2cad": {
         "geometry_id": "large_heavy_block_armor_corner",
-        "recipe_kind": "unsupported",
+        "recipe_kind": "native_procedural",
         "support_status": "unsupported"
       }
     },
@@ -117,7 +117,7 @@
       },
       "se2cad": {
         "geometry_id": "large_heavy_block_armor_corner_inv",
-        "recipe_kind": "unsupported",
+        "recipe_kind": "native_procedural",
         "support_status": "unsupported"
       }
     }

@@ -109,7 +109,7 @@ class ExpandCatalogTests(unittest.TestCase):
             self.assertEqual(entry.support_status, SupportStatus.SUPPORTED)
         heavy = expanded.lookup("LargeHeavyBlockArmorBlock")
         self.assertEqual(heavy.geometry_id, "large_heavy_block_armor_block")
-        self.assertEqual(heavy.recipe_kind, RecipeKind.UNSUPPORTED)
+        self.assertEqual(heavy.recipe_kind, RecipeKind.NATIVE_PROCEDURAL)
         self.assertEqual(heavy.support_status, SupportStatus.UNSUPPORTED)
         mesh = expanded.lookup("SyntheticTriangleMesh")
         self.assertIsNone(mesh.observed.cube_topology)
