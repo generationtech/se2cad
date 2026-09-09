@@ -53,6 +53,8 @@ class LibraryNeutralityTests(unittest.TestCase):
             "se2cad.library.lookup",
             "se2cad.library.model",
             "se2cad.library.recipes",
+            "se2cad.library.solid",
+            "se2cad.library.treatment",
             "se2cad.parser.model",
             "se2cad.transform.directions",
         }

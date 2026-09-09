@@ -19,11 +19,11 @@ No implementation milestone is ACTIVE. Cold-storage backlog remains outside this
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, and QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. Remaining M10–M15 features are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, and QUALIFIED S2C-10.1.1 optional block-edge treatment contract. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. S2C-10.2.1 treated-part generation and remaining M11–M15 features are approved, not implemented.
 
 ## Next executable unit
 
-S2C-10.1.1 — Optional block-edge treatment contract. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
+S2C-10.2.1 — Generate optional treated canonical parts. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
 
 ## Unit status
 
@@ -50,7 +50,7 @@ S2C-10.1.1 — Optional block-edge treatment contract. Defined in [SE2CAD_PLAN_M
 | S2C-8.1.1 | QUALIFIED | CAD-neutral `component_name` from subtype/`Min`/Forward/Up/`source_index`; assembly writer sets Name2 at insert. Ordinary suite 212 tests, 2 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: all 24 save/reopen short names match the IR encoding; transforms and canonical `.SLDPRT` filenames unchanged. Distinct assessment recorded below. |
 | S2C-9.1.1 | QUALIFIED | Parser/IR carry CAD-neutral `ColorMaskHSV`; omitted maps to `(0.0, -1.0, 0.0)`; `AppearanceSupport` independent of geometry `SupportStatus`. Ordinary suite 233 tests, 2 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-9.2.1 | QUALIFIED | HSV-offset → RGB in `se2cad.solidworks.appearance`; `IComponent2.MaterialPropertyValues` instance override at insert. Ordinary suite 251 tests, 3 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: fixture 24 default appearances; synthetic two colors plus default on one `large_armor_block.SLDPRT`; canonical part SHA-256 unchanged. Distinct assessment recorded below. |
-| S2C-10.1.1 | PLANNED | |
+| S2C-10.1.1 | QUALIFIED | CAD-neutral equal-setback chamfer on convex manifold edges; default off; not a new `geometry_id`. Ordinary suite 267 tests, 3 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-10.2.1 | PLANNED | |
 | S2C-11.1.1 | PLANNED | |
 | S2C-11.2.1 | PLANNED | |
@@ -69,6 +69,14 @@ S2C-10.1.1 — Optional block-edge treatment contract. Defined in [SE2CAD_PLAN_M
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-09 — S2C-10.1.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-10.2.1. Did not invent library expansion, preflight, Small Grid, symmetry, or print-shell. Did not create a general CLI or UI. Did not generate treated SolidWorks parts. Did not bake the treatment into `geometry_id`, catalog identity, recipes, canonical part filenames, or part-generation plans. Did not add a second insert offset or change the qualified frame, cell envelope, or pitch. Did not commit, tag, or push.
+
+The treatment is an operation on a closed mesh: `apply_edge_treatment` / `EDGE_TREATMENT_OFF` (default) / `EDGE_TREATMENT_CHAMFER`. Setback is `EDGE_TREATMENT_SETBACK_MM` (50 mm) along each incident face. Concave edges are not treated. `lookup_recipe` remains the untreated qualified solid. Measurables and the generic (non-ID) box are recorded in [S2C-10.1.1 edge-treatment contract](#s2c-1011-edge-treatment-contract).
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 267 tests, 3 skipped, 0.343 s, OK. Fixture SHA-256 unchanged. No SolidWorks treated-part generation. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-09 — S2C-9.2.1 QUALIFIED
 
@@ -355,7 +363,7 @@ Resolved in S2C-4.2.1 and no longer open: generated SLDPRT location (local gener
 
 ## Known blockers
 
-None. The next approved unit is S2C-9.1.1 (PLANNED).
+None. The next approved unit is S2C-10.2.1 (PLANNED).
 
 ## S2C-1.1.1 fixture inspection
 
@@ -454,6 +462,27 @@ Published-source corroboration:
 - Live SolidWorks 2026 revision 34.3.2 stores component RGB as 8-bit truncated channels.
 
 This host still has no local `VRage.Game.dll`, so the float deltas were not re-exported from a game install.
+
+## S2C-10.1.1 edge-treatment contract
+
+Optional equal-setback chamfer of convex manifold edges. Default is off. The operation consumes a closed mesh and does not name the four initial `geometry_id` values.
+
+| Constant | Value |
+| --- | --- |
+| `EDGE_TREATMENT_SETBACK_MM` | 50 |
+| `EDGE_TREATMENT_MIN_VOLUME_RATIO` | 0.85 |
+
+| Solid | Untreated → treated faces | Convex edges treated | Volume ratio |
+| --- | --- | --- | --- |
+| `large_armor_block` | 6 → 18 | 12 | 0.997648 |
+| `large_armor_slope` | 5 → 14 | 9 | 0.996398 |
+| `large_armor_corner` | 4 → 10 | 6 | 0.992515 |
+| `large_armor_corner_inv` | 7 → 19 | 12 | 0.997081 |
+| Generic box 2000×1600×1200 mm (no `geometry_id`) | treated; 12 convex edges | 12 | above the 0.85 bound |
+
+Placement invariants after a chamfer request: `CANONICAL_LOCAL_FRAME` unchanged; `additional_offset_mm` remains `(0, 0, 0)`; treated vertices stay inside the untreated bounds and the cell envelope; the armor-block face interiors still meet `±half_extent` on each axis. `lookup_recipe` vertices, faces, and catalog identities are unchanged. An L-prism with no catalog identity classifies exactly one concave edge and is not an allowlist entry.
+
+The CAD-neutral realization clips by each convex edge's chamfer half-space. That coincides with a local edge chamfer on these recipes and on convex solids. SolidWorks materialization is S2C-10.2.1.
 
 ## S2C-2.1.1 catalog evidence
 
@@ -653,6 +682,29 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-10.1.1)
+
+Hypotheses tested after the CAD-neutral treatment, recipe/generic-solid tests, and the ordinary suite existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Default conversion applies the treatment | Disproven. `apply_edge_treatment(solid)` and `EDGE_TREATMENT_OFF` return the same mesh. `lookup_recipe` vertices/faces/volume are unchanged after a chamfer request. `generate.py`, `recipe_plan.py`, `pipeline.py`, `assemble.py`, and `com_construct.py` do not mention the treatment API. |
+| Treatment is a new block type or `geometry_id` | Disproven. Catalog and `all_library_records()` still have exactly the four IDs. `SolidMesh` has no `geometry_id`. `solid.py` / `treatment.py` do not name the four armor IDs. |
+| Applicability is a four-ID allowlist | Disproven. A 2000×1600×1200 mm box with no catalog identity treats all 12 convex edges. An L-prism with no identity classifies one concave edge. |
+| Frame drift or a second insert offset | Disproven. Records still use `CANONICAL_LOCAL_FRAME` and `additional_offset_mm=(0,0,0)`. Treated recipe vertices stay inside the cell envelope. Armor-block face interiors remain at `±half_extent`. |
+| Keen-mesh import | Disproven. Library neutrality still forbids `.mwm` / `.fbx` / `.dds` / `.hkt` and game-install imports. Treatment uses recipe meshes and explicit test solids only. |
+| Open or tiny solids are silently treated | Disproven. A one-face mesh raises `InvalidSolidError`. A 40 mm cube raises `TreatmentError` because the named setback consumes an edge. |
+| Slope hypotenuse-side edges are skipped | Confirmed, then remediated. Newell winding on the qualified slope hypotenuse face is inward relative to the vertex centroid, so those two edges were first classified concave. Convexity now orients face normals away from the vertex centroid. The qualified recipe windings were not changed. Slope now treats all 9 prism edges. Regression: `test_slope_treats_every_prism_edge`. |
+| Ordinary suite attaches to SolidWorks | Disproven. 267 tests, 3 skipped, 0.343 s with `SE2CAD_SOLIDWORKS_INTEGRATION` unset. |
+| Proprietary assets or fixture rewrite | Disproven. Fixture SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+| S2C-10.2.1 or later M7–M15 work started | Disproven. No treated `.SLDPRT` generation, library expansion, preflight, Small Grid, symmetry, or print-shell. |
+
+Remediated during review: centroid-oriented outward normals for convexity classification; slope 9-edge regression. Ordinary suite re-run: 267 OK, 3 skipped.
+
+Accepted residual risk: sequential chamfer half-spaces coincide with a local edge chamfer on the native recipes and on convex solids. An infinite plane from one convex edge of a deeply concave solid can intersect non-adjacent features; S2C-10.2.1 should use a local CAD chamfer and still satisfy this contract's measurables. Vertex-average centroid can lie outside a severely concave mesh; that would mis-orient convexity. The 50 mm setback is an SE2CAD treatment depth, not a Keen mesh measurement.
+
+Not claimed: treated SolidWorks parts; physical print judgment; fillet; print-shell.
 
 ## Quality/security assessment (S2C-9.2.1)
 

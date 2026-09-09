@@ -294,6 +294,12 @@ that HSV-offset to RGB and assigns it as a per-component appearance at
 assembly insertion. Two instances of the same canonical part can have
 different colors; the reusable `.SLDPRT` files stay uncolored.
 
+CAD-neutral **optional block-edge treatment** is an equal-setback chamfer
+of convex solid edges. Default conversion stays untreated and
+dimensionally the qualified M0–M6 path. The treatment is not a new
+block subtype and is not limited to the four proof-of-concept armor IDs.
+SolidWorks generation of treated parts is not part of this contract.
+
 ### Current scope
 
 SE2CAD is **not yet a universal Space Engineers ship converter**. The

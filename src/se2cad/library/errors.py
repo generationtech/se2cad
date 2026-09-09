@@ -7,3 +7,11 @@ class LibraryError(Exception):
 
 class UnknownGeometryError(LibraryError):
     """Lookup used a geometry identity that has no library recipe."""
+
+
+class InvalidSolidError(LibraryError):
+    """A mesh is not a closed manifold solid the treatment can consume."""
+
+
+class TreatmentError(LibraryError):
+    """Optional edge treatment was requested and cannot be applied."""

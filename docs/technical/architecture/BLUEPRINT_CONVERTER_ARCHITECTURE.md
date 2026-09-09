@@ -19,7 +19,7 @@ Responsibilities:
 | Parser | Read supported `bp.sbc` safely; extract grid and per-block subtype, position, Forward, Up, and `ColorMaskHSV` appearance | Resolve geometry identity; compute CAD transforms; call SolidWorks |
 | Definition catalog | Map exact subtype → geometry identity; expose grid pitch from one named constant | Load meshes; contain COM types; scan a game install |
 | Transform engine | Compute exact placement from grid coordinate + orientation + pitch | Insert components; apply mates |
-| Block library | Return canonical part + reference metadata | Parse blueprints |
+| Block library | Return canonical part + reference metadata; optional identity-free edge treatment | Parse blueprints; bake treatment into `geometry_id` |
 | SolidWorks backend | Insert parts by transform; assign instance appearance; save assembly | Recalculate SE orientation; call Blender; build mate networks for fixed SE placement; paint canonical `.SLDPRT` files |
 | Statistics | Derive a CAD-neutral summary from parser + catalog fields | Call SolidWorks; invent identities; drop unresolvable blocks; change conversion policy |
 | Component names | Derive a CAD-neutral instance name from existing IR fields | Rename canonical `.SLDPRT` identities; invent a catalog key; change `(R, t)` |
@@ -53,6 +53,10 @@ Per-instance appearance is CAD-neutral Space Engineers `ColorMaskHSV`, not a sec
 `AppearanceSupport` is independently reportable from catalog geometry `SupportStatus`: `default` for the omitted mapping, `explicit` for a serialized payload. Unknown appearance is not a current parser state. Malformed `ColorMaskHSV` fails closed.
 
 RGB conversion and SolidWorks assignment live in the SolidWorks package (`se2cad.solidworks.appearance` and the assembly writer). Parser, catalog, and IR do not produce RGB or COM types. Conversion is Keen `HSVOffsetToHSV` (add published `SATURATION_DELTA` 0.8 and `VALUE_DELTA` 0.45, clamp S/V to `[0, 1]`) then standard HSV-to-RGB. The omitted default becomes display HSV `(0, 0, 0.45)` / RGB `(0.45, 0.45, 0.45)`. The writer assigns that RGB as an `IComponent2.MaterialPropertyValues` instance override at insertion. Two instances of the same `geometry_id` keep one canonical part file and different instance appearances. Canonical part generation stays color-agnostic. Geometry applied and appearance applied are independently reportable on the placed-component result.
+
+## Block-edge treatment
+
+Optional printable edge definition is a library geometry treatment, not an IR field and not a new catalog identity. Public entrypoints: `se2cad.apply_edge_treatment`, `EDGE_TREATMENT_OFF`, `EDGE_TREATMENT_CHAMFER`. Default conversion does not apply it. Placement still uses the qualified frame, cell envelope, pitch, and zero insert offset. Contract detail: [BLOCK_LIBRARY_ARCHITECTURE.md](BLOCK_LIBRARY_ARCHITECTURE.md). SolidWorks generation of treated parts is S2C-10.2.1.
 
 ## Intermediate representation
 
@@ -193,6 +197,6 @@ The completed initial program’s converter success path was:
 
 That path remains the qualified baseline. Fail closed on multiple grids and missing required fields. Do not silently drop blocks.
 
-Unknown-subtype handling, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1.
+Unknown-subtype handling, Small Grid, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1. SolidWorks instance-appearance assignment is present when STATE records S2C-9.2.1. The optional block-edge treatment contract is present when STATE records S2C-10.1.1; default conversion remains untreated and SolidWorks treated-part generation is S2C-10.2.1.
 
 Blender is not a converter stage. A general print/slicer pipeline is not a converter stage.

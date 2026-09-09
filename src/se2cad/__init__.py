@@ -5,8 +5,9 @@ catalog. S2C-3.1.1 exposes the CAD-neutral IR and placement transforms.
 S2C-4.1.1 exposes the canonical block-library recipes. S2C-7.1.1 exposes
 CAD-neutral blueprint statistics. S2C-8.1.1 exposes CAD-neutral
 component names from IR fields. S2C-9.1.1 carries CAD-neutral
-``ColorMaskHSV`` appearance on the parser and IR. The SolidWorks
-backend lives in ``se2cad.solidworks`` and is not imported here.
+``ColorMaskHSV`` appearance on the parser and IR. S2C-10.1.1 exposes an
+optional CAD-neutral block-edge treatment. The SolidWorks backend lives
+in ``se2cad.solidworks`` and is not imported here.
 """
 
 from se2cad.catalog import (
@@ -37,15 +38,22 @@ from se2cad.ir import (
 from se2cad.library import (
     CANONICAL_CELL_ENVELOPE,
     CANONICAL_LOCAL_FRAME,
+    EDGE_TREATMENT_CHAMFER,
+    EDGE_TREATMENT_OFF,
+    EDGE_TREATMENT_SETBACK_MM,
     LibraryError,
     LibraryRecord,
     NativeSolidRecipe,
     SolidKind,
+    SolidMesh,
+    TreatmentError,
     UnknownGeometryError,
     all_library_records,
+    apply_edge_treatment,
     cell_half_extent_mm,
     lookup_recipe,
     lookup_record,
+    solid_from_recipe,
 )
 from se2cad.parser import (
     DEFAULT_COLOR_MASK_HSV,
@@ -96,6 +104,9 @@ __all__ = [
     "CANONICAL_CELL_ENVELOPE",
     "CANONICAL_LOCAL_FRAME",
     "COMPONENT_NAME_MAX_LENGTH",
+    "EDGE_TREATMENT_CHAMFER",
+    "EDGE_TREATMENT_OFF",
+    "EDGE_TREATMENT_SETBACK_MM",
     "DEFAULT_COLOR_MASK_HSV",
     "IDENTITY_ROTATION",
     "LARGE_GRID_CELL_PITCH_MM",
@@ -139,12 +150,15 @@ __all__ = [
     "RecipeKind",
     "RotationMatrix",
     "SolidKind",
+    "SolidMesh",
     "SupportStatus",
     "TransformError",
+    "TreatmentError",
     "UnknownGeometryError",
     "UnknownSubtypeError",
     "UnsupportedBlueprintError",
     "all_library_records",
+    "apply_edge_treatment",
     "build_canonical_blueprint",
     "cell_center_mm",
     "cell_half_extent_mm",
@@ -163,4 +177,5 @@ __all__ = [
     "parse_blueprint",
     "parse_blueprint_xml",
     "rotation_from_forward_up",
+    "solid_from_recipe",
 ]

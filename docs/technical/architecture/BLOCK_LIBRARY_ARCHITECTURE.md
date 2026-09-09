@@ -107,6 +107,27 @@ Deterministic validation properties stored on each recipe: vertex count, face co
 
 Placement semantics for these 1×1×1 parts: insert at the cell center with no additional offset. The IR transform is the only placement.
 
+## Optional block-edge treatment
+
+S2C-10.1.1. Public entrypoints: `se2cad.library.apply_edge_treatment`, `solid_from_recipe`, `solid_from_vertices_faces`.
+
+Edge definition is an optional geometry treatment, not a new subtype and not a second `geometry_id`. Default conversion is untreated: `lookup_recipe` still returns the qualified native solid, and `apply_edge_treatment(solid)` / `EDGE_TREATMENT_OFF` returns that mesh unchanged. The canonical local frame, cell envelope used for placement, millimetre pitch, and zero insert offset are unchanged.
+
+When requested (`EDGE_TREATMENT_CHAMFER`), the operation is an equal-setback chamfer of every convex manifold edge of a closed solid. Setback is the named constant `EDGE_TREATMENT_SETBACK_MM` (50 mm) along each incident face. Concave edges are left untreated. Applicability is a mesh property; the treatment modules do not name or allowlist the four initial `geometry_id` values.
+
+Measurable contract when treatment is applied:
+
+| Property | Requirement |
+| --- | --- |
+| Treatment present | `applied` is true; treated face count increases; every classified convex edge is treated |
+| Envelope | Treated solid stays inside the untreated axis-aligned bounds; recipe solids stay inside `CANONICAL_CELL_ENVELOPE`; face interiors of the cell box remain on the placement envelope |
+| Volume | Treated volume is strictly smaller than untreated and at least `EDGE_TREATMENT_MIN_VOLUME_RATIO` (0.85) of untreated |
+| Untreated identity | Library `geometry_id`, recipe vertices/faces, and catalog entries are unchanged |
+
+The CAD-neutral realization clips by each convex edge's chamfer half-space. That coincides with a local edge chamfer on the native recipes and on convex solids. SolidWorks materialization of treated parts is S2C-10.2.1 and is not implied here.
+
+Fail closed on an open or non-manifold mesh, a non-positive setback, a setback that consumes a convex edge, a requested treatment that does not decrease volume, or a treated solid that leaves the untreated envelope.
+
 ## Asset boundary
 
 Native armor recipes are SE2CAD-authored constructive geometry. They must not import Keen FBX, MWM, or extracted game meshes.
