@@ -9,7 +9,12 @@ from pathlib import Path
 
 from se2cad.catalog import LARGE_GRID_CELL_PITCH_MM, load_default_catalog
 from se2cad.ir import build_canonical_blueprint
-from se2cad.parser import Direction, parse_blueprint
+from se2cad.parser import (
+    DEFAULT_COLOR_MASK_HSV,
+    AppearanceSupport,
+    Direction,
+    parse_blueprint,
+)
 from se2cad.transform import IDENTITY_ROTATION, rotation_from_forward_up
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -57,6 +62,14 @@ class AcceptanceIrTests(unittest.TestCase):
             self.assertEqual(
                 canonical.orientation_serialized, parsed.orientation_serialized
             )
+            self.assertEqual(canonical.color_mask_hsv, parsed.color_mask_hsv)
+            self.assertEqual(canonical.color_serialized, parsed.color_serialized)
+            self.assertEqual(
+                canonical.appearance_support, parsed.appearance_support
+            )
+            self.assertEqual(canonical.color_mask_hsv, DEFAULT_COLOR_MASK_HSV)
+            self.assertEqual(canonical.appearance_support, AppearanceSupport.DEFAULT)
+            self.assertFalse(canonical.color_serialized)
             geometry_ids.append(canonical.geometry_id)
         self.assertEqual(
             Counter(geometry_ids),

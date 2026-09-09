@@ -16,7 +16,7 @@ Responsibilities:
 
 | Stage | Does | Does not |
 | --- | --- | --- |
-| Parser | Read supported `bp.sbc` safely; extract grid and per-block subtype, position, Forward, Up | Resolve geometry identity; compute CAD transforms; call SolidWorks |
+| Parser | Read supported `bp.sbc` safely; extract grid and per-block subtype, position, Forward, Up, and `ColorMaskHSV` appearance | Resolve geometry identity; compute CAD transforms; call SolidWorks |
 | Definition catalog | Map exact subtype → geometry identity; expose grid pitch from one named constant | Load meshes; contain COM types; scan a game install |
 | Transform engine | Compute exact placement from grid coordinate + orientation + pitch | Insert components; apply mates |
 | Block library | Return canonical part + reference metadata | Parse blueprints |
@@ -46,6 +46,12 @@ Encoding: `{subtype_id}_x{X}_y{Y}_z{Z}_{Forward}_{Up}_{source_index}`. Negative 
 
 The SolidWorks writer applies the name at insertion via `IComponent2.Name2` set (short name). Name2 get returns `{short}-{instance}` for a top-level non-virtual component. Matching after save/reopen compares the short name to the IR-derived name. Canonical part filenames and placement transforms are unchanged.
 
+## Appearance
+
+Per-instance appearance is CAD-neutral Space Engineers `ColorMaskHSV`, not a second `geometry_id` and not a SolidWorks material. The on-disk field is `ColorMaskHSV` with `x`/`y`/`z` attributes (`SerializableVector3`). XmlSerializer omits the element when it equals `SerializableVector3(0, -1, 0)`; that omitted default is `DEFAULT_COLOR_MASK_HSV` `(0.0, -1.0, 0.0)` (HSV-offset). The parser records `color_serialized` so an explicit default vector is distinct from omission.
+
+`AppearanceSupport` is independently reportable from catalog geometry `SupportStatus`: `default` for the omitted mapping, `explicit` for a serialized payload. Unknown appearance is not a current parser state. Malformed `ColorMaskHSV` fails closed. RGB / SolidWorks conversion is a backend concern and is not performed here.
+
 ## Intermediate representation
 
 The IR is CAD-neutral. It must be able to represent at least:
@@ -58,7 +64,7 @@ The IR is CAD-neutral. It must be able to represent at least:
 - up direction
 - resolved geometry identity
 - canonical transform
-- information needed by downstream CAD backends that can be expressed without backend API types, including per-instance appearance when that program unit exists
+- information needed by downstream CAD backends that can be expressed without backend API types, including per-instance `ColorMaskHSV` appearance
 
 It must not contain SolidWorks COM objects or API structures. Per-instance appearance must not be stored as a change to reusable geometry identity.
 
@@ -185,6 +191,6 @@ The completed initial program’s converter success path was:
 
 That path remains the qualified baseline. Fail closed on multiple grids and missing required fields. Do not silently drop blocks.
 
-Unknown-subtype handling, Small Grid, instance appearance, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed.
+Unknown-subtype handling, Small Grid, SolidWorks instance-appearance assignment, and print-shell generation are authorized only by [SE2CAD_PROGRAM_M7.md](../governance/SE2CAD_PROGRAM_M7.md) and only when STATE records the corresponding units. Until those units exist, unknown subtypes and non-Large grid sizes remain fail-closed. Parser/IR `ColorMaskHSV` is present when STATE records S2C-9.1.1.
 
 Blender is not a converter stage. A general print/slicer pipeline is not a converter stage.

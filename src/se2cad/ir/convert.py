@@ -29,6 +29,9 @@ def build_canonical_blueprint(
                 forward=parsed_block.forward,
                 up=parsed_block.up,
                 orientation_serialized=parsed_block.orientation_serialized,
+                color_mask_hsv=parsed_block.color_mask_hsv,
+                color_serialized=parsed_block.color_serialized,
+                appearance_support=parsed_block.appearance_support,
                 position_mm=cell_center_mm(parsed_block.min, pitch_mm),
                 rotation=rotation_from_forward_up(
                     parsed_block.forward, parsed_block.up

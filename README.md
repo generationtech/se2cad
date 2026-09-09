@@ -287,6 +287,12 @@ SolidWorks component insertion. Live SolidWorks 2026 save/reopen names
 match those IR-derived short names. They do not rename canonical
 `.SLDPRT` files or change placement transforms.
 
+CAD-neutral **instance appearance** is carried from blueprint
+`ColorMaskHSV` on the parser and IR. Omitted color is the evidenced
+Space Engineers default `(0, -1, 0)`. Appearance is not baked into
+canonical part identity. SolidWorks component appearance assignment is
+not part of this capability.
+
 ### Current scope
 
 SE2CAD is **not yet a universal Space Engineers ship converter**. The

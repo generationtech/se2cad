@@ -7,6 +7,8 @@ import unittest
 from pathlib import Path
 
 from se2cad.parser import (
+    DEFAULT_COLOR_MASK_HSV,
+    AppearanceSupport,
     BlueprintParseError,
     InvalidFieldError,
     MalformedXmlError,
@@ -242,6 +244,9 @@ class NegativeParserTests(unittest.TestCase):
         self.assertFalse(cube.orientation_serialized)
         self.assertEqual(cube.forward.value, "Forward")
         self.assertEqual(cube.up.value, "Up")
+        self.assertFalse(cube.color_serialized)
+        self.assertEqual(cube.appearance_support, AppearanceSupport.DEFAULT)
+        self.assertEqual(cube.color_mask_hsv, DEFAULT_COLOR_MASK_HSV)
 
     def test_path_parse_rejects_missing_file(self) -> None:
         with self.assertRaises(BlueprintParseError) as raised:

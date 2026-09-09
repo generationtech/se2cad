@@ -8,8 +8,11 @@ S2C-1.2.1 support set:
 - ``CubeBlocks`` containing ordinary ``MyObjectBuilder_CubeBlock`` entries
 - per-block subtype identity, Min, and BlockOrientation
 
+S2C-9.1.1 adds per-block ``ColorMaskHSV`` as CAD-neutral appearance.
+
 Omitted-field defaults are Space Engineers XML serialization defaults, not
-SE2CAD inventions. See ``_DEFAULT_MIN`` and ``_DEFAULT_ORIENTATION``.
+SE2CAD inventions. See ``_DEFAULT_MIN``, ``_DEFAULT_ORIENTATION``, and
+``DEFAULT_COLOR_MASK_HSV``.
 
 This module does not resolve catalogs, compute CAD transforms, or execute
 blueprint content.
@@ -17,6 +20,7 @@ blueprint content.
 
 from __future__ import annotations
 
+import math
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Optional
@@ -29,6 +33,9 @@ from se2cad.parser.errors import (
     UnsupportedBlueprintError,
 )
 from se2cad.parser.model import (
+    DEFAULT_COLOR_MASK_HSV,
+    AppearanceSupport,
+    ColorMaskHSV,
     Direction,
     GridCoordinate,
     GridSize,
@@ -46,6 +53,12 @@ _DEFAULT_MIN = GridCoordinate(0, 0, 0)
 # Evidence: ShouldSerializeBlockOrientation; SerializableBlockOrientation.Identity
 # = (Forward, Up); local VRage.Game.dll still exports ShouldSerializeBlockOrientation.
 _DEFAULT_ORIENTATION = (Direction.FORWARD, Direction.UP)
+
+# XmlSerializer omits ColorMaskHSV when it equals SerializableVector3(0, -1, 0).
+# Evidence: Keen MyObjectBuilder_CubeBlock field initializer and
+# ShouldSerializeColorMaskHSV(); current ModAPI still lists both;
+# qualified acceptance fixture serializes no ColorMaskHSV.
+_DEFAULT_COLOR_MASK_HSV = DEFAULT_COLOR_MASK_HSV
 
 _XSI_TYPE = "{http://www.w3.org/2001/XMLSchema-instance}type"
 _SHIP_BLUEPRINT_TYPE = "MyObjectBuilder_ShipBlueprintDefinition"
@@ -259,6 +272,18 @@ def _parse_cube_block(block: ET.Element, index: int, source: str) -> ParsedBlock
         forward, up = _DEFAULT_ORIENTATION
         orientation_serialized = False
 
+    color_nodes = _children(block, "ColorMaskHSV")
+    if len(color_nodes) > 1:
+        raise InvalidFieldError(f"{context}: multiple ColorMaskHSV elements")
+    if color_nodes:
+        color_mask_hsv = _parse_color_mask_hsv(color_nodes[0], context)
+        color_serialized = True
+        appearance_support = AppearanceSupport.EXPLICIT
+    else:
+        color_mask_hsv = _DEFAULT_COLOR_MASK_HSV
+        color_serialized = False
+        appearance_support = AppearanceSupport.DEFAULT
+
     unsupported = sorted(
         {
             _local_name(child)
@@ -278,6 +303,9 @@ def _parse_cube_block(block: ET.Element, index: int, source: str) -> ParsedBlock
         forward=forward,
         up=up,
         orientation_serialized=orientation_serialized,
+        color_mask_hsv=color_mask_hsv,
+        color_serialized=color_serialized,
+        appearance_support=appearance_support,
         source_index=index,
         source=source,
     )
@@ -333,6 +361,31 @@ def _parse_orientation(el: ET.Element, context: str) -> tuple[Direction, Directi
     return forward, up
 
 
+def _parse_color_mask_hsv(el: ET.Element, context: str) -> ColorMaskHSV:
+    if _is_nil(el):
+        raise InvalidFieldError(f"{context}: ColorMaskHSV is nil")
+    if list(el):
+        raise InvalidFieldError(
+            f"{context}: ColorMaskHSV must use x/y/z attributes"
+        )
+    allowed = {"x", "y", "z"}
+    extras = set(el.attrib) - allowed - {_XSI_TYPE, "type"}
+    if extras:
+        raise InvalidFieldError(
+            f"{context}: ColorMaskHSV has unsupported attributes {sorted(extras)}"
+        )
+    missing = [axis for axis in ("x", "y", "z") if axis not in el.attrib]
+    if missing:
+        raise MissingRequiredFieldError(
+            f"{context}: ColorMaskHSV is missing attribute(s) {', '.join(missing)}"
+        )
+    return ColorMaskHSV(
+        h=_parse_float_attr(el, "x", context, "ColorMaskHSV"),
+        s=_parse_float_attr(el, "y", context, "ColorMaskHSV"),
+        v=_parse_float_attr(el, "z", context, "ColorMaskHSV"),
+    )
+
+
 def _parse_direction(token: str, field: str, context: str) -> Direction:
     try:
         return _SUPPORTED_DIRECTIONS[token]
@@ -354,6 +407,51 @@ def _parse_int_attr(el: ET.Element, name: str, context: str) -> int:
         ) from None
     if str(value) != raw:
         raise InvalidFieldError(f"{context}: Min @{name} is not an integer: {raw!r}")
+    return value
+
+
+_REJECTED_FLOAT_TOKENS = frozenset(
+    {
+        "nan",
+        "inf",
+        "+inf",
+        "-inf",
+        "infinity",
+        "+infinity",
+        "-infinity",
+    }
+)
+
+
+def _parse_float_attr(
+    el: ET.Element, name: str, context: str, field: str
+) -> float:
+    raw = el.attrib[name]
+    if (
+        raw.strip() != raw
+        or raw == ""
+        or raw[0] == "+"
+        or " " in raw
+        or "_" in raw
+        or len(raw) > 32
+    ):
+        raise InvalidFieldError(
+            f"{context}: {field} @{name} is not a finite float: {raw!r}"
+        )
+    if raw.lower() in _REJECTED_FLOAT_TOKENS:
+        raise InvalidFieldError(
+            f"{context}: {field} @{name} is not a finite float: {raw!r}"
+        )
+    try:
+        value = float(raw)
+    except ValueError:
+        raise InvalidFieldError(
+            f"{context}: {field} @{name} is not a finite float: {raw!r}"
+        ) from None
+    if not math.isfinite(value):
+        raise InvalidFieldError(
+            f"{context}: {field} @{name} is not a finite float: {raw!r}"
+        )
     return value
 
 

@@ -13,7 +13,14 @@ from se2cad.catalog import (
     load_default_catalog,
 )
 from se2cad.ir import build_canonical_blueprint
-from se2cad.parser import Direction, GridCoordinate, GridSize, parse_blueprint_xml
+from se2cad.parser import (
+    DEFAULT_COLOR_MASK_HSV,
+    AppearanceSupport,
+    Direction,
+    GridCoordinate,
+    GridSize,
+    parse_blueprint_xml,
+)
 from se2cad.transform import IDENTITY_ROTATION, InvalidOrientationError
 
 
@@ -65,6 +72,9 @@ class IrConstructionTests(unittest.TestCase):
         self.assertEqual(block.forward, Direction.FORWARD)
         self.assertEqual(block.up, Direction.UP)
         self.assertFalse(block.orientation_serialized)
+        self.assertFalse(block.color_serialized)
+        self.assertEqual(block.appearance_support, AppearanceSupport.DEFAULT)
+        self.assertEqual(block.color_mask_hsv, DEFAULT_COLOR_MASK_HSV)
         self.assertEqual(block.position_mm.as_tuple(), (0, 0, 0))
         self.assertEqual(block.rotation, IDENTITY_ROTATION)
         self.assertEqual(ir.identity_subtype, "ir-test")

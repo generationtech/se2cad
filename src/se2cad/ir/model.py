@@ -11,7 +11,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 from se2cad.catalog.model import RecipeKind, SupportStatus
-from se2cad.parser.model import Direction, GridCoordinate, GridSize
+from se2cad.parser.model import (
+    AppearanceSupport,
+    ColorMaskHSV,
+    Direction,
+    GridCoordinate,
+    GridSize,
+)
 from se2cad.transform.rotation import RotationMatrix
 from se2cad.transform.translation import MillimetrePosition
 
@@ -29,6 +35,9 @@ class CanonicalBlock:
     forward: Direction
     up: Direction
     orientation_serialized: bool
+    color_mask_hsv: ColorMaskHSV
+    color_serialized: bool
+    appearance_support: AppearanceSupport
     position_mm: MillimetrePosition
     rotation: RotationMatrix
     source_index: int

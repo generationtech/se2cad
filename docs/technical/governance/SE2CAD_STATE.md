@@ -19,11 +19,11 @@ No implementation milestone is ACTIVE. Cold-storage backlog remains outside this
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics and QUALIFIED S2C-8.1.1 component names. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. Remaining M9–M15 features are approved, not implemented.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, and QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. SolidWorks instance-appearance assignment and remaining M10–M15 features are approved, not implemented.
 
 ## Next executable unit
 
-S2C-9.1.1 — Parse color and carry CAD-neutral appearance. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
+S2C-9.2.1 — Per-instance SolidWorks component appearance. Defined in [SE2CAD_PLAN_M7.md](SE2CAD_PLAN_M7.md). PLANNED.
 
 ## Unit status
 
@@ -48,7 +48,7 @@ S2C-9.1.1 — Parse color and carry CAD-neutral appearance. Defined in [SE2CAD_P
 | M7–M15 program authorization | QUALIFIED | Current program/plan exist; historical M0–M6 preserved; ratchet/onboarding/process/rules point at STATE-named current docs; no product implementation; no named opschecks; next unit S2C-7.1.1 is PLANNED. Distinct assessment recorded below. |
 | S2C-7.1.1 | QUALIFIED | CAD-neutral `se2cad.statistics` exists; fixture identity/counts/extents/occupancy/orientations/catalog coverage match the qualified parser/catalog/IR record; synthetic single-cell, negative, mixed-orientation, unknown-subtype, and parser-rejected cases covered; ordinary suite 198 tests, 2 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-8.1.1 | QUALIFIED | CAD-neutral `component_name` from subtype/`Min`/Forward/Up/`source_index`; assembly writer sets Name2 at insert. Ordinary suite 212 tests, 2 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: all 24 save/reopen short names match the IR encoding; transforms and canonical `.SLDPRT` filenames unchanged. Distinct assessment recorded below. |
-| S2C-9.1.1 | PLANNED | |
+| S2C-9.1.1 | QUALIFIED | Parser/IR carry CAD-neutral `ColorMaskHSV`; omitted maps to `(0.0, -1.0, 0.0)`; `AppearanceSupport` independent of geometry `SupportStatus`. Ordinary suite 233 tests, 2 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-9.2.1 | PLANNED | |
 | S2C-10.1.1 | PLANNED | |
 | S2C-10.2.1 | PLANNED | |
@@ -69,6 +69,16 @@ S2C-9.1.1 — Parse color and carry CAD-neutral appearance. Defined in [SE2CAD_P
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-08 — S2C-9.1.1 QUALIFIED
+
+Executed the next unit named by STATE. Did not start S2C-9.2.1. Did not invent SolidWorks appearance assignment, edges, library expansion, preflight, Small Grid, symmetry, or print-shell. Did not create a general CLI or UI. Did not bake color into `geometry_id`, recipes, catalog identity, or canonical part filenames. Did not change omitted `Min` / `BlockOrientation` defaults. Did not commit, tag, or push.
+
+On-disk field is `ColorMaskHSV` (`SerializableVector3` attributes `x`/`y`/`z`). Omitted default is HSV-offset `(0.0, -1.0, 0.0)` (`DEFAULT_COLOR_MASK_HSV`). Parser records `color_serialized` and independently reportable `AppearanceSupport` (`default` vs `explicit`). IR copies those fields without reinterpretation. Malformed payloads fail closed; they do not invent the omitted default.
+
+Omitted-color mapping evidence is recorded in [S2C-9.1.1 omitted-color mapping](#s2c-911-omitted-color-mapping). This Windows host has no local Space Engineers install; the default vector is from published Keen source plus current ModAPI, corroborated by the qualified fixture omitting `ColorMaskHSV` on all 24 blocks.
+
+Verification: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` — 233 tests, 2 skipped, 0.236 s, OK. Fixture SHA-256 unchanged. No SolidWorks appearance calls. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-08 — S2C-8.1.1 QUALIFIED
 
@@ -385,6 +395,28 @@ Internet / published-source corroboration (not a substitute for the local eviden
 
 XmlSerializer omits a field when `ShouldSerializeX()` is false; deserialization then uses the field initializer. That is the mapping implemented here.
 
+## S2C-9.1.1 omitted-color mapping
+
+**Omitted `ColorMaskHSV`** means HSV-offset `(0.0, -1.0, 0.0)` (`DEFAULT_COLOR_MASK_HSV`). The parser records `color_serialized=False` and `appearance_support=default`.
+
+**Explicit `ColorMaskHSV`** is the `x`/`y`/`z` attribute vector stored as `ColorMaskHSV.h/s/v`. The parser records `color_serialized=True` and `appearance_support=explicit`. An explicit `(0, -1, 0)` is not collapsed to omitted.
+
+This is the same XmlSerializer `ShouldSerializeX` / field-initializer pattern as omitted `Min` and `BlockOrientation`.
+
+Local / repository evidence:
+
+- The qualified acceptance fixture serializes no `ColorMaskHSV` on any of its 24 cube blocks (SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31`, unchanged).
+- This Windows host has no Steam `libraryfolders.vdf`, no `VRage.Game.dll`, and no `%APPDATA%\SpaceEngineers` tree. WSL is not installed. A local `ShouldSerializeColorMaskHSV` export was therefore not re-read in this session.
+
+Internet / published-source corroboration:
+
+- Keen published `MyObjectBuilder_CubeBlock`: `ColorMaskHSV = new SerializableVector3(0f, -1f, 0f)` and `ShouldSerializeColorMaskHSV()` is `ColorMaskHSV != new SerializableVector3(0f, -1f, 0f)`.
+- Keen published `SerializableVector3` uses `[XmlAttribute] x/y/z`.
+- Current Keen ModAPI still lists `ColorMaskHSV` and `ShouldSerializeColorMaskHSV()` on `MyObjectBuilder_CubeBlock`.
+- 2017 Doxygen dump of the same type records the same `(0f, -1f, 0f)` initializer.
+
+RGB conversion and SolidWorks assignment are out of scope for S2C-9.1.1.
+
 ## S2C-2.1.1 catalog evidence
 
 Authoritative catalog: `src/se2cad/catalog/large_grid_armor.json`. Loader: `src/se2cad/catalog/`. Public entrypoints `load_default_catalog()`, `DefinitionCatalog.lookup(subtype_id)`, and `LARGE_GRID_CELL_PITCH_MM`.
@@ -583,6 +615,28 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-9.1.1)
+
+Hypotheses tested after parser/IR appearance fields and tests existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Malformed `ColorMaskHSV` is silently replaced by the omitted default | Disproven. Nil, children, extra attributes, missing axes, non-numeric, NaN/Inf, `1e999`, overlong tokens, and `z="oops"` raise `InvalidFieldError` or `MissingRequiredFieldError`. |
+| Untrusted float tokens accept `+`, whitespace, underscores, or non-finite values | Disproven. `_parse_float_attr` rejects those forms before or after `float()`. |
+| Appearance is folded into `geometry_id` or catalog identity | Disproven. Same subtype / different colors share `large_armor_block`. Different subtypes / same color keep distinct geometry IDs. Catalog JSON and recipes have no color fields. |
+| Adding color changed omitted `Min` / `BlockOrientation` defaults | Disproven. Omitted Min remains `(0,0,0)` Forward/Up. Explicit color with omitted Min/orientation still uses those defaults. |
+| Fixture identities or transforms changed | Disproven. SHA-256 unchanged. IR acceptance still matches subtype/`Min`/Forward/Up/`geometry_id`/transforms; all 24 fixture blocks are default appearance. |
+| SolidWorks appearance was assigned or parts were painted | Disproven. SolidWorks package has no `ColorMaskHSV` / appearance assignment calls. Placement and naming do not encode color. |
+| Ordinary suite attaches to SolidWorks | Disproven. 233 tests, 2 skipped, 0.236 s with `SE2CAD_SOLIDWORKS_INTEGRATION` unset. |
+| Proprietary assets or fixture rewrite | Disproven. SHA-256 `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. |
+| S2C-9.2.1 or later M7–M15 work started | Disproven. No SolidWorks appearance conversion, edges, library expansion, preflight, Small Grid, symmetry, or print-shell. |
+
+Remediated during review: added regression tests for overlong tokens, overflow `1e999`, and explicit color leaving omitted Min/orientation unchanged. Suite re-run: 233 OK, 2 skipped.
+
+Accepted residual risk: this host could not re-export `ShouldSerializeColorMaskHSV` from a local `VRage.Game.dll`. The omitted vector rests on published Keen source, current ModAPI, and fixture omission. `ColorMaskHSV` is stored as HSV-offset, not converted to RGB. `SkinSubtypeId` remains unparsed. Unknown appearance is not a current parser state.
+
+Not claimed: SolidWorks component appearance; RGB conversion; paint skins; a general CLI.
 
 ## Quality/security assessment (S2C-8.1.1)
 

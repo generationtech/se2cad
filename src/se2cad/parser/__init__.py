@@ -9,6 +9,9 @@ from se2cad.parser.errors import (
     UnsupportedBlueprintError,
 )
 from se2cad.parser.model import (
+    DEFAULT_COLOR_MASK_HSV,
+    AppearanceSupport,
+    ColorMaskHSV,
     Direction,
     GridCoordinate,
     GridSize,
@@ -18,7 +21,10 @@ from se2cad.parser.model import (
 )
 
 __all__ = [
+    "DEFAULT_COLOR_MASK_HSV",
+    "AppearanceSupport",
     "BlueprintParseError",
+    "ColorMaskHSV",
     "Direction",
     "GridCoordinate",
     "GridSize",

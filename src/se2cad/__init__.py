@@ -4,8 +4,9 @@ S2C-1.2.1 exposes the blueprint parser. S2C-2.1.1 exposes the definition
 catalog. S2C-3.1.1 exposes the CAD-neutral IR and placement transforms.
 S2C-4.1.1 exposes the canonical block-library recipes. S2C-7.1.1 exposes
 CAD-neutral blueprint statistics. S2C-8.1.1 exposes CAD-neutral
-component names from IR fields. The SolidWorks backend lives in
-``se2cad.solidworks`` and is not imported here.
+component names from IR fields. S2C-9.1.1 carries CAD-neutral
+``ColorMaskHSV`` appearance on the parser and IR. The SolidWorks
+backend lives in ``se2cad.solidworks`` and is not imported here.
 """
 
 from se2cad.catalog import (
@@ -47,7 +48,10 @@ from se2cad.library import (
     lookup_record,
 )
 from se2cad.parser import (
+    DEFAULT_COLOR_MASK_HSV,
+    AppearanceSupport,
     BlueprintParseError,
+    ColorMaskHSV,
     Direction,
     GridCoordinate,
     GridSize,
@@ -92,9 +96,11 @@ __all__ = [
     "CANONICAL_CELL_ENVELOPE",
     "CANONICAL_LOCAL_FRAME",
     "COMPONENT_NAME_MAX_LENGTH",
+    "DEFAULT_COLOR_MASK_HSV",
     "IDENTITY_ROTATION",
     "LARGE_GRID_CELL_PITCH_MM",
     "SE_DIRECTION_VECTORS",
+    "AppearanceSupport",
     "AxisRange",
     "BlueprintParseError",
     "BlueprintStatistics",
@@ -107,6 +113,7 @@ __all__ = [
     "CatalogValidationError",
     "CellExtents",
     "CellSize",
+    "ColorMaskHSV",
     "ComponentNameError",
     "DefinitionCatalog",
     "Direction",

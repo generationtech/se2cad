@@ -22,11 +22,44 @@ class Direction(str, Enum):
     DOWN = "Down"
 
 
+class AppearanceSupport(str, Enum):
+    """Independently reportable from catalog geometry ``SupportStatus``.
+
+    ``DEFAULT`` is the evidenced omitted ``ColorMaskHSV`` mapping.
+    ``EXPLICIT`` is a serialized ``ColorMaskHSV`` payload. Unknown
+    appearance is not a current parser state.
+    """
+
+    DEFAULT = "default"
+    EXPLICIT = "explicit"
+
+
 @dataclass(frozen=True)
 class GridCoordinate:
     x: int
     y: int
     z: int
+
+
+@dataclass(frozen=True)
+class ColorMaskHSV:
+    """Keen ``ColorMaskHSV`` HSV-offset vector from blueprint XML ``x``/``y``/``z``.
+
+    This is per-instance Space Engineers color, not RGB and not a
+    geometry identity. ``h`` is XML ``x`` (hue). ``s`` is XML ``y``
+    (saturation-offset). ``v`` is XML ``z`` (value-offset).
+    """
+
+    h: float
+    s: float
+    v: float
+
+    def as_tuple(self) -> tuple[float, float, float]:
+        return (self.h, self.s, self.v)
+
+
+# XmlSerializer omits ColorMaskHSV when it equals SerializableVector3(0, -1, 0).
+DEFAULT_COLOR_MASK_HSV = ColorMaskHSV(0.0, -1.0, 0.0)
 
 
 @dataclass(frozen=True)
@@ -37,6 +70,9 @@ class ParsedBlock:
     forward: Direction
     up: Direction
     orientation_serialized: bool
+    color_mask_hsv: ColorMaskHSV
+    color_serialized: bool
+    appearance_support: AppearanceSupport
     source_index: int
     source: str
 

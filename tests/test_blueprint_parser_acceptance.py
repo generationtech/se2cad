@@ -8,7 +8,13 @@ import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
 
-from se2cad.parser import Direction, GridSize, parse_blueprint
+from se2cad.parser import (
+    DEFAULT_COLOR_MASK_HSV,
+    AppearanceSupport,
+    Direction,
+    GridSize,
+    parse_blueprint,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = REPO_ROOT / "fixtures/acceptance/four-block-armor-asymmetric/bp.sbc"
@@ -98,6 +104,13 @@ class AcceptanceFixtureParserTests(unittest.TestCase):
                 ("Backward", "Down"): 1,
             },
         )
+
+    def test_omitted_colormaskhsv_is_default_on_every_fixture_block(self) -> None:
+        for parsed, raw in zip(self.parsed.grid.blocks, self.raw_blocks, strict=True):
+            self.assertIsNone(raw.find("ColorMaskHSV"))
+            self.assertFalse(parsed.color_serialized)
+            self.assertEqual(parsed.appearance_support, AppearanceSupport.DEFAULT)
+            self.assertEqual(parsed.color_mask_hsv, DEFAULT_COLOR_MASK_HSV)
 
     def test_block_order_and_source_context(self) -> None:
         for index, block in enumerate(self.parsed.grid.blocks):
