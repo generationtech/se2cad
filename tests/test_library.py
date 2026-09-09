@@ -55,9 +55,10 @@ class CatalogResolutionTests(unittest.TestCase):
             for entry in catalog.entries
             if entry.support_status.value == "supported"
         ]
-        self.assertEqual(supported_ids, list(_CATALOG_GEOMETRY_IDS))
+        self.assertEqual(supported_ids[:4], list(_CATALOG_GEOMETRY_IDS))
+        self.assertEqual(len(supported_ids), 8)
         records = all_library_records()
-        self.assertEqual(len(records), 4)
+        self.assertEqual(len(records), 8)
         self.assertEqual([record.geometry_id for record in records], supported_ids)
         seen: set[str] = set()
         for geometry_id in supported_ids:
@@ -65,16 +66,13 @@ class CatalogResolutionTests(unittest.TestCase):
             self.assertEqual(recipe.geometry_id, geometry_id)
             self.assertNotIn(geometry_id, seen)
             seen.add(geometry_id)
-        self.assertEqual(len(seen), 4)
+        self.assertEqual(len(seen), 8)
         unsupported_ids = [
             entry.geometry_id
             for entry in catalog.entries
             if entry.support_status.value == "unsupported"
         ]
-        self.assertTrue(unsupported_ids)
-        for geometry_id in unsupported_ids:
-            with self.assertRaises(UnknownGeometryError):
-                lookup_recipe(geometry_id)
+        self.assertEqual(unsupported_ids, [])
 
     def test_lookup_is_exact_and_fails_closed(self) -> None:
         exact = lookup_recipe("large_armor_block")

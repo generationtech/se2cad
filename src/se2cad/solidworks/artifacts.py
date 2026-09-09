@@ -10,6 +10,7 @@ from se2cad.library import (
     EDGE_TREATMENT_OFF,
     EdgeTreatmentKind,
     EdgeTreatmentRequest,
+    all_library_records,
     lookup_recipe,
 )
 from se2cad.solidworks.errors import (
@@ -36,23 +37,23 @@ def canonical_geometry_ids() -> tuple[str, ...]:
     return _CANONICAL_GEOMETRY_IDS
 
 
+def _library_geometry_ids() -> frozenset[str]:
+    return frozenset(record.geometry_id for record in all_library_records())
+
+
 def logical_part_filename(geometry_id: str) -> str:
     """Deterministic SLDPRT filename from a catalog geometry identity."""
-    if geometry_id not in _CANONICAL_GEOMETRY_IDS:
-        # Unknown IDs fail closed even if a library recipe exists later.
-        try:
-            lookup_recipe(geometry_id)
-        except Exception:
-            pass
+    if geometry_id not in _library_geometry_ids():
         raise UnknownCanonicalPartError(
             f"no deterministic canonical artifact name for {geometry_id!r}"
         )
+    lookup_recipe(geometry_id)
     return f"{geometry_id}{CANONICAL_PART_SUFFIX}"
 
 
 def is_canonical_artifact_filename(filename: str) -> bool:
-    """True when filename is exactly one of the four SE2CAD-owned names."""
-    return filename in {logical_part_filename(gid) for gid in _CANONICAL_GEOMETRY_IDS}
+    """True when filename is a library-owned untreated canonical part."""
+    return filename in {logical_part_filename(gid) for gid in _library_geometry_ids()}
 
 
 def logical_treated_part_filename(
@@ -64,14 +65,11 @@ def logical_treated_part_filename(
     Treatment is not a new ``geometry_id``. The untreated
     ``{geometry_id}.SLDPRT`` name is never returned here.
     """
-    if geometry_id not in _CANONICAL_GEOMETRY_IDS:
-        try:
-            lookup_recipe(geometry_id)
-        except Exception:
-            pass
+    if geometry_id not in _library_geometry_ids():
         raise UnknownCanonicalPartError(
             f"no deterministic treated artifact name for {geometry_id!r}"
         )
+    lookup_recipe(geometry_id)
     if request.kind is not EdgeTreatmentKind.CHAMFER_EQUAL_SETBACK:
         raise UnknownCanonicalPartError(
             "no treated artifact name for treatment "
@@ -87,7 +85,7 @@ def is_treated_artifact_filename(filename: str) -> bool:
             gid,
             EdgeTreatmentRequest(kind=EdgeTreatmentKind.CHAMFER_EQUAL_SETBACK),
         )
-        for gid in _CANONICAL_GEOMETRY_IDS
+        for gid in _library_geometry_ids()
     }
 
 

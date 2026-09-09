@@ -12,7 +12,12 @@ from pathlib import Path
 
 from se2cad.ir.model import CanonicalBlock, CanonicalBlueprint
 from se2cad.ir.naming import component_name_from_block, component_names_from_blocks
-from se2cad.library import EDGE_TREATMENT_OFF, EdgeTreatmentRequest
+from se2cad.library import (
+    EDGE_TREATMENT_OFF,
+    EdgeTreatmentRequest,
+    UnknownGeometryError,
+    lookup_recipe,
+)
 from se2cad.parser.model import AppearanceSupport, ColorMaskHSV
 from se2cad.solidworks.appearance import color_mask_hsv_to_rgb
 from se2cad.solidworks.artifacts import (
@@ -52,24 +57,24 @@ def placements_from_ir(
     An explicit chamfer request names treated siblings. Geometry identity,
     component names, transforms, and appearance stay on the IR block.
     """
-    allowed = set(canonical_geometry_ids())
     component_names_from_blocks(ir.grid.blocks)
     chosen = EDGE_TREATMENT_OFF if treatment is None else treatment
     placements: list[ComponentPlacement] = []
     for block in ir.grid.blocks:
-        placements.append(_placement_from_block(block, allowed, chosen))
+        placements.append(_placement_from_block(block, chosen))
     return tuple(placements)
 
 
 def _placement_from_block(
     block: CanonicalBlock,
-    allowed: set[str],
     treatment: EdgeTreatmentRequest,
 ) -> ComponentPlacement:
-    if block.geometry_id not in allowed:
+    try:
+        lookup_recipe(block.geometry_id)
+    except UnknownGeometryError as exc:
         raise UnknownCanonicalPartError(
             f"no canonical assembly part for geometry_id {block.geometry_id!r}"
-        )
+        ) from exc
     return ComponentPlacement(
         source_index=block.source_index,
         subtype_id=block.subtype_id,
@@ -89,17 +94,20 @@ def _placement_from_block(
 def require_canonical_part_files(
     root: Path,
     treatment: EdgeTreatmentRequest | None = None,
+    geometry_ids: tuple[str, ...] | None = None,
 ) -> dict[str, Path]:
     """Fail closed when a required generated SLDPRT is missing.
 
     Default looks up untreated ``{geometry_id}.SLDPRT``. An explicit
     chamfer request looks up ``{geometry_id}_chamfer.SLDPRT`` only and
-    does not fall back to the untreated file.
+    does not fall back to the untreated file. ``geometry_ids`` defaults
+    to the four initial-program identities.
     """
     chosen = EDGE_TREATMENT_OFF if treatment is None else treatment
+    requested = canonical_geometry_ids() if geometry_ids is None else geometry_ids
     resolved: dict[str, Path] = {}
     missing: list[str] = []
-    for geometry_id in canonical_geometry_ids():
+    for geometry_id in requested:
         path = part_artifact_path(root, geometry_id, chosen)
         if chosen.enabled and path.name == logical_assembly_part_filename(
             geometry_id, EDGE_TREATMENT_OFF

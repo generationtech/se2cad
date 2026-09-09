@@ -1,4 +1,4 @@
-"""Generate the four canonical parts in a Windows-local SolidWorks session."""
+"""Generate canonical parts in a Windows-local SolidWorks session."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from se2cad.library import (
     EdgeTreatmentKind,
     EdgeTreatmentRequest,
     lookup_recipe,
+    representative_automatable_geometry_ids,
 )
 from se2cad.solidworks.artifacts import (
     assert_overwrite_is_canonical,
@@ -153,20 +154,39 @@ def generate_one_canonical_part(
 def generate_canonical_parts(
     config: SolidWorksBackendConfig | None = None,
     treatment: EdgeTreatmentRequest | None = None,
+    geometry_ids: tuple[str, ...] | None = None,
 ) -> tuple[GeneratedCanonicalPart, ...]:
-    """Materialize all four qualified armor recipes as reusable SLDPRT files.
+    """Materialize native recipes as reusable SLDPRT files.
 
+    Default ``geometry_ids`` remains the four initial-program identities.
     ``treatment=None`` and ``EDGE_TREATMENT_OFF`` remain the default
     untreated conversion. Treated siblings are written only when requested.
     """
     resolved = config if config is not None else load_solidworks_backend_config()
     request = EDGE_TREATMENT_OFF if treatment is None else treatment
+    requested = canonical_geometry_ids() if geometry_ids is None else geometry_ids
+    if not requested:
+        raise GeneratedRootError("generation requires at least one geometry_id")
+    if len(requested) != len(set(requested)):
+        raise GeneratedRootError("duplicate geometry_id in generation request")
     results: list[GeneratedCanonicalPart] = []
     with SolidWorksSession(resolved) as session:
-        for geometry_id in canonical_geometry_ids():
+        for geometry_id in requested:
             results.append(
                 generate_one_canonical_part(
                     session, geometry_id, resolved, treatment=request
                 )
             )
     return tuple(results)
+
+
+def generate_representative_automatable_parts(
+    config: SolidWorksBackendConfig | None = None,
+    treatment: EdgeTreatmentRequest | None = None,
+) -> tuple[GeneratedCanonicalPart, ...]:
+    """Generate the S2C-11.4.1 representative automatable subset."""
+    return generate_canonical_parts(
+        config,
+        treatment=treatment,
+        geometry_ids=representative_automatable_geometry_ids(),
+    )

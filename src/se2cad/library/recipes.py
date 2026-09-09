@@ -12,6 +12,7 @@ This module does not import Keen meshes or read a game install.
 from __future__ import annotations
 
 from se2cad.catalog.model import RecipeKind
+from se2cad.library.errors import UnknownGeometryError, UnsupportedTopologyError
 from se2cad.library.frame import (
     CANONICAL_CELL_ENVELOPE,
     CANONICAL_LOCAL_FRAME,
@@ -181,6 +182,34 @@ def _validation(
     )
 
 
+# Face winding of the Corner tetrahedron, in construction-vertex order.
+TETRAHEDRON_CUT_FACES: tuple[tuple[int, ...], ...] = _CORNER_FACES
+
+# CubeTopology tokens that have a native construction. Other automatable-class
+# tokens (for example Slope2Base) fail closed until a later construction exists.
+AUTOMATABLE_CUBE_TOPOLOGIES: frozenset[str] = frozenset(
+    {"Box", "Slope", "Corner", "InvCorner"}
+)
+
+# Initial-program identities. Default part generation still uses this set.
+ORIGINAL_LIBRARY_BINDINGS: tuple[tuple[str, str], ...] = (
+    ("large_armor_block", "Box"),
+    ("large_armor_slope", "Slope"),
+    ("large_armor_corner", "Corner"),
+    ("large_armor_corner_inv", "InvCorner"),
+)
+
+# S2C-11.4.1 representative automatable subset beyond the original four.
+REPRESENTATIVE_AUTOMATABLE_BINDINGS: tuple[tuple[str, str], ...] = (
+    ("large_heavy_block_armor_block", "Box"),
+    ("large_heavy_block_armor_slope", "Slope"),
+    ("large_heavy_block_armor_corner", "Corner"),
+    ("large_heavy_block_armor_corner_inv", "InvCorner"),
+)
+
+_GEOMETRY_ID_CHARS = frozenset("abcdefghijklmnopqrstuvwxyz0123456789_")
+
+
 def _box_construction() -> BoxConstruction:
     env = CANONICAL_CELL_ENVELOPE
     return BoxConstruction(min_mm=env.min_mm, max_mm=env.max_mm)
@@ -193,11 +222,23 @@ def _corner_construction() -> TetrahedronConstruction:
     )
 
 
-def _block_recipe() -> NativeSolidRecipe:
+def _checked_geometry_id(geometry_id: str) -> str:
+    if geometry_id == "" or geometry_id[0] < "a" or geometry_id[0] > "z":
+        raise UnknownGeometryError(
+            f"geometry_id {geometry_id!r} is not a valid SE2CAD identity"
+        )
+    if any(ch not in _GEOMETRY_ID_CHARS for ch in geometry_id):
+        raise UnknownGeometryError(
+            f"geometry_id {geometry_id!r} is not a valid SE2CAD identity"
+        )
+    return geometry_id
+
+
+def _block_recipe(geometry_id: str) -> NativeSolidRecipe:
     vertices = _scale(_CUBE_CORNER_SIGNS)
     faces = _CUBE_FACES
     return NativeSolidRecipe(
-        geometry_id="large_armor_block",
+        geometry_id=geometry_id,
         recipe_kind=RecipeKind.NATIVE_PROCEDURAL,
         solid_kind=SolidKind.AXIS_ALIGNED_BOX,
         vertices_mm=vertices,
@@ -213,12 +254,12 @@ def _block_recipe() -> NativeSolidRecipe:
     )
 
 
-def _slope_recipe() -> NativeSolidRecipe:
+def _slope_recipe(geometry_id: str) -> NativeSolidRecipe:
     vertices = _scale(_SLOPE_SIGNS)
     faces = _SLOPE_FACES
     half = cell_half_extent_mm()
     return NativeSolidRecipe(
-        geometry_id="large_armor_slope",
+        geometry_id=geometry_id,
         recipe_kind=RecipeKind.NATIVE_PROCEDURAL,
         solid_kind=SolidKind.RIGHT_TRIANGULAR_PRISM,
         vertices_mm=vertices,
@@ -244,11 +285,11 @@ def _slope_recipe() -> NativeSolidRecipe:
     )
 
 
-def _corner_recipe() -> NativeSolidRecipe:
+def _corner_recipe(geometry_id: str) -> NativeSolidRecipe:
     vertices = _scale(_CORNER_SIGNS)
     faces = _CORNER_FACES
     return NativeSolidRecipe(
-        geometry_id="large_armor_corner",
+        geometry_id=geometry_id,
         recipe_kind=RecipeKind.NATIVE_PROCEDURAL,
         solid_kind=SolidKind.TETRAHEDRON,
         vertices_mm=vertices,
@@ -268,11 +309,11 @@ def _corner_recipe() -> NativeSolidRecipe:
     )
 
 
-def _inv_corner_recipe() -> NativeSolidRecipe:
+def _inv_corner_recipe(geometry_id: str) -> NativeSolidRecipe:
     vertices = _scale(_INV_CORNER_SIGNS)
     faces = _INV_CORNER_FACES
     return NativeSolidRecipe(
-        geometry_id="large_armor_corner_inv",
+        geometry_id=geometry_id,
         recipe_kind=RecipeKind.NATIVE_PROCEDURAL,
         solid_kind=SolidKind.BOX_MINUS_TETRAHEDRON,
         vertices_mm=vertices,
@@ -294,6 +335,29 @@ def _inv_corner_recipe() -> NativeSolidRecipe:
     )
 
 
+_TOPOLOGY_BUILDERS = {
+    "Box": _block_recipe,
+    "Slope": _slope_recipe,
+    "Corner": _corner_recipe,
+    "InvCorner": _inv_corner_recipe,
+}
+
+
+def recipe_for_topology(geometry_id: str, cube_topology: str) -> NativeSolidRecipe:
+    """Stamp a native recipe for one automatable CubeTopology.
+
+    Box, Slope, Corner, and InvCorner reuse the qualified constructions.
+    Other topologies fail closed; they are not forced through one technique.
+    """
+    checked = _checked_geometry_id(geometry_id)
+    builder = _TOPOLOGY_BUILDERS.get(cube_topology)
+    if builder is None:
+        raise UnsupportedTopologyError(
+            f"cube_topology {cube_topology!r} has no native construction"
+        )
+    return builder(checked)
+
+
 def _record(recipe: NativeSolidRecipe) -> LibraryRecord:
     return LibraryRecord(
         geometry_id=recipe.geometry_id,
@@ -306,9 +370,9 @@ def _record(recipe: NativeSolidRecipe) -> LibraryRecord:
     )
 
 
-LIBRARY_RECORDS: tuple[LibraryRecord, ...] = (
-    _record(_block_recipe()),
-    _record(_slope_recipe()),
-    _record(_corner_recipe()),
-    _record(_inv_corner_recipe()),
+LIBRARY_RECORDS: tuple[LibraryRecord, ...] = tuple(
+    _record(recipe_for_topology(geometry_id, cube_topology))
+    for geometry_id, cube_topology in (
+        ORIGINAL_LIBRARY_BINDINGS + REPRESENTATIVE_AUTOMATABLE_BINDINGS
+    )
 )

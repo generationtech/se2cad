@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from se2cad.library.errors import UnknownGeometryError
 from se2cad.library.model import LibraryRecord, NativeSolidRecipe
-from se2cad.library.recipes import LIBRARY_RECORDS
+from se2cad.library.recipes import (
+    LIBRARY_RECORDS,
+    ORIGINAL_LIBRARY_BINDINGS,
+    REPRESENTATIVE_AUTOMATABLE_BINDINGS,
+)
 
 _BY_GEOMETRY_ID: dict[str, LibraryRecord] = {}
 for _record in LIBRARY_RECORDS:
@@ -16,8 +20,20 @@ for _record in LIBRARY_RECORDS:
 
 
 def all_library_records() -> tuple[LibraryRecord, ...]:
-    """Return the four initial Large Grid armor library records, in order."""
+    """Return bound native-armor library records, in catalog order."""
     return LIBRARY_RECORDS
+
+
+def original_library_geometry_ids() -> tuple[str, ...]:
+    """Return the four initial-program geometry identities."""
+    return tuple(geometry_id for geometry_id, _topology in ORIGINAL_LIBRARY_BINDINGS)
+
+
+def representative_automatable_geometry_ids() -> tuple[str, ...]:
+    """Return the S2C-11.4.1 representative automatable subset."""
+    return tuple(
+        geometry_id for geometry_id, _topology in REPRESENTATIVE_AUTOMATABLE_BINDINGS
+    )
 
 
 def lookup_record(geometry_id: str) -> LibraryRecord:

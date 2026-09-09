@@ -142,6 +142,8 @@ When STATE records S2C-11.2.1, catalog identity expansion is library-build autho
 
 When STATE records S2C-11.3.1, recipe selection is library-build authoring on those catalogued identities. Public entrypoints: `se2cad.catalog.select_catalog_recipes`, `classify_observed`, `query_exception_records`, `provenance_records`. CubeTopology-class `CubeBlock` armor is classified `native_procedural` / automatable from observed facts. TriangleMesh and unusual relationships are long-tail `unsupported` with a queryable exception record. Support is never granted by selection. `sdk_mesh_direct` and `sdk_mesh_manifold` are not assigned. Runtime lookup remains the packaged catalog.
 
+When STATE records S2C-11.4.1, native recipes can be stamped from known CubeTopology tokens. Public entrypoints: `se2cad.library.recipe_for_topology`, `representative_automatable_geometry_ids`, `se2cad.solidworks.generate_representative_automatable_parts`. Box, Slope, Corner, and InvCorner reuse the qualified constructions. Other topologies fail closed; they are not forced through one technique. The representative automatable subset beyond the original four is the four Large Grid heavy-armor counterparts. Those identities keep distinct `geometry_id` values and become `supported` when a recipe and generation path exist. Default `generate_canonical_parts()` still materializes the original four. Generated `.SLDPRT` files stay local cache.
+
 ## Asset boundary
 
 Native armor recipes are SE2CAD-authored constructive geometry. They must not import Keen FBX, MWM, or extracted game meshes.

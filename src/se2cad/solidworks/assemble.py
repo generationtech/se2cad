@@ -72,7 +72,10 @@ def generate_assembly_from_ir(
     if not identity:
         raise AssemblyValidationError("canonical IR has no identity_subtype")
     placements = placements_from_ir(ir, treatment)
-    part_paths = require_canonical_part_files(resolved.generated_root, treatment)
+    needed = tuple(dict.fromkeys(item.geometry_id for item in placements))
+    part_paths = require_canonical_part_files(
+        resolved.generated_root, treatment, geometry_ids=needed
+    )
     destination = assembly_destination(resolved, identity)
 
     opened_parts: list[object] = []

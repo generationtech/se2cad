@@ -67,13 +67,27 @@ from se2cad.solidworks.units import mm_to_metres, metres_to_mm, point_mm_to_metr
 def generate_canonical_parts(
     config: SolidWorksBackendConfig | None = None,
     treatment=None,
+    geometry_ids=None,
 ):
-    """Generate the four canonical parts. Requires Windows + pywin32 + SolidWorks.
+    """Generate canonical parts. Requires Windows + pywin32 + SolidWorks.
 
-    Untreated ``large_armor_*.SLDPRT`` remain the default. Pass
+    Default ``geometry_ids`` remains the four initial-program identities.
+    Untreated ``{geometry_id}.SLDPRT`` remain the default. Pass
     ``EDGE_TREATMENT_CHAMFER`` to write treated sibling artifacts.
     """
     from se2cad.solidworks.generate import generate_canonical_parts as impl
+
+    return impl(config, treatment=treatment, geometry_ids=geometry_ids)
+
+
+def generate_representative_automatable_parts(
+    config: SolidWorksBackendConfig | None = None,
+    treatment=None,
+):
+    """Generate the S2C-11.4.1 representative automatable subset."""
+    from se2cad.solidworks.generate import (
+        generate_representative_automatable_parts as impl,
+    )
 
     return impl(config, treatment=treatment)
 
@@ -126,6 +140,7 @@ __all__ = [
     "contained_destination",
     "generate_assembly",
     "generate_canonical_parts",
+    "generate_representative_automatable_parts",
     "is_treated_artifact_filename",
     "load_solidworks_backend_config",
     "logical_assembly_filename",

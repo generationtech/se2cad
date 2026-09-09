@@ -14,8 +14,10 @@ from se2cad.library import (
     NativeSolidRecipe,
     PrismConstruction,
     SolidKind,
+    TETRAHEDRON_CUT_FACES,
     TetrahedronConstruction,
     lookup_recipe,
+    signed_volume_times_6,
 )
 from se2cad.solidworks.artifacts import canonical_geometry_ids
 from se2cad.solidworks.units import (
@@ -79,6 +81,13 @@ class ConstructionPlan:
     tetrahedron: TetrahedronPlan | None
     box_minus_tetrahedron: BoxMinusTetrahedronPlan | None
     expected: ExpectedSolid
+
+
+def _box_volume_times_6(construction: BoxConstruction) -> int:
+    dx = construction.max_mm[0] - construction.min_mm[0]
+    dy = construction.max_mm[1] - construction.min_mm[1]
+    dz = construction.max_mm[2] - construction.min_mm[2]
+    return 6 * dx * dy * dz
 
 
 def _box_plan(construction: BoxConstruction) -> BoxPlan:
@@ -159,11 +168,12 @@ def _expected_com_m(recipe: NativeSolidRecipe) -> tuple[float, float, float]:
         verts = tuple(point_mm_to_metres(v) for v in recipe.construction.vertices_mm)
         return _mean_points(verts)
     if isinstance(recipe.construction, BoxMinusTetrahedronConstruction):
-        box_vol = recipe_volume_m3(
-            lookup_recipe("large_armor_block").validation.volume_times_6_mm3
-        )
+        box = recipe.construction.box
+        box_vol = recipe_volume_m3(_box_volume_times_6(box))
         tet_vol = recipe_volume_m3(
-            lookup_recipe("large_armor_corner").validation.volume_times_6_mm3
+            signed_volume_times_6(
+                recipe.construction.cut.vertices_mm, TETRAHEDRON_CUT_FACES
+            )
         )
         tet_com = _mean_points(
             tuple(point_mm_to_metres(v) for v in recipe.construction.cut.vertices_mm)
@@ -195,10 +205,9 @@ def plan_from_recipe(recipe: NativeSolidRecipe) -> ConstructionPlan:
     if isinstance(recipe.construction, TetrahedronConstruction):
         tetra = _tetra_plan(recipe.construction, recipe.faces)
     elif isinstance(recipe.construction, BoxMinusTetrahedronConstruction):
-        cut_recipe = lookup_recipe("large_armor_corner")
         box_minus = BoxMinusTetrahedronPlan(
             box=_box_plan(recipe.construction.box),
-            cut=_tetra_plan(recipe.construction.cut, cut_recipe.faces),
+            cut=_tetra_plan(recipe.construction.cut, TETRAHEDRON_CUT_FACES),
         )
 
     expected_box = recipe.validation.bounding_box

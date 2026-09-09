@@ -324,6 +324,39 @@ class SolidWorksIntegrationTests(unittest.TestCase):
         }
         self.assertEqual(after_hashes, untreated_hashes)
 
+    def test_representative_automatable_parts_generate_validate_save_and_reopen(self) -> None:
+        from se2cad.library import lookup_recipe, representative_automatable_geometry_ids
+        from se2cad.solidworks.generate import generate_representative_automatable_parts
+        from se2cad.solidworks.recipe_plan import plan_from_recipe
+        from se2cad.solidworks.units import mm_to_metres
+
+        expected_ids = representative_automatable_geometry_ids()
+        self.assertEqual(len(expected_ids), 4)
+        results = generate_representative_automatable_parts(self.config)
+        self.assertEqual(len(results), 4)
+        self.assertEqual(
+            tuple(result.locator.identity.geometry_id for result in results),
+            expected_ids,
+        )
+        half_m = mm_to_metres(lookup_recipe(expected_ids[0]).validation.bounding_box.max_mm[0])
+        for result in results:
+            plan = plan_from_recipe(lookup_recipe(result.locator.identity.geometry_id))
+            self.assertTrue(result.locator.path.is_file())
+            self.assertTrue(result.locator.path.is_relative_to(self.config.generated_root))
+            self.assertEqual(
+                result.locator.identity.filename,
+                f"{result.locator.identity.geometry_id}.SLDPRT",
+            )
+            self.assertEqual(result.locator.identity.filename, result.locator.path.name)
+            self.assertEqual(result.after_save.solid_body_count, 1)
+            self.assertEqual(result.after_reopen.solid_body_count, 1)
+            self.assertEqual(result.after_reopen.sheet_body_count, 0)
+            self.assertAlmostEqual(
+                result.after_reopen.volume_m3, plan.expected.volume_m3, places=5
+            )
+            self.assertGreaterEqual(result.after_reopen.bounding_box_min_m[0], -half_m - 1e-6)
+            self.assertLessEqual(result.after_reopen.bounding_box_max_m[0], half_m + 1e-6)
+
     def test_treated_assembly_consumes_treated_siblings(self) -> None:
         from collections import Counter
 

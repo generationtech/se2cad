@@ -23,7 +23,7 @@ from se2cad.catalog import (
     select_catalog_recipes,
 )
 from se2cad.ir import build_canonical_blueprint
-from se2cad.library import UnknownGeometryError, lookup_recipe
+from se2cad.library import lookup_recipe
 from se2cad.parser import parse_blueprint
 from pathlib import Path
 
@@ -140,14 +140,12 @@ class SelectCatalogRecipesTests(unittest.TestCase):
             self.assertEqual(record.geometry_class, GeometryClass.AUTOMATABLE)
             self.assertEqual(record.recipe_kind, RecipeKind.NATIVE_PROCEDURAL)
             self.assertIsNone(record.exception_reason)
-            if entry.subtype_id in original:
+            if entry.subtype_id in original or entry.subtype_id in expanded:
                 self.assertEqual(entry.support_status, SupportStatus.SUPPORTED)
-            elif entry.subtype_id in expanded:
-                self.assertEqual(entry.support_status, SupportStatus.UNSUPPORTED)
             else:
                 self.fail(f"unexpected packaged subtype {entry.subtype_id!r}")
 
-    def test_does_not_default_expanded_identities_to_supported(self) -> None:
+    def test_selection_does_not_grant_or_revoke_packaged_support(self) -> None:
         catalog = load_default_catalog()
         report = select_catalog_recipes(catalog)
         for subtype in (
@@ -156,11 +154,13 @@ class SelectCatalogRecipesTests(unittest.TestCase):
             "LargeHeavyBlockArmorCorner",
             "LargeHeavyBlockArmorCornerInv",
         ):
+            before = catalog.lookup(subtype)
             entry = report.catalog.lookup(subtype)
             self.assertEqual(entry.recipe_kind, RecipeKind.NATIVE_PROCEDURAL)
-            self.assertEqual(entry.support_status, SupportStatus.UNSUPPORTED)
-            with self.assertRaises(UnknownGeometryError):
-                lookup_recipe(entry.geometry_id)
+            self.assertEqual(entry.support_status, before.support_status)
+            self.assertEqual(entry.support_status, SupportStatus.SUPPORTED)
+            recipe = lookup_recipe(entry.geometry_id)
+            self.assertEqual(recipe.geometry_id, entry.geometry_id)
 
     def test_expand_then_select_does_not_grant_support(self) -> None:
         expanded = expand_catalog_identities(

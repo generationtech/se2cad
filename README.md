@@ -313,11 +313,17 @@ packaged catalog can record additional vanilla Large Grid identities
 from those facts. CubeTopology-class armor receives an explicit
 `native_procedural` recipe decision; TriangleMesh and unusual
 relationships are recorded as long-tail exceptions and are not
-reported as supported. Naming a recipe is not generation: expanded
-identities stay `unsupported` until a later generation decision. The
-original four armor entries remain supported. Runtime conversion still
-uses only the packaged catalog and a `.sbc` blueprint; it does not
-require a game or SDK install.
+reported as supported. Naming a recipe is not generation. Automated
+generation stamps the qualified Box / Slope / Corner / InvCorner
+constructions onto additional identities; other CubeTopology tokens
+fail closed instead of sharing one technique. The representative
+generated subset beyond the original four is the four Large Grid
+heavy-armor counterparts. Those identities are supported and live
+SolidWorks 2026 has generated their canonical `.SLDPRT` files. The
+original four armor entries remain supported. Default part generation
+still writes the original four. Runtime conversion still uses only
+the packaged catalog and a `.sbc` blueprint; it does not require a
+game or SDK install.
 
 ### Current scope
 

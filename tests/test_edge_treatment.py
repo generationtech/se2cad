@@ -269,7 +269,7 @@ class LibraryIdentityTests(unittest.TestCase):
         )
         self.assertEqual(
             [record.geometry_id for record in all_library_records()],
-            list(_CATALOG_GEOMETRY_IDS),
+            [entry.geometry_id for entry in catalog.entries],
         )
         request = EdgeTreatmentRequest(kind=EdgeTreatmentKind.CHAMFER_EQUAL_SETBACK)
         self.assertTrue(request.enabled)

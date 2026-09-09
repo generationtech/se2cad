@@ -1,6 +1,6 @@
 """Definition catalog: exact subtype lookup to SE2CAD geometry identity.
 
-S2C-2.1.1 / S2C-11.2.1 / S2C-11.3.1. Independent of blueprint XML
+S2C-2.1.1 / S2C-11.2.1 / S2C-11.3.1 / S2C-11.4.1. Independent of blueprint XML
 parsing, CAD transforms, and SolidWorks. The packaged catalog is the
 runtime source; game-install scanning is not required.
 """

@@ -9,6 +9,10 @@ class UnknownGeometryError(LibraryError):
     """Lookup used a geometry identity that has no library recipe."""
 
 
+class UnsupportedTopologyError(LibraryError):
+    """CubeTopology is automatable-class but has no native construction."""
+
+
 class InvalidSolidError(LibraryError):
     """A mesh is not a closed manifold solid the treatment can consume."""
 
