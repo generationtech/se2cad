@@ -56,17 +56,18 @@ class CatalogResolutionTests(unittest.TestCase):
             if entry.support_status.value == "supported"
         ]
         self.assertEqual(supported_ids[:4], list(_CATALOG_GEOMETRY_IDS))
-        self.assertEqual(len(supported_ids), 8)
+        self.assertEqual(len(supported_ids), 9)
+        self.assertEqual(supported_ids[-1], "large_block_small_hydrogen_thrust")
         records = all_library_records()
         self.assertEqual(len(records), 8)
-        self.assertEqual([record.geometry_id for record in records], supported_ids)
+        self.assertEqual([record.geometry_id for record in records], supported_ids[:8])
         seen: set[str] = set()
         for geometry_id in supported_ids:
             recipe = lookup_recipe(geometry_id)
             self.assertEqual(recipe.geometry_id, geometry_id)
             self.assertNotIn(geometry_id, seen)
             seen.add(geometry_id)
-        self.assertEqual(len(seen), 8)
+        self.assertEqual(len(seen), 9)
         unsupported_ids = [
             entry.geometry_id
             for entry in catalog.entries

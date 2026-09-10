@@ -39,7 +39,7 @@ The initial-program library record (`se2cad.library.LibraryRecord`) expresses:
 Strategy vocabulary (not an implementation checklist):
 
 - `native_procedural` — construct CAD solid from SE2CAD recipes
-- `sdk_mesh_direct` — later; out of initial program
+- `sdk_mesh_direct` — later; out of initial program. When STATE records S2C-11.7.1, exactly one identity uses this strategy.
 - `sdk_mesh_manifold` — later; out of initial program
 - `hand_authored` — later; out of initial program
 - `unsupported` — explicit non-support; do not silently substitute
@@ -151,6 +151,8 @@ When STATE records S2C-11.4.1, native recipes can be stamped from known CubeTopo
 When STATE records S2C-11.5.1, leftover and long-tail records live in repository-owned leftover metadata (`leftover_set.json`). Public entrypoints: `se2cad.catalog.evaluate_leftover_set`, `load_default_leftover_set`, `conversion_may_report_supported`, `stamp_automatable_remainder`. Failed generation, unclassified identities, and unsupported recipe kinds cannot be reported as successful supported conversion. Residual automatable CubeTopology tokens without a construction stay listed. Coverage is not universal vanilla. Leftover evaluation is not converter preflight. When STATE records S2C-12.1.1, converter preflight is `se2cad.preflight`.
 
 When STATE records S2C-11.6.1, assembly materializes already-qualified untreated `{geometry_id}.SLDPRT` files on demand. Public entrypoints: `se2cad.solidworks.has_qualified_untreated_builder`, `ensure_untreated_canonical_parts`, `materialize_required_parts`. Existing artifacts are reused. Missing identities are generated only when a library record already has a qualified native construction. Assembly does not stamp automatable remainder, does not bind hidden `LargeRoundArmor_*` aliases, and does not scan a game or SDK install. Explicit `python -m se2cad.solidworks` still generates the original four by default. This is not universal vanilla support.
+
+When STATE records S2C-11.7.1, exactly one TriangleMesh identity is an authorized `sdk_mesh_direct` bind: `LargeBlockSmallHydrogenThrust` → `large_block_small_hydrogen_thrust`. Classification of TriangleMesh remains long-tail. Selection and leftover honesty keep a narrow exception for that explicit catalog/library bind. Demand-driven generation may resolve one official ModSDK FBX under the operator-configured SDK root and invoke a bounded Blender conversion; parse, IR, and policy remain install-free. Other `sdk_mesh_*` assignments stay forbidden. This is not a general SDK-mesh framework and is not universal vanilla support.
 
 ## Asset boundary
 

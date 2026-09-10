@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from se2cad.library.errors import UnknownGeometryError
-from se2cad.library.model import LibraryRecord, NativeSolidRecipe
+from se2cad.library.model import GeometryRecipe, LibraryRecord
 from se2cad.library.recipes import (
     FILLER_LIBRARY_RECORD,
     LIBRARY_RECORDS,
     ORIGINAL_LIBRARY_BINDINGS,
     REPRESENTATIVE_AUTOMATABLE_BINDINGS,
 )
+from se2cad.library.sdk_bind import LARGE_BLOCK_SMALL_HYDROGEN_THRUST_RECORD
 
 _BY_GEOMETRY_ID: dict[str, LibraryRecord] = {}
 for _record in LIBRARY_RECORDS:
@@ -23,6 +24,14 @@ if FILLER_LIBRARY_RECORD.geometry_id in _BY_GEOMETRY_ID:
         f"duplicate library geometry_id {FILLER_LIBRARY_RECORD.geometry_id!r}"
     )
 _BY_GEOMETRY_ID[FILLER_LIBRARY_RECORD.geometry_id] = FILLER_LIBRARY_RECORD
+if LARGE_BLOCK_SMALL_HYDROGEN_THRUST_RECORD.geometry_id in _BY_GEOMETRY_ID:
+    raise RuntimeError(
+        "duplicate library geometry_id "
+        f"{LARGE_BLOCK_SMALL_HYDROGEN_THRUST_RECORD.geometry_id!r}"
+    )
+_BY_GEOMETRY_ID[LARGE_BLOCK_SMALL_HYDROGEN_THRUST_RECORD.geometry_id] = (
+    LARGE_BLOCK_SMALL_HYDROGEN_THRUST_RECORD
+)
 
 
 def all_library_records() -> tuple[LibraryRecord, ...]:
@@ -57,9 +66,14 @@ def lookup_record(geometry_id: str) -> LibraryRecord:
         ) from None
 
 
-def lookup_recipe(geometry_id: str) -> NativeSolidRecipe:
-    """Return the unique native recipe for a catalog geometry identity."""
+def lookup_recipe(geometry_id: str) -> GeometryRecipe:
+    """Return the unique recipe for a catalog geometry identity."""
     return lookup_record(geometry_id).recipe
+
+
+def bound_library_geometry_ids() -> frozenset[str]:
+    """Return every geometry_id that lookup can resolve, including filler."""
+    return frozenset(_BY_GEOMETRY_ID)
 
 
 def geometry_supports_chamfer(geometry_id: str) -> bool:

@@ -269,7 +269,11 @@ class LibraryIdentityTests(unittest.TestCase):
         )
         self.assertEqual(
             [record.geometry_id for record in all_library_records()],
-            [entry.geometry_id for entry in catalog.entries],
+            [
+                entry.geometry_id
+                for entry in catalog.entries
+                if entry.subtype_id != "LargeBlockSmallHydrogenThrust"
+            ],
         )
         request = EdgeTreatmentRequest(kind=EdgeTreatmentKind.CHAMFER_EQUAL_SETBACK)
         self.assertTrue(request.enabled)

@@ -137,6 +137,11 @@ class SelectCatalogRecipesTests(unittest.TestCase):
             self.assertIsNotNone(entry.recipe_kind)
             self.assertIsNotNone(entry.support_status)
             self.assertEqual(record.subtype_id, entry.subtype_id)
+            if entry.subtype_id == "LargeBlockSmallHydrogenThrust":
+                self.assertEqual(record.geometry_class, GeometryClass.LONG_TAIL)
+                self.assertEqual(record.recipe_kind, RecipeKind.SDK_MESH_DIRECT)
+                self.assertEqual(entry.support_status, SupportStatus.SUPPORTED)
+                continue
             self.assertEqual(record.geometry_class, GeometryClass.AUTOMATABLE)
             self.assertEqual(record.recipe_kind, RecipeKind.NATIVE_PROCEDURAL)
             self.assertIsNone(record.exception_reason)

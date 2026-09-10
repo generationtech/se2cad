@@ -205,11 +205,11 @@ class PolicyAndPreflightBoundaryTests(unittest.TestCase):
     def test_unknown_functional_block_is_refused_by_strict_policy(self) -> None:
         xml = _document(
             _block(
-                "LargeBlockSmallHydrogenThrust",
-                xsi_type="MyObjectBuilder_Thrust",
+                "LargeBlockGyro",
+                xsi_type="MyObjectBuilder_Gyro",
             )
         )
-        parsed = parse_blueprint_xml(xml, source="strict-thrust")
+        parsed = parse_blueprint_xml(xml, source="strict-gyro")
         self.assertEqual(parsed.grid.block_count, 1)
         with self.assertRaises(ConversionRefusedError) as ctx:
             convert_blueprint(
@@ -220,24 +220,24 @@ class PolicyAndPreflightBoundaryTests(unittest.TestCase):
         report = ctx.exception.preflight
         self.assertEqual(report.unknown_count, 1)
         self.assertEqual(report.supported_count, 0)
-        self.assertEqual(report.blocks[0].subtype_id, "LargeBlockSmallHydrogenThrust")
+        self.assertEqual(report.blocks[0].subtype_id, "LargeBlockGyro")
         self.assertEqual(report.blocks[0].catalog_outcome, CatalogOutcome.UNKNOWN)
 
     def test_unknown_functional_block_becomes_permissive_filler(self) -> None:
         xml = _document(
             _block(
-                "LargeBlockSmallHydrogenThrust",
-                xsi_type="MyObjectBuilder_Thrust",
+                "LargeBlockGyro",
+                xsi_type="MyObjectBuilder_Gyro",
             )
         )
         result = convert_blueprint_from_xml(
             xml,
             catalog=self.catalog,
             policy=ConversionPolicy.PERMISSIVE,
-            source="permissive-thrust",
+            source="permissive-gyro",
         )
         block = result.ir.grid.blocks[0]
-        self.assertEqual(block.subtype_id, "LargeBlockSmallHydrogenThrust")
+        self.assertEqual(block.subtype_id, "LargeBlockGyro")
         self.assertEqual(block.geometry_id, FILLER_GEOMETRY_ID)
         self.assertEqual(block.support_status, SupportStatus.UNSUPPORTED)
         self.assertEqual(block.source_index, 0)
@@ -311,13 +311,15 @@ class PolicyAndPreflightBoundaryTests(unittest.TestCase):
             xml, catalog=self.catalog, source="preflight-functional"
         )
         self.assertEqual(report.block_count, 3)
-        self.assertEqual(report.supported_count, 1)
-        self.assertEqual(report.unknown_count, 2)
+        self.assertEqual(report.supported_count, 2)
+        self.assertEqual(report.unknown_count, 1)
         self.assertFalse(report.all_supported)
         self.assertEqual(report.blocks[1].subtype_id, "LargeBlockSmallHydrogenThrust")
         self.assertEqual(report.blocks[2].subtype_id, "LargeBlockRadioAntenna")
-        self.assertIsNone(report.blocks[1].geometry_id)
-        self.assertEqual(report.blocks[1].catalog_outcome, CatalogOutcome.UNKNOWN)
+        self.assertEqual(report.blocks[1].geometry_id, "large_block_small_hydrogen_thrust")
+        self.assertEqual(report.blocks[1].catalog_outcome, CatalogOutcome.SUPPORTED)
+        self.assertIsNone(report.blocks[2].geometry_id)
+        self.assertEqual(report.blocks[2].catalog_outcome, CatalogOutcome.UNKNOWN)
 
 
 class FailClosedTests(unittest.TestCase):
@@ -409,7 +411,7 @@ class FailClosedTests(unittest.TestCase):
 class NoScopeExpansionTests(unittest.TestCase):
     def test_packaged_catalog_is_unchanged(self) -> None:
         catalog = load_default_catalog()
-        self.assertEqual(len(catalog.entries), 8)
+        self.assertEqual(len(catalog.entries), 9)
         self.assertEqual(
             [entry.subtype_id for entry in catalog.entries],
             [
@@ -421,6 +423,7 @@ class NoScopeExpansionTests(unittest.TestCase):
                 "LargeHeavyBlockArmorSlope",
                 "LargeHeavyBlockArmorCorner",
                 "LargeHeavyBlockArmorCornerInv",
+                "LargeBlockSmallHydrogenThrust",
             ],
         )
         self.assertTrue(
@@ -432,8 +435,8 @@ class NoScopeExpansionTests(unittest.TestCase):
         self.assertEqual(len(records), 8)
         lookup_recipe("large_armor_block")
         lookup_recipe(FILLER_GEOMETRY_ID)
-        with self.assertRaises(UnknownGeometryError):
-            lookup_recipe("large_block_small_hydrogen_thrust")
+        recipe = lookup_recipe("large_block_small_hydrogen_thrust")
+        self.assertEqual(recipe.geometry_id, "large_block_small_hydrogen_thrust")
 
     def test_object_builder_type_is_not_a_geometry_id(self) -> None:
         xml = _document(
@@ -449,7 +452,8 @@ class NoScopeExpansionTests(unittest.TestCase):
             source="no-cad-identity",
         )
         block = result.ir.grid.blocks[0]
-        self.assertEqual(block.geometry_id, FILLER_GEOMETRY_ID)
+        self.assertEqual(block.geometry_id, "large_block_small_hydrogen_thrust")
+        self.assertNotEqual(block.geometry_id, FILLER_GEOMETRY_ID)
         self.assertNotEqual(block.geometry_id, "MyObjectBuilder_Thrust")
         self.assertNotEqual(block.geometry_id, block.subtype_id)
         self.assertFalse(hasattr(block, "object_builder_type"))

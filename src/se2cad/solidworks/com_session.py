@@ -250,6 +250,17 @@ class SolidWorksSession:
         if current and current not in self._open_titles:
             self._open_titles.append(current)
 
+    def close_named(self, name: str) -> None:
+        """Close a document by title if SolidWorks still has it open."""
+        if not name:
+            return
+        try:
+            self.app.CloseDoc(name)
+        except Exception:
+            pass
+        if name in self._open_titles:
+            self._open_titles.remove(name)
+
     def close_doc(self, model: Any) -> None:
         title = self._title(model)
         if not title:
@@ -260,6 +271,46 @@ class SolidWorksSession:
             raise _wrap_com(exc, f"CloseDoc failed for {title!r}") from exc
         if title in self._open_titles:
             self._open_titles.remove(title)
+
+    def open_imported_mesh(self, path: Path) -> Any:
+        """Open an intermediate mesh file as a SolidWorks part document."""
+        last_error: Exception | None = None
+        for name, args in (
+            ("LoadFile2", (str(path), "")),
+            ("LoadFile", (str(path),)),
+            (
+                "OpenDoc",
+                (str(path), int(self.constants.swDocPART)),
+            ),
+        ):
+            try:
+                result = com_get(self.app, name, *args)
+            except Exception as exc:
+                last_error = exc
+                continue
+            model = result
+            if isinstance(result, bool):
+                if not result:
+                    last_error = SolidWorksComError(f"{name} returned false for {path}")
+                    continue
+                try:
+                    model = com_get(self.app, "ActiveDoc")
+                except Exception as exc:
+                    last_error = exc
+                    continue
+            if model is None or isinstance(model, bool):
+                last_error = SolidWorksComError(
+                    f"{name} did not produce a document for {path}"
+                )
+                continue
+            title = self._title(model)
+            if title:
+                self._open_titles.append(title)
+            return model
+        raise _wrap_com(
+            last_error or SolidWorksComError("no importer"),
+            f"could not import mesh {path}",
+        )
 
     def open_part(self, path: Path) -> Any:
         try:
@@ -272,9 +323,21 @@ class SolidWorksSession:
         except Exception as exc:
             raise _wrap_com(exc, f"OpenDoc failed for {path}") from exc
         if model is None:
+            self.close_named(path.stem)
+            self.close_named(path.name)
+            try:
+                model = com_get(
+                    self.app,
+                    "OpenDoc",
+                    str(path),
+                    int(self.constants.swDocPART),
+                )
+            except Exception as exc:
+                raise _wrap_com(exc, f"OpenDoc retry failed for {path}") from exc
+        if model is None or isinstance(model, bool):
             raise SolidWorksComError(f"OpenDoc returned None for {path}")
         title = self._title(model)
-        if title:
+        if title and title not in self._open_titles:
             self._open_titles.append(title)
         return model
 

@@ -73,10 +73,15 @@ class PackagedLeftoverTests(unittest.TestCase):
             "not_universal_vanilla",
         )
         catalog = load_default_catalog()
-        self.assertEqual(
-            [item.subtype_id for item in leftover_set.completed_automatable],
-            [entry.subtype_id for entry in catalog.entries],
-        )
+        completed = [item.subtype_id for item in leftover_set.completed_automatable]
+        automatable = [
+            entry.subtype_id
+            for entry in catalog.entries
+            if entry.subtype_id != "LargeBlockSmallHydrogenThrust"
+        ]
+        self.assertEqual(completed, automatable)
+        self.assertEqual(len(completed), 8)
+        self.assertIn("LargeBlockSmallHydrogenThrust", [entry.subtype_id for entry in catalog.entries])
         self.assertEqual(len(leftover_set.leftovers), 1)
         leftover = leftover_set.leftovers[0]
         self.assertEqual(leftover.kind, LeftoverKind.MISSING_CONSTRUCTION)

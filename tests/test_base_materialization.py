@@ -403,7 +403,7 @@ class FailClosedAndPolicyTests(unittest.TestCase):
 class CatalogAndRuntimeBoundaryTests(unittest.TestCase):
     def test_catalog_support_is_unchanged(self) -> None:
         catalog = load_default_catalog()
-        self.assertEqual(len(catalog.entries), 8)
+        self.assertEqual(len(catalog.entries), 9)
         self.assertEqual(stamp_automatable_remainder(catalog), ())
         supported = {
             entry.geometry_id
@@ -421,6 +421,7 @@ class CatalogAndRuntimeBoundaryTests(unittest.TestCase):
                 "large_heavy_block_armor_slope",
                 "large_heavy_block_armor_corner",
                 "large_heavy_block_armor_corner_inv",
+                "large_block_small_hydrogen_thrust",
             },
         )
         self.assertNotIn(FILLER_GEOMETRY_ID, {entry.geometry_id for entry in catalog.entries})
@@ -458,7 +459,7 @@ class CatalogAndRuntimeBoundaryTests(unittest.TestCase):
     def test_expand_is_not_required_to_materialize_current_set(self) -> None:
         catalog = load_default_catalog()
         expanded = expand_catalog_identities((), existing=catalog)
-        self.assertEqual(len(expanded.entries), 8)
+        self.assertEqual(len(expanded.entries), 9)
 
 
 class PlacementAndPathTests(unittest.TestCase):

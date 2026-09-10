@@ -199,7 +199,7 @@ class AssemblyFilenameDerivationTests(unittest.TestCase):
             logical_part_filename("large_armor_block"), "large_armor_block.SLDPRT"
         )
         catalog = load_default_catalog()
-        self.assertEqual(len(catalog.entries), 8)
+        self.assertEqual(len(catalog.entries), 9)
         self.assertFalse(
             any(entry.subtype_id == "SmallBlockArmorBlock" for entry in catalog.entries)
         )

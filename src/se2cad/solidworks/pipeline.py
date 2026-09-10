@@ -7,7 +7,7 @@ from pathlib import Path
 
 from se2cad.catalog import load_default_catalog
 from se2cad.ir import CanonicalBlueprint
-from se2cad.library import NativeSolidRecipe, lookup_recipe
+from se2cad.library import GeometryRecipe, NativeSolidRecipe, lookup_recipe
 from se2cad.parser import parse_blueprint
 from se2cad.policy import ConversionPolicy, convert_blueprint
 from se2cad.solidworks.recipe_plan import ConstructionPlan, plan_from_recipe
@@ -20,8 +20,8 @@ class BlueprintRecipeResolution:
     blueprint_path: Path
     ir: CanonicalBlueprint
     geometry_ids: tuple[str, ...]
-    recipes: tuple[NativeSolidRecipe, ...]
-    plans: tuple[ConstructionPlan, ...]
+    recipes: tuple[GeometryRecipe, ...]
+    plans: tuple[ConstructionPlan | None, ...]
 
 
 def resolve_recipes_from_blueprint(
@@ -42,7 +42,10 @@ def resolve_recipes_from_blueprint(
         if block.geometry_id not in seen:
             seen.append(block.geometry_id)
     recipes = tuple(lookup_recipe(geometry_id) for geometry_id in seen)
-    plans = tuple(plan_from_recipe(recipe) for recipe in recipes)
+    plans = tuple(
+        plan_from_recipe(recipe) if isinstance(recipe, NativeSolidRecipe) else None
+        for recipe in recipes
+    )
     return BlueprintRecipeResolution(
         blueprint_path=blueprint_path.resolve(),
         ir=ir,

@@ -7,13 +7,12 @@ from pathlib import Path
 import hashlib
 import re
 
-from se2cad.catalog.constants import FILLER_GEOMETRY_ID
 from se2cad.library import (
     EDGE_TREATMENT_OFF,
     EdgeTreatmentKind,
     EdgeTreatmentRequest,
     TreatmentError,
-    all_library_records,
+    bound_library_geometry_ids,
     chamfer_size_token,
     lookup_recipe,
     validate_chamfer_setback_mm,
@@ -67,9 +66,7 @@ def canonical_geometry_ids() -> tuple[str, ...]:
 
 
 def _library_geometry_ids() -> frozenset[str]:
-    return frozenset(record.geometry_id for record in all_library_records()) | {
-        FILLER_GEOMETRY_ID
-    }
+    return bound_library_geometry_ids()
 
 
 def logical_part_filename(geometry_id: str) -> str:

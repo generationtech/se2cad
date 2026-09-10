@@ -5,6 +5,12 @@ of blueprint XML parsing, CAD transforms, and SolidWorks. The packaged
 catalog is the runtime source; game-install scanning is not required.
 """
 
+from se2cad.catalog.authorized import (
+    AUTHORIZED_SDK_MESH_GEOMETRY_ID,
+    AUTHORIZED_SDK_MESH_RECIPE_KIND,
+    AUTHORIZED_SDK_MESH_SUBTYPE_ID,
+    is_authorized_sdk_mesh_entry,
+)
 from se2cad.catalog.constants import (
     CATALOG_CUBE_SIZE_LARGE,
     CATALOG_SCHEMA_VERSION,
@@ -69,6 +75,9 @@ from se2cad.catalog.selection import (
 )
 
 __all__ = [
+    "AUTHORIZED_SDK_MESH_GEOMETRY_ID",
+    "AUTHORIZED_SDK_MESH_RECIPE_KIND",
+    "AUTHORIZED_SDK_MESH_SUBTYPE_ID",
     "CATALOG_CUBE_SIZE_LARGE",
     "CATALOG_SCHEMA_VERSION",
     "COVERAGE_CLAIM_NOT_UNIVERSAL",
@@ -108,6 +117,7 @@ __all__ = [
     "evaluate_leftover_set",
     "expand_catalog_identities",
     "geometry_id_for_subtype",
+    "is_authorized_sdk_mesh_entry",
     "load_catalog_file",
     "load_catalog_text",
     "load_default_catalog",

@@ -21,13 +21,13 @@ Do not use SolidWorks mates merely to reconstruct fixed Space Engineers block pl
 
 Core parser, definition resolver, IR, and transform system must not be unnecessarily coupled to SolidWorks. Do not rename the project or those abstractions to imply SolidWorks is the only possible backend.
 
-Blender is not a stage on the runtime path to SolidWorks.
+Blender is not a parse/IR stage on the path to SolidWorks. When STATE records S2C-11.7.1, demand-driven generation of one authorized SDK-mesh identity may invoke Blender as a library-build conversion before the generated `.SLDPRT` is inserted.
 
 ## Windows-local execution (S2C-4.2.1)
 
 Human-architect decisions recorded 2026-09-07. They refine this ADR; they do not reopen transform placement or CAD neutrality.
 
-- Space Engineers and the Space Engineers ModSDK remain on Linux. They are authoring and verification evidence, not a Windows runtime dependency. Do not require them in the Windows VM.
+- Space Engineers and the Space Engineers ModSDK remain on Linux as authoring and verification evidence. Parse, catalog load, IR, preflight, and policy do not require them in the Windows VM. When STATE records S2C-11.7.1, generating the one authorized SDK-mesh part requires the operator-configured official ModSDK content root and Blender on the machine that runs SolidWorks.
 - SolidWorks 2026 remains in the Windows VM. Any workflow that needs SolidWorks runs locally there as a full SE2CAD pipeline (`bp.sbc` → parser → catalog → IR/transforms → recipe lookup → SolidWorks backend). Windows is not a remote worker.
 - Linux and Windows may use separate Git clones of this repository. The operator keeps them synchronized with ordinary Git. SE2CAD does not provide a custom cross-OS sync mechanism.
 - Blueprint transfer from Linux to Windows is operator-managed. This program does not automate it and does not introduce SMB, RPC, SSH, DCOM, REST, gRPC, sockets, services, watchers, or job queues for that purpose.

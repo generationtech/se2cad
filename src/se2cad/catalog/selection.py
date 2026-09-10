@@ -1,8 +1,9 @@
 """Geometry provenance and recipe-kind selection (S2C-11.3.1).
 
 Library-build authoring. Runtime lookup still uses the packaged catalog.
-This module does not import discovery, scan an install, generate
-geometry, or assign Keen-mesh recipe kinds.
+This module does not import discovery or scan an install. Keen-mesh
+recipe kinds stay forbidden except the one human-authorized S2C-11.7.1
+catalog bind.
 """
 
 from __future__ import annotations
@@ -10,6 +11,12 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from enum import Enum
 
+from se2cad.catalog.authorized import (
+    AUTHORIZED_SDK_MESH_GEOMETRY_ID,
+    AUTHORIZED_SDK_MESH_RECIPE_KIND,
+    AUTHORIZED_SDK_MESH_SUBTYPE_ID,
+    is_authorized_sdk_mesh_entry,
+)
 from se2cad.catalog.constants import CATALOG_CUBE_SIZE_LARGE
 from se2cad.catalog.errors import CatalogValidationError
 from se2cad.catalog.model import (
@@ -156,8 +163,9 @@ def select_catalog_recipes(catalog: DefinitionCatalog) -> SelectionReport:
     """Assign recipe kinds from evidence and record provenance.
 
     Existing ``supported`` status is preserved only when classification
-    remains automatable. New support is never granted. Mesh recipe kinds
-    are rejected.
+    remains automatable, except the one authorized S2C-11.7.1 SDK-mesh
+    bind. New support is never granted. Other mesh recipe kinds are
+    rejected.
     """
     selected = tuple(
         _apply_classification(entry, classify_observed(entry.observed))
@@ -200,6 +208,8 @@ def _apply_classification(
     entry: CatalogEntry,
     classification: Classification,
 ) -> CatalogEntry:
+    if is_authorized_sdk_mesh_entry(entry):
+        return entry
     if (
         entry.recipe_kind in _FORBIDDEN_MESH_RECIPE_KINDS
         or classification.recipe_kind in _FORBIDDEN_MESH_RECIPE_KINDS
@@ -230,6 +240,21 @@ def _provenance_for(
     entry: CatalogEntry,
     classification: Classification,
 ) -> ProvenanceRecord:
+    if is_authorized_sdk_mesh_entry(entry):
+        return ProvenanceRecord(
+            subtype_id=entry.subtype_id,
+            geometry_id=entry.geometry_id,
+            observed=entry.observed,
+            geometry_class=classification.geometry_class,
+            recipe_kind=entry.recipe_kind,
+            support_status=entry.support_status,
+            exception_reason=classification.exception_reason,
+            observed_note=classification.observed_note,
+            decision_note=(
+                "authorized S2C-11.7.1 single-identity SDK-mesh bind; "
+                "not general mesh support"
+            ),
+        )
     if (
         entry.support_status is SupportStatus.SUPPORTED
         and classification.geometry_class is GeometryClass.LONG_TAIL
@@ -251,6 +276,13 @@ def _provenance_for(
 
 
 def _exception_for(record: ProvenanceRecord) -> ExceptionRecord | None:
+    if (
+        record.subtype_id == AUTHORIZED_SDK_MESH_SUBTYPE_ID
+        and record.geometry_id == AUTHORIZED_SDK_MESH_GEOMETRY_ID
+        and record.recipe_kind is AUTHORIZED_SDK_MESH_RECIPE_KIND
+        and record.support_status is SupportStatus.SUPPORTED
+    ):
+        return None
     if record.geometry_class is not GeometryClass.LONG_TAIL:
         return None
     if record.exception_reason is None:

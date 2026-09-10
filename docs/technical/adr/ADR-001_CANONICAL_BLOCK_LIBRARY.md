@@ -19,7 +19,7 @@ Library-build strategies are architectural vocabulary: `native_procedural`, `sdk
 
 CubeTopology and TriangleMesh must not be forced through one geometry-production mechanism. TriangleMesh recipes are out of initial-program scope.
 
-Blender is not part of the runtime conversion path. It may later be an optional library-build tool for complex TriangleMesh parts.
+Blender is not part of parse, catalog lookup, IR, or policy. It may be an optional library-build tool for TriangleMesh parts. When STATE records S2C-11.7.1, demand-driven generation of one authorized `sdk_mesh_direct` identity may invoke that library-build step; that is not a general mesh runtime.
 
 ## Consequences
 

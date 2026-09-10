@@ -479,8 +479,15 @@ class RuntimeIndependenceTests(unittest.TestCase):
             _SRC / "statistics",
             _SRC / "solidworks",
         )
+        generation_only = {
+            "sdk_source.py",
+            "sdk_convert.py",
+            "blender_fbx_to_stl.py",
+        }
         for directory in runtime_dirs:
             for path in directory.glob("*.py"):
+                if path.name in generation_only:
+                    continue
                 text = path.read_text(encoding="utf-8")
                 for token in forbidden:
                     self.assertNotIn(

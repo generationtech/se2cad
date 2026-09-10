@@ -124,6 +124,30 @@ class NativeSolidRecipe:
 
 
 @dataclass(frozen=True)
+class SdkMeshRecipe:
+    """One authorized SDK-mesh bind. Not a native constructive solid.
+
+    ``relative_source_stem`` is operator-root-relative and has no
+    extension. The backend resolves the official SDK mesh suffix.
+    Normalization fields are recipe-owned; assembly transforms stay
+    generic.
+    """
+
+    geometry_id: str
+    recipe_kind: RecipeKind
+    subtype_id: str
+    relative_source_stem: str
+    source_type: str
+    apply_imported_object_transforms: bool
+    additional_scale: float
+    rotation_xyz_deg: tuple[float, float, float]
+    translation_mm: tuple[float, float, float]
+
+
+GeometryRecipe = Union[NativeSolidRecipe, SdkMeshRecipe]
+
+
+@dataclass(frozen=True)
 class LibraryRecord:
     """Canonical library record for one supported geometry identity.
 
@@ -136,8 +160,8 @@ class LibraryRecord:
     geometry_id: str
     grid_size: str
     recipe_kind: RecipeKind
-    observed_cube_topology: str
+    observed_cube_topology: Optional[str]
     frame: CanonicalLocalFrame
     placement: PlacementSemantics
-    recipe: NativeSolidRecipe
+    recipe: GeometryRecipe
     chamfer_capable: bool

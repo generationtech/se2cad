@@ -189,6 +189,10 @@ def _expected_com_m(recipe: NativeSolidRecipe) -> tuple[float, float, float]:
 
 def plan_from_recipe(recipe: NativeSolidRecipe) -> ConstructionPlan:
     """Build a metre-space plan from one qualified native recipe."""
+    if not isinstance(recipe, NativeSolidRecipe):
+        raise TypeError(
+            f"plan_from_recipe requires NativeSolidRecipe, got {type(recipe)!r}"
+        )
     vertices_m = tuple(point_mm_to_metres(v) for v in recipe.vertices_mm)
     box = (
         _box_plan(recipe.construction)

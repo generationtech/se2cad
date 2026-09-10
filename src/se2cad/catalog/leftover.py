@@ -16,6 +16,7 @@ from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
+from se2cad.catalog.authorized import is_authorized_sdk_mesh_entry
 from se2cad.catalog.errors import CatalogValidationError, UnknownSubtypeError
 from se2cad.catalog.loader import checked_geometry_id, load_default_catalog
 from se2cad.catalog.model import (
@@ -33,7 +34,7 @@ from se2cad.catalog.selection import (
 )
 from se2cad.library.errors import UnknownGeometryError
 from se2cad.library.lookup import lookup_recipe
-from se2cad.library.model import NativeSolidRecipe
+from se2cad.library.model import NativeSolidRecipe, SdkMeshRecipe
 from se2cad.library.recipes import (
     AUTOMATABLE_CUBE_TOPOLOGIES,
     recipe_for_topology,
@@ -254,6 +255,16 @@ def conversion_may_report_supported(
         return False
     if entry.recipe_kind is RecipeKind.UNSUPPORTED:
         return False
+    if is_authorized_sdk_mesh_entry(entry):
+        try:
+            recipe = lookup_recipe(entry.geometry_id)
+        except UnknownGeometryError:
+            return False
+        if not isinstance(recipe, SdkMeshRecipe):
+            return False
+        return not any(
+            _matches_entry(entry, record) for record in leftover_set.leftovers
+        )
     classification = classify_observed(entry.observed)
     if classification.geometry_class is GeometryClass.LONG_TAIL:
         return False
@@ -344,8 +355,42 @@ def _leftovers_for_entry(
     failed_geometry: set[str],
     failed_detail: dict[str, str],
 ) -> list[LeftoverRecord]:
-    classification = classify_observed(entry.observed)
     topology = entry.observed.cube_topology or ""
+    if is_authorized_sdk_mesh_entry(entry):
+        try:
+            recipe = lookup_recipe(entry.geometry_id)
+        except UnknownGeometryError:
+            return [
+                _record(
+                    LeftoverKind.UNSUPPORTED_RECIPE_KIND,
+                    subtype_id=entry.subtype_id,
+                    geometry_id=entry.geometry_id,
+                    cube_topology=topology,
+                    detail="authorized SDK-mesh identity has no library recipe",
+                )
+            ]
+        if not isinstance(recipe, SdkMeshRecipe):
+            return [
+                _record(
+                    LeftoverKind.UNSUPPORTED_RECIPE_KIND,
+                    subtype_id=entry.subtype_id,
+                    geometry_id=entry.geometry_id,
+                    cube_topology=topology,
+                    detail="authorized SDK-mesh identity is not an SDK recipe",
+                )
+            ]
+        if entry.geometry_id in failed_geometry:
+            return [
+                _record(
+                    LeftoverKind.FAILED_GENERATION,
+                    subtype_id=entry.subtype_id,
+                    geometry_id=entry.geometry_id,
+                    cube_topology=topology,
+                    detail=failed_detail.get(entry.geometry_id) or "generation failed",
+                )
+            ]
+        return []
+    classification = classify_observed(entry.observed)
     if classification.geometry_class is GeometryClass.LONG_TAIL:
         return [
             _record(

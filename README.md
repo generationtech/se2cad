@@ -318,21 +318,25 @@ packaged catalog can record additional vanilla Large Grid identities
 from those facts. CubeTopology-class armor receives an explicit
 `native_procedural` recipe decision; TriangleMesh and unusual
 relationships are recorded as long-tail exceptions and are not
-reported as supported. Naming a recipe is not generation. Automated
-generation stamps the qualified Box / Slope / Corner / InvCorner
-constructions onto additional identities; other CubeTopology tokens
-fail closed instead of sharing one technique. The representative
-generated subset beyond the original four is the four Large Grid
-heavy-armor counterparts. Those identities are supported and live
-SolidWorks 2026 has generated their canonical `.SLDPRT` files. The
-original four armor entries remain supported. Default part generation
-still writes the original four. Residual automatable CubeTopology
-tokens without a construction, and long-tail exceptions, are recorded
-in repository leftover metadata. Failed generation, unclassified
-blocks, and unsupported recipe kinds cannot be reported as successful
-supported conversion. SE2CAD does not claim 100% vanilla coverage.
-Runtime conversion still uses only the packaged catalog and a `.sbc`
-blueprint; it does not require a game or SDK install.
+reported as supported, except the one authorized
+`LargeBlockSmallHydrogenThrust` `sdk_mesh_direct` bind. Naming a
+recipe is not generation. Automated generation stamps the qualified
+Box / Slope / Corner / InvCorner constructions onto additional
+identities; other CubeTopology tokens fail closed instead of sharing
+one technique. The representative generated subset beyond the original
+four is the four Large Grid heavy-armor counterparts. Those identities
+are supported and live SolidWorks 2026 has generated their canonical
+`.SLDPRT` files. The original four armor entries remain supported.
+Default part generation still writes the original four. Residual
+automatable CubeTopology tokens without a construction, and long-tail
+exceptions, are recorded in repository leftover metadata. Failed
+generation, unclassified blocks, and unsupported recipe kinds cannot
+be reported as successful supported conversion. SE2CAD does not claim
+100% vanilla coverage. Parse, catalog load, IR, preflight, and policy
+still use only the packaged catalog and a `.sbc` blueprint. Generating
+the one authorized hydrogen-thruster part requires the
+operator-configured official ModSDK root and Blender; other identities
+do not.
 
 CAD-neutral **conversion preflight** diagnoses each parsed block against
 the packaged catalog before assembly generation: supported, catalog-
@@ -343,8 +347,10 @@ report is not a conversion. Unknown subtypes are not aliased to armor.
 Ordinary vanilla cube-block object builders such as
 `MyObjectBuilder_Thrust` parse as block records. The parser does not
 reject them merely because `xsi:type` is not `MyObjectBuilder_CubeBlock`.
-Catalog lookup and conversion policy still decide support. This is not
-CAD support for thrusters or other functional geometry.
+Catalog lookup and conversion policy still decide support.
+`LargeBlockSmallHydrogenThrust` is the one authorized SDK-FBX
+generated part. That is not general thruster or functional-geometry
+support.
 
 CAD-neutral **conversion policy** then applies an explicit strict or
 permissive decision. Strict is the default: unknown or unsupported

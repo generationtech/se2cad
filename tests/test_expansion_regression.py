@@ -81,8 +81,15 @@ class InstallFreeRuntimeTests(unittest.TestCase):
         public = (_SRC / "__init__.py").read_text(encoding="utf-8")
         for token in _FORBIDDEN_RUNTIME:
             self.assertNotIn(token, public)
+        generation_only = {
+            "sdk_source.py",
+            "sdk_convert.py",
+            "blender_fbx_to_stl.py",
+        }
         for directory in _RUNTIME_DIRS:
             for path in (_SRC / directory).glob("*.py"):
+                if path.name in generation_only:
+                    continue
                 text = path.read_text(encoding="utf-8")
                 for token in _FORBIDDEN_RUNTIME:
                     self.assertNotIn(

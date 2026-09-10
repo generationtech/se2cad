@@ -120,6 +120,20 @@
         "recipe_kind": "native_procedural",
         "support_status": "supported"
       }
+    },
+    {
+      "subtype_id": "LargeBlockSmallHydrogenThrust",
+      "observed": {
+        "type_id": "Thrust",
+        "cube_size": "Large",
+        "size": { "x": 1, "y": 1, "z": 1 },
+        "block_topology": "TriangleMesh"
+      },
+      "se2cad": {
+        "geometry_id": "large_block_small_hydrogen_thrust",
+        "recipe_kind": "sdk_mesh_direct",
+        "support_status": "supported"
+      }
     }
   ]
 }

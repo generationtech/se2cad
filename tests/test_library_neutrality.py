@@ -46,6 +46,7 @@ class LibraryNeutralityTests(unittest.TestCase):
 
     def test_library_imports_are_stdlib_plus_qualified_se2cad(self) -> None:
         allowed_se2cad = {
+            "se2cad.catalog.authorized",
             "se2cad.catalog.constants",
             "se2cad.catalog.model",
             "se2cad.library.errors",
@@ -53,6 +54,7 @@ class LibraryNeutralityTests(unittest.TestCase):
             "se2cad.library.lookup",
             "se2cad.library.model",
             "se2cad.library.recipes",
+            "se2cad.library.sdk_bind",
             "se2cad.library.solid",
             "se2cad.library.treatment",
             "se2cad.parser.model",

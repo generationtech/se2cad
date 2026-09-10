@@ -33,6 +33,14 @@ class MissingCanonicalPartError(SolidWorksBackendError):
     """A required generated canonical SLDPRT is absent from the generated root."""
 
 
+class SdkSourceError(SolidWorksBackendError):
+    """The authorized SDK mesh source cannot be resolved safely."""
+
+
+class SdkConversionError(SolidWorksBackendError):
+    """Deterministic SDK-mesh conversion failed."""
+
+
 class AssemblyIdentityError(SolidWorksBackendError):
     """The IR identity cannot be turned into a safe assembly filename."""
 

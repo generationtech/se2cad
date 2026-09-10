@@ -913,11 +913,12 @@ class SolidWorksIntegrationTests(unittest.TestCase):
         self.assertEqual(end_documents, start_documents)
         self.assertEqual(start_report["solidworks_revision"], end_report["solidworks_revision"])
 
-    def test_functional_object_builder_reaches_permissive_filler(self) -> None:
-        from se2cad.catalog import FILLER_GEOMETRY_ID, load_default_catalog
+    def test_sdk_mesh_thrust_minimal_probe_generates_and_reuses(self) -> None:
+        from se2cad.catalog import AUTHORIZED_SDK_MESH_GEOMETRY_ID, load_default_catalog
         from se2cad.parser import Direction, parse_blueprint
         from se2cad.policy import ConversionPolicy, convert_blueprint
         from se2cad.solidworks.assemble import generate_assembly_from_ir
+        from se2cad.solidworks.config import SolidWorksBackendConfig
         from se2cad.solidworks.transform_pack import (
             arraydata_axes,
             arraydata_translation_m,
@@ -954,26 +955,52 @@ class SolidWorksIntegrationTests(unittest.TestCase):
             parsed = parse_blueprint(path)
         self.assertEqual(parsed.grid.blocks[1].object_builder_type, "MyObjectBuilder_Thrust")
         result = convert_blueprint(
-            parsed, load_default_catalog(), ConversionPolicy.PERMISSIVE
+            parsed, load_default_catalog(), ConversionPolicy.STRICT
         )
         self.assertEqual(result.ir.grid.block_count, 2)
-        self.assertEqual(result.filler_count, 1)
-        assembled = generate_assembly_from_ir(result.ir, self.config)
+        self.assertEqual(result.filler_count, 0)
+        probe_root = Path("generated") / "s2c-11.7.1-min-probe"
+        if probe_root.exists():
+            for leftover in probe_root.glob("*"):
+                leftover.unlink()
+        probe_config = SolidWorksBackendConfig(
+            generated_root=probe_root.resolve(),
+            part_template=self.config.part_template,
+            visible=self.config.visible,
+            source="s2c-11.7.1-ob-probe",
+        )
+        assembled = generate_assembly_from_ir(result.ir, probe_config)
         self.assertEqual(assembled.identity, "se2cad-ob-probe")
         self.assertEqual(len(assembled.after_reopen), 2)
+        self.assertEqual(
+            assembled.materialization_report.untreated.generated,
+            ("large_armor_block", AUTHORIZED_SDK_MESH_GEOMETRY_ID),
+        )
         by_geometry = {
             item.placement.geometry_id: item for item in assembled.after_reopen
         }
-        self.assertEqual(set(by_geometry), {"large_armor_block", FILLER_GEOMETRY_ID})
-        armor = by_geometry["large_armor_block"]
-        filler = by_geometry[FILLER_GEOMETRY_ID]
-        self.assertEqual(armor.placement.part_filename, "large_armor_block.SLDPRT")
-        self.assertEqual(filler.placement.part_filename, "se2cad_unknown_filler.SLDPRT")
-        self.assertEqual(filler.placement.subtype_id, "LargeBlockSmallHydrogenThrust")
-        self.assertEqual(arraydata_translation_m(filler.arraydata), (2.5, 0.0, 0.0))
         self.assertEqual(
-            arraydata_axes(filler.arraydata),
+            set(by_geometry),
+            {"large_armor_block", AUTHORIZED_SDK_MESH_GEOMETRY_ID},
+        )
+        armor = by_geometry["large_armor_block"]
+        thrust = by_geometry[AUTHORIZED_SDK_MESH_GEOMETRY_ID]
+        self.assertEqual(armor.placement.part_filename, "large_armor_block.SLDPRT")
+        self.assertEqual(
+            thrust.placement.part_filename,
+            "large_block_small_hydrogen_thrust.SLDPRT",
+        )
+        self.assertEqual(thrust.placement.subtype_id, "LargeBlockSmallHydrogenThrust")
+        self.assertEqual(arraydata_translation_m(thrust.arraydata), (2.5, 0.0, 0.0))
+        self.assertEqual(
+            arraydata_axes(thrust.arraydata),
             rotation_from_forward_up(Direction.DOWN, Direction.FORWARD).columns,
+        )
+        reused = generate_assembly_from_ir(result.ir, probe_config)
+        self.assertEqual(reused.materialization_report.untreated.generated, ())
+        self.assertEqual(
+            set(reused.materialization_report.untreated.reused),
+            {"large_armor_block", AUTHORIZED_SDK_MESH_GEOMETRY_ID},
         )
 
     def test_spaced_assembly_identity_saves_derived_filename(self) -> None:

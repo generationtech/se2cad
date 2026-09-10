@@ -97,7 +97,8 @@ class DefaultCatalogTests(unittest.TestCase):
         ids = [entry.subtype_id for entry in self.catalog.entries]
         self.assertEqual(ids[:4], list(EXPECTED_SUPPORTED))
         self.assertGreater(len(ids), 4)
-        self.assertEqual(ids[4:], list(EXPECTED_EXPANDED))
+        self.assertEqual(ids[4:8], list(EXPECTED_EXPANDED))
+        self.assertEqual(ids[8:], ["LargeBlockSmallHydrogenThrust"])
 
     def test_observed_definition_facts(self) -> None:
         for subtype_id, expected in {**EXPECTED_SUPPORTED, **EXPECTED_EXPANDED}.items():

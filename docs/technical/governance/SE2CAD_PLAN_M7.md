@@ -464,6 +464,35 @@ This milestone is expected to need more units than the others. It does not requi
 
 **Completion criteria.** Demand-driven qualified base-part materialization exists; explicit bulk generation of the current qualified set remains; no claim of universal vanilla support; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, stop and report. Do not automatically restore or start S2C-13.1.1.
 
+### S2C-11.7.1 — Single-identity SDK-FBX materialization experiment
+
+**Objective.** Bind exactly `LargeBlockSmallHydrogenThrust` to one authorized `sdk_mesh_direct` recipe and generate a reusable canonical `{geometry_id}.SLDPRT` from the official ModSDK FBX on demand.
+
+**Rationale.** Big Red demand analysis showed sixteen `LargeBlockSmallHydrogenThrust` instances becoming filler. This unit proves one complete SDK-FBX builder path without generalizing TriangleMesh support.
+
+**Prerequisites.** S2C-11.6.1 and S2C-12.4.1. This unit was inserted by a human-authorized experiment after S2C-12.4.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M11 history, does not start S2C-13.1.1, and does not invent S2C-11.8.x.
+
+**Affected systems / expected areas.** One packaged catalog entry; one `SdkMeshRecipe` library bind; a narrow selection/leftover exception; demand-driven SolidWorks generation that resolves one operator-local FBX; ordinary and live tests.
+
+**Implementation requirements.**
+
+- Bind only `LargeBlockSmallHydrogenThrust` → `large_block_small_hydrogen_thrust`.
+- Preserve the existing lazy cache: missing `{geometry_id}.SLDPRT` generates once; later instances and assemblies reuse it.
+- Resolve `Models/Cubes/Large/HydrogenThrusterSmall` under the configured SDK root. Do not scan an install or infer other FBX names.
+- Normalize scale, origin, and orientation in the generated part. Do not special-case assembly transforms.
+- Fail closed if this supported builder fails. Do not silently substitute filler.
+- `chamfer_capable` remains false.
+
+**Explicit boundaries / out of scope.** Other thrusters; Small Grid; multi-cell placement; generic mesh healing; whole-vanilla catalog; OBJ export; committing Keen FBX or derived SLDPRT; inventing a later unit.
+
+**Development validation.** Ordinary tests cover the one identity, path containment, missing root/FBX, traversal, generate-once/reuse, remaining unknowns as filler, strict acceptance of the target, chamfer refusal, no Small Grid, no install scan, provenance, and generated-root containment.
+
+**Quality/security assessment focus.** SDK-root escape; wrong/LOD/construction/MWM file; scale or axis error; silent filler after supported-builder failure; global `SDK_MESH_*` enablement; generated Keen-derived artifacts entering git; temp-file leakage.
+
+**External validation.** Live SolidWorks: minimal armor+thrust assemble with generate then reuse; Big Red permissive assemble under a gitignored generated root. Required for QUALIFIED.
+
+**Completion criteria.** The one identity is supported conversion; Big Red uses one reusable thruster part for all sixteen instances; no general SDK-mesh or universal vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit is none.
+
 ---
 
 ## Milestone M12 — Blueprint compatibility and unknown-block handling

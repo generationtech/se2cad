@@ -12,12 +12,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from se2cad.catalog.authorized import AUTHORIZED_SDK_MESH_GEOMETRY_ID
 from se2cad.catalog.constants import FILLER_GEOMETRY_ID
 from se2cad.catalog.model import RecipeKind
 from se2cad.ir.model import CanonicalBlueprint
 from se2cad.library import (
     EDGE_TREATMENT_OFF,
     EdgeTreatmentRequest,
+    NativeSolidRecipe,
+    SdkMeshRecipe,
     UnknownGeometryError,
     lookup_record,
 )
@@ -95,10 +98,18 @@ def has_qualified_untreated_builder(geometry_id: str) -> bool:
         record = lookup_record(geometry_id)
     except UnknownGeometryError:
         return False
-    if record.recipe.recipe_kind is not RecipeKind.NATIVE_PROCEDURAL:
+    recipe = record.recipe
+    if isinstance(recipe, SdkMeshRecipe):
+        return (
+            record.geometry_id == AUTHORIZED_SDK_MESH_GEOMETRY_ID
+            and recipe.recipe_kind is RecipeKind.SDK_MESH_DIRECT
+        )
+    if not isinstance(recipe, NativeSolidRecipe):
+        return False
+    if recipe.recipe_kind is not RecipeKind.NATIVE_PROCEDURAL:
         return False
     try:
-        plan_from_recipe(record.recipe)
+        plan_from_recipe(recipe)
     except TypeError:
         return False
     return True

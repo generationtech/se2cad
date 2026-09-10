@@ -47,6 +47,8 @@ from se2cad.solidworks.errors import (
     SolidWorksBackendError,
     SolidWorksBackendUnavailableError,
     SolidWorksComError,
+    SdkConversionError,
+    SdkSourceError,
     SolidWorksConfigError,
     UnknownCanonicalPartError,
 )
@@ -149,6 +151,8 @@ __all__ = [
     "GeneratedRootError",
     "LogicalPartIdentity",
     "MissingCanonicalPartError",
+    "SdkConversionError",
+    "SdkSourceError",
     "SolidWorksBackendConfig",
     "SolidWorksBackendError",
     "SolidWorksBackendUnavailableError",

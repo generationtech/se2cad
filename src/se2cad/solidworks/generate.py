@@ -9,6 +9,8 @@ from se2cad.library import (
     EDGE_TREATMENT_OFF,
     EdgeTreatmentKind,
     EdgeTreatmentRequest,
+    NativeSolidRecipe,
+    SdkMeshRecipe,
     geometry_supports_chamfer,
     lookup_recipe,
     representative_automatable_geometry_ids,
@@ -31,6 +33,14 @@ from se2cad.solidworks.com_validate import (
 )
 from se2cad.solidworks.config import SolidWorksBackendConfig, load_solidworks_backend_config
 from se2cad.solidworks.errors import GeneratedRootError, SolidWorksComError
+from se2cad.solidworks.sdk_convert import (
+    assert_imported_mesh_envelope,
+    cleanup_work_dir,
+    convert_sdk_mesh_to_stl,
+    import_stl_as_part,
+    read_imported_part_validation,
+    sdk_work_dir,
+)
 from se2cad.solidworks.locator import BoundPartLocator, LogicalPartIdentity
 from se2cad.solidworks.recipe_plan import ConstructionPlan, plan_from_recipe
 
@@ -38,7 +48,7 @@ from se2cad.solidworks.recipe_plan import ConstructionPlan, plan_from_recipe
 @dataclass(frozen=True)
 class GeneratedCanonicalPart:
     locator: BoundPartLocator
-    plan: ConstructionPlan
+    plan: ConstructionPlan | None
     after_save: PartValidation
     after_reopen: PartValidation
     treatment: EdgeTreatmentRequest = EDGE_TREATMENT_OFF
@@ -109,6 +119,12 @@ def generate_one_canonical_part(
             "refusing treated generation"
         )
     recipe = lookup_recipe(geometry_id)
+    if isinstance(recipe, SdkMeshRecipe):
+        return _generate_sdk_mesh_part(session, geometry_id, recipe, config, request)
+    if not isinstance(recipe, NativeSolidRecipe):
+        raise SolidWorksComError(
+            f"geometry_id {geometry_id!r} has no native or authorized SDK recipe"
+        )
     plan = plan_from_recipe(recipe)
     destination = _prepare_destination(config, geometry_id, request)
     model = session.new_part()
@@ -154,6 +170,61 @@ def generate_one_canonical_part(
         treatment=request,
         treatment_applied=request.enabled,
         untreated_after_construct=untreated_obs,
+    )
+
+
+def _generate_sdk_mesh_part(
+    session: SolidWorksSession,
+    geometry_id: str,
+    recipe: SdkMeshRecipe,
+    config: SolidWorksBackendConfig,
+    request: EdgeTreatmentRequest,
+) -> GeneratedCanonicalPart:
+    if request.enabled:
+        raise SolidWorksComError(
+            f"geometry_id {geometry_id!r} is not chamfer-capable; "
+            "refusing treated generation"
+        )
+    destination = _prepare_destination(config, geometry_id, request)
+    session.close_named(destination.stem)
+    session.close_named(destination.name)
+    work = sdk_work_dir(config.generated_root, geometry_id)
+    try:
+        conversion = convert_sdk_mesh_to_stl(recipe, work)
+        session.close_named(conversion.intermediate_stl.stem)
+        model = import_stl_as_part(session, conversion.intermediate_stl)
+        try:
+            after_save = read_imported_part_validation(session, model)
+            assert_imported_mesh_envelope(after_save)
+            session.save_as(model, destination)
+        finally:
+            session.close_doc(model)
+        session.close_named(destination.stem)
+        session.close_named(destination.name)
+        reopened = session.open_part(destination)
+        try:
+            after_reopen = read_imported_part_validation(session, reopened)
+            assert_imported_mesh_envelope(after_reopen)
+        finally:
+            session.close_doc(reopened)
+    finally:
+        cleanup_work_dir(work, config.generated_root)
+    locator = BoundPartLocator(
+        identity=_logical_identity(geometry_id, destination, request),
+        path=destination,
+        generated=True,
+        validated=True,
+        saved=True,
+        reopened=True,
+    )
+    return GeneratedCanonicalPart(
+        locator=locator,
+        plan=None,
+        after_save=after_save,
+        after_reopen=after_reopen,
+        treatment=request,
+        treatment_applied=False,
+        untreated_after_construct=None,
     )
 
 
