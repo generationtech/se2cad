@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import hashlib
 import re
 
 from se2cad.catalog.constants import FILLER_GEOMETRY_ID
@@ -26,7 +27,28 @@ from se2cad.solidworks.errors import (
 CANONICAL_PART_SUFFIX = ".SLDPRT"
 CANONICAL_ASSEMBLY_SUFFIX = ".SLDASM"
 TREATED_PART_STEM_SUFFIX = "_chamfer"
-_ASSEMBLY_IDENTITY_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+_ASSEMBLY_PASSTHROUGH_STEM_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+_ASSEMBLY_DIGEST_LENGTH = 12
+_ASSEMBLY_DERIVED_SEPARATOR = "+"
+_ASSEMBLY_FALLBACK_PREFIX = "blueprint"
+_ASSEMBLY_MAX_COMPONENT_LENGTH = 255
+_ASSEMBLY_DERIVED_STEM_RE = re.compile(
+    r"^[A-Za-z0-9][A-Za-z0-9_-]*"
+    + re.escape(_ASSEMBLY_DERIVED_SEPARATOR)
+    + rf"[0-9a-f]{{{_ASSEMBLY_DIGEST_LENGTH}}}$"
+)
+_WINDOWS_RESERVED_DEVICE_NAMES = frozenset(
+    {
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        "CONIN$",
+        "CONOUT$",
+        *(f"COM{index}" for index in range(10)),
+        *(f"LPT{index}" for index in range(10)),
+    }
+)
 _TREATED_FILENAME_RE = re.compile(
     r"^([a-z][a-z0-9_]*)_chamfer_([0-9]+(?:\.[0-9]+)?)mm\.SLDPRT$"
 )
@@ -174,21 +196,105 @@ def part_artifact_path(
     return destination
 
 
-def logical_assembly_filename(identity: str) -> str:
-    """Deterministic SLDASM filename from a blueprint identity subtype."""
-    if not identity or not _ASSEMBLY_IDENTITY_RE.fullmatch(identity):
+def assembly_filename_stem(identity: str) -> str:
+    """Derive a Windows-safe SLDASM stem from a logical blueprint identity.
+
+    Already-safe identities keep their current filename stem. Other
+    identities keep their logical value elsewhere and receive a
+    deterministic ``{readable}+{digest}`` stem. The ``+`` marker cannot
+    appear in a passthrough stem, so derived names do not collide with
+    already-safe identities.
+    """
+    if not isinstance(identity, str) or identity == "":
         raise AssemblyIdentityError(
             f"cannot derive a safe assembly filename from identity {identity!r}"
         )
-    return f"{identity}{CANONICAL_ASSEMBLY_SUFFIX}"
+    if _is_passthrough_assembly_stem(identity):
+        return identity
+    try:
+        digest = hashlib.sha256(identity.encode("utf-8")).hexdigest()[
+            :_ASSEMBLY_DIGEST_LENGTH
+        ]
+    except UnicodeEncodeError as exc:
+        raise AssemblyIdentityError(
+            f"cannot derive a safe assembly filename from identity {identity!r}"
+        ) from exc
+    suffix = f"{_ASSEMBLY_DERIVED_SEPARATOR}{digest}"
+    max_prefix = (
+        _ASSEMBLY_MAX_COMPONENT_LENGTH - len(CANONICAL_ASSEMBLY_SUFFIX) - len(suffix)
+    )
+    if max_prefix < len(_ASSEMBLY_FALLBACK_PREFIX):
+        raise AssemblyIdentityError(
+            f"cannot derive a safe assembly filename from identity {identity!r}"
+        )
+    stem = f"{_readable_assembly_prefix(identity, max_prefix)}{suffix}"
+    if not _is_derived_assembly_stem(stem) or _is_windows_reserved_device_name(stem):
+        raise AssemblyIdentityError(
+            f"cannot derive a safe assembly filename from identity {identity!r}"
+        )
+    return stem
+
+
+def logical_assembly_filename(identity: str) -> str:
+    """Deterministic SLDASM filename from a blueprint identity subtype.
+
+    The returned name is a single path segment. It is not the logical
+    ShipBlueprint identity.
+    """
+    return f"{assembly_filename_stem(identity)}{CANONICAL_ASSEMBLY_SUFFIX}"
 
 
 def is_assembly_artifact_filename(filename: str) -> bool:
     """True when filename is a single-segment SE2CAD assembly artifact name."""
+    if not filename or Path(filename).name != filename:
+        return False
+    if any(sep in filename for sep in ("/", "\\")):
+        return False
     if not filename.endswith(CANONICAL_ASSEMBLY_SUFFIX):
         return False
+    if len(filename) > _ASSEMBLY_MAX_COMPONENT_LENGTH:
+        return False
     stem = filename[: -len(CANONICAL_ASSEMBLY_SUFFIX)]
-    return bool(stem) and _ASSEMBLY_IDENTITY_RE.fullmatch(stem)
+    return _is_passthrough_assembly_stem(stem) or _is_derived_assembly_stem(stem)
+
+
+def _is_passthrough_assembly_stem(stem: str) -> bool:
+    if not stem or not _ASSEMBLY_PASSTHROUGH_STEM_RE.fullmatch(stem):
+        return False
+    if stem.endswith(".") or stem != stem.strip():
+        return False
+    if len(stem) + len(CANONICAL_ASSEMBLY_SUFFIX) > _ASSEMBLY_MAX_COMPONENT_LENGTH:
+        return False
+    return not _is_windows_reserved_device_name(stem)
+
+
+def _is_derived_assembly_stem(stem: str) -> bool:
+    return bool(stem) and bool(_ASSEMBLY_DERIVED_STEM_RE.fullmatch(stem))
+
+
+def _is_windows_reserved_device_name(stem: str) -> bool:
+    head = stem.split(".", 1)[0]
+    return head.upper() in _WINDOWS_RESERVED_DEVICE_NAMES
+
+
+def _readable_assembly_prefix(identity: str, max_len: int) -> str:
+    mapped: list[str] = []
+    for char in identity:
+        if char.isascii() and (char.isalnum() or char == "-"):
+            mapped.append(char)
+        else:
+            mapped.append("_")
+    text = "".join(mapped)
+    while "__" in text:
+        text = text.replace("__", "_")
+    text = text.strip("_-")
+    if not text or not text[0].isalnum():
+        text = _ASSEMBLY_FALLBACK_PREFIX
+    if len(text) > max_len:
+        text = text[:max_len].rstrip("_-")
+    if not text or not text[0].isalnum() or len(text) > max_len:
+        text = _ASSEMBLY_FALLBACK_PREFIX
+    return text
 
 
 def resolve_generated_root(root: Path) -> Path:

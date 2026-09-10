@@ -15,17 +15,17 @@ The nine milestones, in order, are: blueprint statistics; CAD component naming; 
 
 No implementation milestone is ACTIVE. Cold-storage backlog remains outside this program. Do not invent work beyond it.
 
-A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. A later 2026-09-09 human-authorized amendment inserted S2C-10.4.1 into M10 after S2C-12.2.1 was already QUALIFIED and before S2C-13.1.1. That repair does not rewrite original M10 planning. A 2026-09-10 human-authorized amendment inserted S2C-11.6.1 into M11 after S2C-12.2.1 and S2C-10.4.1 were already QUALIFIED, and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.3.1 into M12 after S2C-11.6.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-10.4.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-11.6.1 is QUALIFIED. S2C-12.1.1 is QUALIFIED. S2C-12.2.1 is QUALIFIED. S2C-12.3.1 is QUALIFIED. S2C-13.1.1 remains PLANNED and is postponed. There is no next executable unit until the human later directs one.
+A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. A later 2026-09-09 human-authorized amendment inserted S2C-10.4.1 into M10 after S2C-12.2.1 was already QUALIFIED and before S2C-13.1.1. That repair does not rewrite original M10 planning. A 2026-09-10 human-authorized amendment inserted S2C-11.6.1 into M11 after S2C-12.2.1 and S2C-10.4.1 were already QUALIFIED, and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.3.1 into M12 after S2C-11.6.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.4.1 into M12 after S2C-12.3.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-10.4.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-11.6.1 is QUALIFIED. S2C-12.1.1 is QUALIFIED. S2C-12.2.1 is QUALIFIED. S2C-12.3.1 is QUALIFIED. S2C-12.4.1 is QUALIFIED. S2C-13.1.1 remains PLANNED and is postponed. There is no next executable unit until the human later directs one.
 
 **Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-10.4.1 configurable demand-driven chamfer variants, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression, QUALIFIED S2C-11.6.1 demand-driven qualified base-part materialization, QUALIFIED S2C-12.1.1 conversion preflight, QUALIFIED S2C-12.2.1 strict and permissive unknown-block conversion, and QUALIFIED S2C-12.3.1 vanilla object-builder parser compatibility. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M13 units through M15 are approved, not implemented. S2C-13.1.1 is postponed.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-10.4.1 configurable demand-driven chamfer variants, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression, QUALIFIED S2C-11.6.1 demand-driven qualified base-part materialization, QUALIFIED S2C-12.1.1 conversion preflight, QUALIFIED S2C-12.2.1 strict and permissive unknown-block conversion, QUALIFIED S2C-12.3.1 vanilla object-builder parser compatibility, and QUALIFIED S2C-12.4.1 safe assembly filename derivation. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M13 units through M15 are approved, not implemented. S2C-13.1.1 is postponed.
 
 ## Next executable unit
 
-None. S2C-12.3.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLANNED and is postponed by explicit human authorization. Do not start it unless the human later directs that. Do not invent SolidWorks Small Grid part generation, multi-grid, assembly-identity sanitization, symmetry, print-shell, or later M11 units. Big Red's remaining `'Big Red'` assembly-filename blocker is recorded in the S2C-12.3.1 session history and is not a new planned unit.
+None. S2C-12.4.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLANNED and is postponed by explicit human authorization. Do not start it unless the human later directs that. Do not invent SolidWorks Small Grid part generation, multi-grid, symmetry, print-shell, catalog expansion, or later units. Universal vanilla blueprint compatibility is not claimed.
 
 ## Unit status
 
@@ -65,6 +65,7 @@ None. S2C-12.3.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLANN
 | S2C-12.1.1 | QUALIFIED | CAD-neutral `se2cad.preflight` exists; fixture 24 blocks are `all_supported`; unknown, catalog-unsupported, mixed documents, and independent geometry/appearance flags covered; ordinary suite 404 tests, 6 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-12.2.1 | QUALIFIED | CAD-neutral `se2cad.policy` exists; strict refuses unknown/unsupported with preflight diagnostics; permissive emits N IR instances with designated filler `se2cad_unknown_filler`; ordinary suite 428 tests, 7 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: two-component permissive `se2cad-filler-probe.SLDASM` save/reopen used distinct `se2cad_unknown_filler.SLDPRT` at the IR pose. Distinct assessment [below](#qualitysecurity-assessment-s2c-1221). |
 | S2C-12.3.1 | QUALIFIED | Parser accepts `CubeBlocks` items serialized as `MyObjectBuilder_CubeBlock` with a well-formed `MyObjectBuilder_*` `xsi:type`. Ordinary suite 502 tests, 10 skipped, OK. Big Red (136 blocks, 15 builder types) parses and preflights: supported 65 / unknown 71. Permissive policy emits 136 IR instances and 71 fillers. Live assemble of Big Red reached materialization then `AssemblyIdentityError` for identity `'Big Red'`. Live SW 2026 `RevisionNumber` 34.3.2 completed synthetic Thrust+armor `se2cad-ob-probe.SLDASM`. Distinct assessment [below](#qualitysecurity-assessment-s2c-1231). |
+| S2C-12.4.1 | QUALIFIED | Logical ShipBlueprint identity stays distinct from a deterministic Windows-safe `.SLDASM` stem. Already-safe names such as `se2cad-test1.SLDASM` are unchanged. `Big Red` becomes `Big_Red+ffe1ed5b9381.SLDASM` without colliding with `Big_Red`. Ordinary suite 511 tests, 11 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2 assembled Big Red permissive 136/71 and synthetic `se2cad name probe`. Distinct assessment [below](#qualitysecurity-assessment-s2c-1241). |
 | S2C-13.1.1 | PLANNED | |
 | S2C-13.2.1 | PLANNED | |
 | S2C-14.1.1 | PLANNED | |
@@ -75,6 +76,35 @@ None. S2C-12.3.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLANN
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-10 — S2C-12.4.1 QUALIFIED
+
+Human-authorized compatibility amendment and bounded implementation after S2C-12.3.1 was QUALIFIED. Discovered by the Big Red permissive assembly probe: parse/preflight/policy and demand-driven materialization succeeded, then `AssemblyIdentityError: cannot derive a safe assembly filename from identity 'Big Red'`. Did not start S2C-13.1.1. Did not invent Small Grid conversion, geometry-family expansion, FBX/MWM/OBJ import, catalog support, or later units. Did not commit, tag, or push.
+
+Scope is filename derivation only. It grants no new block or CAD support. Universal vanilla compatibility is not claimed. Small Grid remains postponed.
+
+Inspection before the change: ShipBlueprint `Id/@Subtype` is stored as `identity_subtype` through parser, IR, preflight, statistics, and policy. `logical_assembly_filename` required that same string to match `^[A-Za-z0-9][A-Za-z0-9._-]*$`, so identity validation and filename validation were one rule. `contained_destination` already rejected separators and root escape. No reusable slug helper existed; component-name subtype validation was left untouched. Big Red's logical identity is `Big Red`; its grid `DisplayName` is `Kolyma` and is not used for the assembly filename.
+
+Implementation: already-safe identities keep their current stem (`se2cad-test1.SLDASM`). Other identities keep the logical value and receive `{readable}+{sha256-utf8[:12]}.SLDASM`. The `+` marker cannot appear in a passthrough stem, so `Big Red` and `Big_Red` cannot silently share a file. `contained_destination` remains the containment authority.
+
+`python -m se2cad.solidworks.assemble C:\SE-blueprints\bigred_bp.sbc --policy permissive` with `SE2CAD_GENERATED_ROOT=generated/s2c-12.4.1-probe` completed. CLI: `Big Red -> ...\Big_Red+ffe1ed5b9381.SLDASM components=136`. Base parts generated: `large_armor_block`, `large_armor_slope`, `large_armor_corner`, `large_armor_corner_inv`, `se2cad_unknown_filler`. Substituted geometry `se2cad_unknown_filler` (71 IR fillers). Save and reopen succeeded.
+
+Attached running SW 2026 `RevisionNumber` 34.3.2 (`GetActiveObject`, `started_application` False). Document count 0 before and after. Operator documents were not closed.
+
+Live `SE2CAD_SOLIDWORKS_INTEGRATION=1` `unittest tests.test_solidworks_integration.SolidWorksIntegrationTests.test_spaced_assembly_identity_saves_derived_filename -v` — 1 test, OK, 5.328 s.
+
+| Check | Result |
+| --- | --- |
+| Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+| Logical identity | `Big Red` on parse, IR, policy, and `GeneratedAssembly.identity` |
+| Derived filename | `Big_Red+ffe1ed5b9381.SLDASM` (160448) |
+| Big Red parse / preflight | 136 blocks; supported 65 / unknown 71 / unsupported 0 |
+| Big Red permissive policy | 136 IR instances; 71 fillers |
+| Big Red assemble | 136 reopened components; materialization generated the four armor parts plus filler |
+| Session hygiene | `started_application` False; leftover document count 0; revision 34.3.2 |
+| Generated artifacts | gitignored `generated/s2c-12.4.1-probe/` |
+
+Ordinary verification excluding untracked Small Grid WIP: `.\.venv\Scripts\python.exe` suite 511 tests, 11 skipped, 1.922 s, OK. No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD.
 
 ### 2026-09-10 — S2C-12.3.1 QUALIFIED
 
@@ -970,6 +1000,32 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-12.4.1)
+
+Hypotheses tested after the identity/filename split, ordinary tests, Big Red live assemble, synthetic spaced-identity live assemble, and documentation existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Path traversal via identity | Disproven. `../evil` and `..\\evil` become a single-segment derived name. `contained_destination` still rejects `../escape.SLDASM`. Live output stayed under `generated/s2c-12.4.1-probe/`. |
+| Absolute Windows path injection | Disproven. `C:\\evil` and `C:evil` derive to a single segment inside the resolved root. |
+| UNC path injection | Disproven. `\\\\server\\share` derives to a single segment inside the resolved root. |
+| Windows reserved device names | Disproven. `CON`, `PRN`, `AUX`, `NUL`, `COM1`, and `lpt9` receive `+digest` stems. `CON.SLDASM` is not produced. |
+| Invalid Windows characters / trailing space or dot | Disproven. Those identities derive; the emitted stem matches `^[A-Za-z0-9][A-Za-z0-9_-]*\\+[0-9a-f]{12}$`. |
+| Naive normalization collision | Disproven. `Big Red` → `Big_Red+ffe1ed5b9381.SLDASM`; `Big_Red` → `Big_Red.SLDASM`. |
+| Process-randomized digest | Disproven. Digest is `sha256(identity.encode('utf-8')).hexdigest()[:12]`. Repeated derivation matches. |
+| Logical identity was rewritten | Disproven. Parse/IR/CLI/`GeneratedAssembly.identity` remain `Big Red`. DisplayName `Kolyma` is unused for the filename. |
+| Component or part names changed | Disproven. Permissive fixture still uses `large_armor_block.SLDPRT` / `se2cad_unknown_filler.SLDPRT` and IR component names. Catalog still has eight Large Grid entries. |
+| Unrelated assembly overwrite via derived name | Disproven. Derived stems contain `+`, which passthrough stems cannot. `assert_overwrite_is_canonical` still refuses `notes.txt`. |
+| Generated-root escape after sanitization | Disproven. Filename derivation never replaces `contained_destination`. Tests still reject separator filenames independently. |
+| Existing safe assembly names regress | Disproven. `se2cad-test1`, `se2cad-filler-probe`, `se2cad-ob-probe`, and `se2cad-color1` keep their previous `.SLDASM` names. |
+| Policy / materialization / Small Grid changed | Disproven. Big Red remains 136 / 65 / 71 / 0 with 71 fillers. No `SmallBlockArmorBlock` catalog entry. |
+
+No verified finding required remediation.
+
+Accepted residual risk: already-safe identities that differ only by case (`Foo` vs `foo`) can still collide on Windows NTFS; that passthrough behavior is unchanged. A 12-hex SHA-256 prefix is collision-resistant for operator-local names, not a cryptographic identity. SolidWorks `GetTitle` after SaveAs shows the filename stem, not the logical ShipBlueprint identity. Regenerating the same identity overwrites the same `.SLDASM` in the generated root, as before. Untracked `tests/test_small_grid.py` remains out of scope.
+
+Not claimed: universal vanilla compatibility; thruster or other functional CAD; catalog expansion; Small Grid; that every possible ShipBlueprint identity is a pretty filename.
 
 ## Quality/security assessment (S2C-12.3.1)
 

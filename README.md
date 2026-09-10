@@ -355,6 +355,11 @@ It converts every block, placing the designated filler identity
 preserving the original SE subtype and appearance. Filler is not armor
 and does not claim supported-library status.
 
+Ordinary ShipBlueprint identities such as `Big Red` remain the logical
+identity. The SolidWorks assembly file uses a deterministic
+Windows-safe `.SLDASM` name derived from that identity. Already-safe
+names such as `se2cad-test1.SLDASM` are unchanged.
+
 ### Current scope
 
 SE2CAD is **not yet a universal Space Engineers ship converter**. The

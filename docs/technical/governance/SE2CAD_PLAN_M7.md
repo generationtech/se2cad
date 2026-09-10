@@ -556,6 +556,37 @@ This milestone is expected to need more units than the others. It does not requi
 
 **Completion criteria.** Ordinary vanilla object-builder types parse as block records; existing policy is reachable; no new geometry support is claimed; DEV-COMPLETE from ordinary tests; QUALIFIED after the named Big Red / live evidence, or after an evidenced independent blocker is recorded. After qualification, stop and report. Do not automatically start S2C-13.1.1.
 
+### S2C-12.4.1 — Safe assembly filename derivation
+
+**Objective.** Separate the logical Space Engineers blueprint/assembly identity from the filesystem-safe SolidWorks assembly filename so an ordinary identity such as `Big Red` can produce a deterministic `.SLDASM` under the generated root.
+
+**Rationale.** After S2C-12.3.1, Big Red parsed, preflighted, and reached permissive policy (136 blocks, 65 supported, 71 unknown fillers). Assembly then failed closed with `AssemblyIdentityError` because identity validation and filename validation were the same `^[A-Za-z0-9][A-Za-z0-9._-]*$` rule. The space is a demonstrated real-blueprint blocker, not a reason to accept arbitrary identity strings as paths.
+
+**Prerequisites.** S2C-12.3.1. This unit was inserted by a human-authorized compatibility amendment after S2C-12.3.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M12 history, does not expand catalog or CAD support, and does not start S2C-13.1.1.
+
+**Affected systems / expected areas.** Assembly filename derivation from IR `identity_subtype`; generated-root containment; ordinary tests; Big Red as live qualification input. Logical identity fields, component names, part filenames, catalog identity, IR transforms, appearance, and materialization identity stay unchanged.
+
+**Implementation requirements.**
+
+- Keep the ShipBlueprint / IR identity as the logical value (`Big Red` remains `Big Red` where identity is represented).
+- Derive one deterministic, Windows-safe, single-segment `.SLDASM` filename from that identity.
+- Already-safe identities such as `se2cad-test1` retain their current filename.
+- Do not solve this by weakening path validation or accepting the raw identity as a filesystem path.
+- Distinct identities that collide under naive space-to-underscore mapping, including `Big Red` and `Big_Red`, must not silently share one filename.
+- Path separators, `..`, absolute Windows paths, and UNC-like identities must not escape the generated root. Existing `contained_destination` remains authoritative.
+- Handle Windows-invalid characters, trailing space/dot, empty identity, and reserved device names. Fail closed when no safe derivation is possible.
+- Do not use process-randomized `hash()`. If a digest is used, it must be deterministic. Do not add a registry.
+
+**Explicit boundaries / out of scope.** New block geometry; catalog support expansion; CubeTopology constructions; FBX/MWM/OBJ import; Small Grid; changing S2C-12.3.1 parser compatibility, strict/permissive policy, designated filler, S2C-11.6.1 materialization, or S2C-10.4.1 chamfer behavior; inventing a later unit.
+
+**Development validation.** Ordinary tests cover: stable already-safe names; `Big Red` derives a safe filename while remaining the logical identity; repeated derivation is stable; `Big Red` / `Big_Red` do not collide; separators, `..`, absolute, and UNC identities cannot escape; Windows-invalid and reserved names are safe; empty identity fails closed; containment remains independently enforced; component/part/materialization/policy/catalog/Small Grid behavior is unchanged.
+
+**Quality/security assessment focus.** Path traversal; absolute and UNC injection; reserved Windows names; invalid characters; normalization collisions; case-insensitive collisions; nondeterminism; logical-identity mutation; component/part rename; overwrite of an unrelated assembly; generated-root escape.
+
+**External validation.** Ordinary tests plus `python -m se2cad.solidworks.assemble C:\SE-blueprints\bigred_bp.sbc --policy permissive`. Live SolidWorks is required if that command reaches assembly. If Big Red hits a new unrelated downstream blocker after filename derivation, stop and record it rather than widening the unit. Required for QUALIFIED as evidence permits.
+
+**Completion criteria.** Logical identity stays distinct from the derived assembly filename; `Big Red` proceeds beyond the previous filename blocker or an evidenced independent blocker is recorded; no new geometry support is claimed; DEV-COMPLETE from ordinary tests; QUALIFIED after the named Big Red / live evidence. After qualification, stop and report. Do not automatically start S2C-13.1.1.
+
 ---
 
 ## Milestone M13 — Small Grid support
@@ -570,7 +601,7 @@ This milestone is expected to need more units than the others. It does not requi
 
 **Rationale.** `cell_center_mm` already takes a pitch argument. Grid size is already an IR field. The missing pieces are an enum value, a named Small Grid pitch, catalog entries, and parser acceptance.
 
-**Prerequisites.** S2C-12.3.1 (program sequence).
+**Prerequisites.** S2C-12.4.1 (program sequence).
 
 **Affected systems / expected areas.** `GridSize`, catalog constants, parser, catalog entries for the Small Grid counterparts of supported armor (and any M11 Small Grid identities this unit activates), IR/transform pitch selection, library recipes parameterized by grid pitch. No SolidWorks.
 

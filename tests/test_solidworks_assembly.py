@@ -39,11 +39,9 @@ class AssemblyNamingTests(unittest.TestCase):
         )
         self.assertTrue(is_assembly_artifact_filename("se2cad-test1.SLDASM"))
 
-    def test_unsafe_identity_is_rejected(self) -> None:
-        for identity in ("", "../escape", "a/b", r"a\b", "has space", "ünicode"):
-            with self.subTest(identity=identity):
-                with self.assertRaises(AssemblyIdentityError):
-                    logical_assembly_filename(identity)
+    def test_empty_identity_is_rejected(self) -> None:
+        with self.assertRaises(AssemblyIdentityError):
+            logical_assembly_filename("")
 
     def test_assembly_stays_inside_generated_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -976,6 +976,52 @@ class SolidWorksIntegrationTests(unittest.TestCase):
             rotation_from_forward_up(Direction.DOWN, Direction.FORWARD).columns,
         )
 
+    def test_spaced_assembly_identity_saves_derived_filename(self) -> None:
+        from se2cad.parser import parse_blueprint
+        from se2cad.policy import ConversionPolicy, convert_blueprint
+        from se2cad.catalog import load_default_catalog
+        from se2cad.solidworks.artifacts import logical_assembly_filename
+        from se2cad.solidworks.assemble import generate_assembly_from_ir
+
+        identity = "se2cad name probe"
+        xml = f"""<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="{identity}" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "name-probe.sbc"
+            path.write_text(xml, encoding="utf-8")
+            parsed = parse_blueprint(path)
+        self.assertEqual(parsed.identity_subtype, identity)
+        result = convert_blueprint(
+            parsed, load_default_catalog(), ConversionPolicy.STRICT
+        )
+        self.assertEqual(result.ir.identity_subtype, identity)
+        assembled = generate_assembly_from_ir(result.ir, self.config)
+        self.assertEqual(assembled.identity, identity)
+        self.assertEqual(assembled.path.name, logical_assembly_filename(identity))
+        self.assertNotEqual(assembled.path.name, f"{identity}.SLDASM")
+        self.assertTrue(assembled.path.is_relative_to(self.config.generated_root))
+        self.assertEqual(len(assembled.after_reopen), 1)
+        self.assertEqual(
+            assembled.after_reopen[0].part_path.name, "large_armor_block.SLDPRT"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
