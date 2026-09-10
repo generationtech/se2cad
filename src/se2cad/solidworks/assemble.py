@@ -1,7 +1,8 @@
 """Generate a transform-placed SolidWorks assembly from a qualified IR.
 
-Uses already-generated canonical SLDPRT files. Does not author parts,
-does not reinterpret Space Engineers orientation, and does not add mates.
+Demand-drives already-qualified untreated canonical parts, then any
+requested treated siblings. Does not reinterpret Space Engineers
+orientation and does not add mates.
 """
 
 from __future__ import annotations
@@ -36,11 +37,13 @@ from se2cad.solidworks.com_session import SolidWorksSession
 from se2cad.solidworks.config import SolidWorksBackendConfig, load_solidworks_backend_config
 from se2cad.solidworks.errors import AssemblyValidationError
 from se2cad.solidworks.pipeline import resolve_recipes_from_blueprint
+from se2cad.solidworks.materialize import (
+    AssemblyMaterializationReport,
+    materialize_required_parts,
+)
 from se2cad.solidworks.placement import (
     AssemblyTreatmentReport,
     ComponentPlacement,
-    demanded_treated_geometry_ids,
-    missing_treated_geometry_ids,
     placements_from_ir,
     require_canonical_part_files,
     treatment_report_from_ir,
@@ -55,6 +58,7 @@ class GeneratedAssembly:
     after_save: tuple[PlacedComponent, ...]
     after_reopen: tuple[PlacedComponent, ...]
     treatment_report: AssemblyTreatmentReport
+    materialization_report: AssemblyMaterializationReport
 
 
 def assembly_destination(
@@ -74,11 +78,12 @@ def generate_assembly_from_ir(
 ) -> GeneratedAssembly:
     """Insert one component per IR block using the qualified (R, t).
 
-    Default assembly inserts untreated ``{geometry_id}.SLDPRT``. Pass
+    Default assembly inserts untreated ``{geometry_id}.SLDPRT``. Missing
+    qualified untreated bases are generated on demand. Pass
     ``EDGE_TREATMENT_CHAMFER`` (or a sized chamfer request) to insert
-    size-specific treated siblings. Missing treated artifacts for
-    chamfer-capable geometry are generated on demand. Geometries that
-    are not chamfer-capable use untreated parts and are reported.
+    size-specific treated siblings after the untreated base exists.
+    Geometries that are not chamfer-capable use untreated parts and are
+    reported.
     """
     require_solidworks_backend()
     resolved = config if config is not None else load_solidworks_backend_config()
@@ -89,16 +94,7 @@ def generate_assembly_from_ir(
     report = treatment_report_from_ir(ir, chosen)
     placements = placements_from_ir(ir, chosen)
     needed = tuple(dict.fromkeys(item.geometry_id for item in placements))
-    demanded = demanded_treated_geometry_ids(ir, chosen)
-    missing = missing_treated_geometry_ids(
-        resolved.generated_root, demanded, chosen
-    )
-    if missing:
-        from se2cad.solidworks.generate import generate_canonical_parts
-
-        generate_canonical_parts(
-            resolved, treatment=chosen, geometry_ids=missing
-        )
+    materialization = materialize_required_parts(ir, resolved, chosen)
     part_paths = require_canonical_part_files(
         resolved.generated_root, chosen, geometry_ids=needed
     )
@@ -145,6 +141,7 @@ def generate_assembly_from_ir(
         after_save=after_save,
         after_reopen=after_reopen,
         treatment_report=report,
+        materialization_report=materialization,
     )
 
 
@@ -237,6 +234,11 @@ def _parse_assemble_argv(
     return blueprint, treatment, policy
 
 
+def _join_ids(geometry_ids: tuple[str, ...]) -> str:
+    """Stable comma-separated report token. Empty means none."""
+    return ",".join(geometry_ids) if geometry_ids else "-"
+
+
 def _request_from_cli_flags(
     treatment_kind: str | None,
     chamfer_mm_raw: str | None,
@@ -278,6 +280,23 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     print(f"generated_root={config.generated_root} source={config.source}")
     print(f"{result.identity} -> {result.path} components={len(result.after_reopen)}")
+    materialization = result.materialization_report
+    print(
+        "base_parts "
+        f"reused={_join_ids(materialization.untreated.reused)} "
+        f"generated={_join_ids(materialization.untreated.generated)}"
+    )
+    if request.enabled:
+        print(
+            "treated_parts "
+            f"reused={_join_ids(materialization.treated.reused)} "
+            f"generated={_join_ids(materialization.treated.generated)}"
+        )
+    if materialization.substituted_geometry_ids:
+        print(
+            "substituted="
+            + _join_ids(materialization.substituted_geometry_ids)
+        )
     report = result.treatment_report
     if report.requested_kind == "chamfer":
         print(

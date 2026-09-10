@@ -55,6 +55,15 @@ from se2cad.solidworks.pipeline import (
     BlueprintRecipeResolution,
     resolve_recipes_from_blueprint,
 )
+from se2cad.solidworks.materialize import (
+    ArtifactMaterialization,
+    AssemblyMaterializationReport,
+    demanded_untreated_geometry_ids,
+    ensure_untreated_canonical_parts,
+    has_qualified_untreated_builder,
+    materialize_required_parts,
+    missing_untreated_geometry_ids,
+)
 from se2cad.solidworks.placement import (
     AssemblyTreatmentReport,
     ChamferFallback,
@@ -108,10 +117,10 @@ def generate_assembly(
 ):
     """Generate a transform-placed SLDASM. Requires Windows + pywin32 + SolidWorks.
 
-    Default inserts untreated ``{geometry_id}.SLDPRT``. Pass
-    ``EDGE_TREATMENT_CHAMFER`` to insert size-specific treated siblings,
-    generating only the demanded chamfer-capable parts. Default
-    policy is strict.
+    Default inserts untreated ``{geometry_id}.SLDPRT``, generating
+    missing qualified untreated bases on demand. Pass
+    ``EDGE_TREATMENT_CHAMFER`` to insert size-specific treated siblings
+    after those bases exist. Default policy is strict.
     """
     from se2cad.policy import ConversionPolicy
     from se2cad.solidworks.assemble import generate_assembly as impl
@@ -126,6 +135,8 @@ __all__ = [
     "SATURATION_DELTA",
     "TREATED_PART_STEM_SUFFIX",
     "VALUE_DELTA",
+    "ArtifactMaterialization",
+    "AssemblyMaterializationReport",
     "AssemblyTreatmentReport",
     "ChamferFallback",
     "AssemblyIdentityError",
@@ -154,16 +165,21 @@ __all__ = [
     "quantize_rgb_8bit",
     "contained_destination",
     "demanded_treated_geometry_ids",
+    "demanded_untreated_geometry_ids",
+    "ensure_untreated_canonical_parts",
     "generate_assembly",
     "generate_canonical_parts",
     "generate_representative_automatable_parts",
+    "has_qualified_untreated_builder",
     "is_treated_artifact_filename",
     "load_solidworks_backend_config",
     "logical_assembly_filename",
     "logical_assembly_part_filename",
     "logical_part_filename",
     "logical_treated_part_filename",
+    "materialize_required_parts",
     "missing_treated_geometry_ids",
+    "missing_untreated_geometry_ids",
     "part_artifact_path",
     "resolved_assembly_part_filename",
     "treated_artifact_key",

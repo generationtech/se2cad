@@ -460,12 +460,20 @@ class CapableGenerationFailureTests(unittest.TestCase):
         from se2cad.solidworks.config import SolidWorksBackendConfig
 
         with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
             config = SolidWorksBackendConfig(
-                generated_root=Path(tmp).resolve(),
+                generated_root=root.resolve(),
                 part_template=None,
                 visible=False,
                 source="test",
             )
+            for geometry_id in (
+                "large_armor_block",
+                "large_armor_slope",
+                "large_armor_corner",
+                "large_armor_corner_inv",
+            ):
+                (root / f"{geometry_id}.SLDPRT").write_bytes(b"untreated")
             with patch(
                 "se2cad.solidworks.assemble.require_solidworks_backend",
                 return_value=None,
@@ -476,7 +484,7 @@ class CapableGenerationFailureTests(unittest.TestCase):
                 with self.assertRaises(SolidWorksComError) as ctx:
                     generate_assembly_from_ir(ir, config, EDGE_TREATMENT_CHAMFER)
             self.assertIn("treated generation failed", str(ctx.exception))
-            self.assertFalse(any(Path(tmp).glob("*_chamfer_*.SLDPRT")))
+            self.assertFalse(any(root.glob("*_chamfer_*.SLDPRT")))
             self.assertEqual(
                 resolved_assembly_part_filename(
                     "large_armor_block", EDGE_TREATMENT_CHAMFER

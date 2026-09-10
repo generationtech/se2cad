@@ -168,7 +168,8 @@ def generate_canonical_parts(
     ``treatment=None`` and ``EDGE_TREATMENT_OFF`` remain the default
     untreated conversion. Treated siblings are written only when
     requested, and only for the supplied identities. Blueprint assembly
-    is the demand-driven producer of chamfer variants.
+    is the demand-driven producer of missing qualified untreated bases
+    and of chamfer variants.
     """
     resolved = config if config is not None else load_solidworks_backend_config()
     request = EDGE_TREATMENT_OFF if treatment is None else treatment

@@ -682,6 +682,237 @@ class SolidWorksIntegrationTests(unittest.TestCase):
         self.assertEqual(end_report["started_application"], "False")
         self.assertEqual(end_documents, start_documents)
 
+    def test_demand_driven_base_parts_are_generated_and_reused(self) -> None:
+        import shutil
+
+        from se2cad.catalog import FILLER_GEOMETRY_ID, load_default_catalog
+        from se2cad.library import chamfer_treatment
+        from se2cad.parser import parse_blueprint
+        from se2cad.policy import ConversionPolicy, convert_blueprint
+        from se2cad.solidworks.assemble import generate_assembly_from_ir
+        from se2cad.solidworks.com_session import (
+            SolidWorksSession,
+            session_environment_report,
+        )
+        from se2cad.solidworks.config import SolidWorksBackendConfig
+
+        probe_root = self.config.generated_root / "s2c-11.6.1-probe"
+        if probe_root.exists():
+            shutil.rmtree(probe_root)
+        probe_root.mkdir(parents=True)
+        probe_config = SolidWorksBackendConfig(
+            generated_root=probe_root.resolve(),
+            part_template=self.config.part_template,
+            visible=self.config.visible,
+            source="s2c-11.6.1-probe",
+        )
+        with SolidWorksSession(probe_config) as session:
+            start_report = session_environment_report(session)
+            start_documents = int(session.app.GetDocumentCount)
+
+        one_xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-base-lazy" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        two_xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-base-two" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorSlope</SubtypeName>
+              <Min x="1" y="0" z="0" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        mixed_xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-base-filler" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>NotACatalogSubtype</SubtypeName>
+              <Min x="1" y="0" z="0" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            one_path = Path(tmp) / "one.sbc"
+            two_path = Path(tmp) / "two.sbc"
+            mixed_path = Path(tmp) / "mixed.sbc"
+            one_path.write_text(one_xml, encoding="utf-8")
+            two_path.write_text(two_xml, encoding="utf-8")
+            mixed_path.write_text(mixed_xml, encoding="utf-8")
+            catalog = load_default_catalog()
+            one_ir = convert_blueprint(parse_blueprint(one_path), catalog).ir
+            two_ir = convert_blueprint(parse_blueprint(two_path), catalog).ir
+            mixed_ir = convert_blueprint(
+                parse_blueprint(mixed_path), catalog, ConversionPolicy.PERMISSIVE
+            ).ir
+
+        base = probe_root / "large_armor_block.SLDPRT"
+        self.assertFalse(base.exists())
+        first = generate_assembly_from_ir(one_ir, probe_config)
+        self.assertTrue(base.is_file())
+        self.assertEqual(first.materialization_report.untreated.generated, ("large_armor_block",))
+        self.assertEqual(first.materialization_report.untreated.reused, ())
+        self.assertEqual(first.after_reopen[0].part_path.name, "large_armor_block.SLDPRT")
+        self.assertTrue(first.after_reopen[0].part_path.is_relative_to(probe_root))
+        first_hash = hashlib.sha256(base.read_bytes()).hexdigest()
+
+        second = generate_assembly_from_ir(one_ir, probe_config)
+        self.assertEqual(hashlib.sha256(base.read_bytes()).hexdigest(), first_hash)
+        self.assertEqual(second.materialization_report.untreated.generated, ())
+        self.assertEqual(second.materialization_report.untreated.reused, ("large_armor_block",))
+        self.assertEqual(second.after_reopen[0].part_path.name, "large_armor_block.SLDPRT")
+
+        slope = probe_root / "large_armor_slope.SLDPRT"
+        self.assertFalse(slope.exists())
+        two = generate_assembly_from_ir(two_ir, probe_config)
+        self.assertTrue(slope.is_file())
+        self.assertEqual(two.materialization_report.untreated.reused, ("large_armor_block",))
+        self.assertEqual(two.materialization_report.untreated.generated, ("large_armor_slope",))
+        self.assertEqual(len(two.after_reopen), 2)
+        self.assertFalse((probe_root / "large_armor_corner.SLDPRT").exists())
+        self.assertFalse((probe_root / "large_heavy_block_armor_block.SLDPRT").exists())
+        self.assertFalse(any(probe_root.glob("*_chamfer_*.SLDPRT")))
+        self.assertEqual(hashlib.sha256(base.read_bytes()).hexdigest(), first_hash)
+
+        corner_xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-base-chamfer" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorCorner</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            corner_path = Path(tmp) / "corner.sbc"
+            corner_path.write_text(corner_xml, encoding="utf-8")
+            corner_ir = convert_blueprint(
+                parse_blueprint(corner_path), load_default_catalog()
+            ).ir
+        corner = probe_root / "large_armor_corner.SLDPRT"
+        corner_treated = probe_root / "large_armor_corner_chamfer_50mm.SLDPRT"
+        self.assertFalse(corner.exists())
+        self.assertFalse(corner_treated.exists())
+        bootstrapped = generate_assembly_from_ir(
+            corner_ir, probe_config, chamfer_treatment(50)
+        )
+        self.assertTrue(corner.is_file())
+        self.assertTrue(corner_treated.is_file())
+        self.assertEqual(
+            bootstrapped.materialization_report.untreated.generated,
+            ("large_armor_corner",),
+        )
+        self.assertEqual(
+            bootstrapped.materialization_report.treated.generated,
+            ("large_armor_corner",),
+        )
+        self.assertEqual(
+            bootstrapped.after_reopen[0].part_path.name,
+            "large_armor_corner_chamfer_50mm.SLDPRT",
+        )
+        self.assertFalse((probe_root / "large_armor_corner_chamfer.SLDPRT").exists())
+
+        filler = probe_root / "se2cad_unknown_filler.SLDPRT"
+        self.assertFalse(filler.exists())
+        mixed = generate_assembly_from_ir(mixed_ir, probe_config)
+        self.assertTrue(filler.is_file())
+        self.assertEqual(len(mixed.after_reopen), 2)
+        self.assertEqual(
+            mixed.materialization_report.substituted_geometry_ids, (FILLER_GEOMETRY_ID,)
+        )
+        by_geometry = {
+            item.placement.geometry_id: item for item in mixed.after_reopen
+        }
+        self.assertEqual(by_geometry["large_armor_block"].part_path.name, "large_armor_block.SLDPRT")
+        self.assertEqual(
+            by_geometry[FILLER_GEOMETRY_ID].part_path.name,
+            "se2cad_unknown_filler.SLDPRT",
+        )
+        self.assertNotEqual(
+            by_geometry[FILLER_GEOMETRY_ID].part_path.name,
+            by_geometry["large_armor_block"].part_path.name,
+        )
+
+        chamfer_part = probe_root / "large_armor_block_chamfer_75mm.SLDPRT"
+        if chamfer_part.exists():
+            chamfer_part.unlink()
+        chamfered = generate_assembly_from_ir(one_ir, probe_config, chamfer_treatment(75))
+        self.assertTrue(chamfer_part.is_file())
+        self.assertEqual(
+            chamfered.materialization_report.untreated.reused, ("large_armor_block",)
+        )
+        self.assertEqual(chamfered.materialization_report.untreated.generated, ())
+        self.assertEqual(
+            chamfered.materialization_report.treated.generated, ("large_armor_block",)
+        )
+        self.assertEqual(
+            chamfered.after_reopen[0].part_path.name,
+            "large_armor_block_chamfer_75mm.SLDPRT",
+        )
+        self.assertEqual(hashlib.sha256(base.read_bytes()).hexdigest(), first_hash)
+        self.assertFalse((probe_root / "large_armor_block_chamfer.SLDPRT").exists())
+
+        with SolidWorksSession(probe_config) as session:
+            end_report = session_environment_report(session)
+            end_documents = int(session.app.GetDocumentCount)
+        self.assertTrue(start_report["solidworks_revision"])
+        self.assertEqual(end_report["started_application"], "False")
+        self.assertEqual(end_documents, start_documents)
+        self.assertEqual(start_report["solidworks_revision"], end_report["solidworks_revision"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -304,8 +304,11 @@ under the generated root and leaves the untreated canonical `.SLDPRT`
 files unchanged. Explicit assemble selection (`--edge-treatment chamfer`)
 generates only the demanded chamfer-capable siblings and inserts them.
 Default assemble still inserts untreated `{geometry_id}.SLDPRT`.
+Missing qualified untreated bases are generated on demand from the
+already-bound library constructions; existing files are reused.
 Geometries that cannot accept chamfer keep their untreated part and are
-reported as exceptions.
+reported as exceptions. Assembly does not invent constructions for
+unbound vanilla identities.
 
 **Library-build definition discovery** can read cube-block identities
 from an operator-configured local Space Engineers or ModSDK tree
@@ -416,10 +419,13 @@ python -m se2cad.solidworks.assemble path\to\mixed.sbc --policy permissive
 
 The second command inserts treated sibling parts. It does not change
 IR identity, placement transforms, or overwrite untreated `.SLDPRT`
-files. Generate the treated parts first. Assemble defaults to strict
+files. Qualified untreated bases and demanded chamfer siblings are
+generated on demand when missing. Assemble defaults to strict
 refusal of unknown or unsupported blocks. `--policy permissive` inserts
-the designated filler part; generate `se2cad_unknown_filler.SLDPRT`
-first.
+the designated filler part and will generate
+`se2cad_unknown_filler.SLDPRT` if that qualified filler builder is
+needed and the file is absent. Explicit `python -m se2cad.solidworks`
+still generates the original four by default.
 
 Then open the generated `.SLDASM` in SolidWorks.
 

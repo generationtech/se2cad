@@ -431,6 +431,39 @@ This milestone is expected to need more units than the others. It does not requi
 
 **Completion criteria.** Exception workflow and regression exist; leftover set recorded; STATE does not claim universal vanilla support. QUALIFIED when the unit’s named evidence is recorded.
 
+### S2C-11.6.1 — Demand-driven qualified base-part materialization
+
+**Objective.** Make untreated canonical SolidWorks parts lazy, demand-driven artifacts for already-qualified library constructions, in the same spirit as the qualified chamfer cache.
+
+**Rationale.** A read-only survey of a copied Space Engineers installation observed 1465 unique vanilla SubtypeIds (903 Large Grid, 562 Small Grid). The packaged catalog currently contains eight identities, and only those eight are presently safe to materialize with qualified constructions. Three apparent additional Slope/Corner/InvCorner candidates are hidden round-armor aliases and must not be auto-bound to the planar recipes. 64 Large Grid CubeTopology identities are automatable-in-principle but lack qualified constructions; the majority of the Large Grid remainder is TriangleMesh / long-tail. Existing assemble can lazily generate chamfer siblings, but a missing untreated base `.SLDPRT` still fails closed. Assembly should not require a prior bulk generation step for the already-qualified set, and runtime conversion must not scan the game or SDK install.
+
+**Prerequisites.** S2C-11.5.1 and S2C-10.4.1. This unit was inserted by a human-authorized sequencing amendment after S2C-12.2.1 and S2C-10.4.1 were already QUALIFIED and after Small Grid was deliberately postponed. It does not rewrite original M11 history, does not reopen M12 policy semantics, and does not start S2C-13.1.1.
+
+**Affected systems / expected areas.** Narrow shared untreated-part materialization used by assembly; assembly/materialization reporting; ordinary and live tests; operator assemble reporting. Explicit part-generation utility remains.
+
+**Implementation requirements.**
+
+- When assembly needs a supported, library-bound `geometry_id`, resolve the exact untreated canonical path `{geometry_id}.SLDPRT`.
+- Reuse that artifact when it exists. If it is missing and the geometry has an already-qualified library construction, generate only that required untreated canonical part, save it under the normal generated root, and continue assembly.
+- If the geometry does not have an already-qualified builder, do not improvise, do not derive a new recipe, do not scan SE definitions or SDK assets, and leave handling to existing strict/permissive policy.
+- Repeated instances of the same `geometry_id` during one assembly generate at most once. Later assemblies reuse the previously generated base part.
+- Scope is the currently library-bound qualified records, including the original and heavy armor families already supported. The designated filler may be generated lazily when permissive assembly actually requires it and its qualified native builder exists.
+- Prefer reusing existing qualified generation functions. The mechanism must be callable by assembly without invoking broad “generate all parts” behavior and without shelling out to the CLI.
+- Chamfer assembly first ensures the untreated base exists (reuse or lazy generate), then ensures the exact size-specific `{geometry_id}_chamfer_{size}mm.SLDPRT` sibling. Do not regenerate untreated parts merely because a chamfer sibling is requested. Do not reintroduce `*_chamfer.SLDPRT`. Untreated assembly does not generate chamfer siblings.
+- Fail closed for true materialization errors, including a claimed qualified builder whose generation fails, a missing usable `.SLDPRT`, a wrong artifact path, SolidWorks open/save failure, generated-root escape, and filename/path ambiguity. Do not silently use the filler when a supported geometry with a qualified builder fails to generate.
+- Preserve the existing explicit generation capability for the current qualified set. Do not create a “generate thousands of vanilla parts” workflow.
+- Extend existing assembly/result reporting narrowly enough that an operator can tell unused reuse from on-demand untreated generation, and can still see chamfer reuse/generation and existing policy substitution.
+
+**Explicit boundaries / out of scope.** Expanding the packaged catalog; stamping automatable remainder; promoting new identities to supported; adding CubeTopology constructions; binding hidden `LargeRoundArmor_*` aliases; importing FBX/MWM/OBJ; inspecting Model/Sides at runtime; changing catalog `support_status`, `geometry_id`, IR, transforms, component naming, appearance, chamfer capability, strict/permissive policy, or filler identity; Small Grid; symmetry; print-shell; inventing S2C-11.7.1 or later units.
+
+**Development validation.** Ordinary tests cover: missing supported untreated part generated on demand; existing supported untreated part reused; same `geometry_id` generated once; only required supported IDs generated; unrelated library parts not eagerly generated; second assembly reuses generated bases; qualified-builder generation failure fails closed; unsupported/unknown permissive still uses filler; unsupported/unknown strict still refuses; no catalog support expansion; no runtime `stamp_automatable_remainder`; hidden round aliases are not treated as qualified planar geometry; component names, transforms, and appearance unchanged; generated-root containment enforced; chamfer can bootstrap missing base then size-specific sibling; untreated assembly does not generate chamfer siblings; default explicit part-generation utility remains intact.
+
+**Quality/security assessment focus.** Eager generation of unrelated library parts; duplicate generation within one assembly; wrong `geometry_id` → filename resolution; generated-root path escape; silent fallback after supported generation failure; accidental mutation of catalog support decisions; runtime dependency on SE/SDK install; hidden `LargeRoundArmor_*` planar misclassification; untreated-part overwrite when reuse should occur; chamfer/base dependency ordering errors; filler accidentally entering the normal supported library.
+
+**External validation.** Ordinary tests plus the existing live SolidWorks integration path (`SE2CAD_SOLIDWORKS_INTEGRATION`). Establish: a known qualified untreated `.SLDPRT` absent from a controlled generated root is created on demand and consumed; a later assemble reuses that artifact; a blueprint requiring more than one supported `geometry_id` produces only the needed base parts; permissive filler still reaches a complete assembly when an unsupported/unknown block is present; if practical, chamfer assembly bootstraps missing untreated base → treated sibling → assembly; operator documents are not closed; SolidWorks `RevisionNumber` and document count are recorded before/after. Required for QUALIFIED.
+
+**Completion criteria.** Demand-driven qualified base-part materialization exists; explicit bulk generation of the current qualified set remains; no claim of universal vanilla support; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, stop and report. Do not automatically restore or start S2C-13.1.1.
+
 ---
 
 ## Milestone M12 — Blueprint compatibility and unknown-block handling

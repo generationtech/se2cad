@@ -86,6 +86,8 @@ A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-1
 
 A later 2026-09-09 human-authorized amendment inserted S2C-10.4.1 into M10 after S2C-12.2.1 was already QUALIFIED and before S2C-13.1.1. That repair improves already-qualified M10 edge-treatment behavior. It does not rewrite original M10 planning, does not start M13, and does not invalidate S2C-10.3.1, M11, or M12. STATE records the exception and the next executable unit.
 
+A 2026-09-10 human-authorized amendment inserted S2C-11.6.1 into M11 after S2C-12.2.1 and S2C-10.4.1 were already QUALIFIED, and after the human postponed Small Grid. That unit makes already-qualified untreated canonical parts demand-driven. It does not rewrite original M11 history, does not expand the packaged catalog, does not start M13, and does not invent later M11 units. STATE records the exception. Small Grid remains postponed until the human later directs it.
+
 ## Qualification model
 
 Status words are defined in [SE2CAD_ENGINEERING_PROCESS.md](SE2CAD_ENGINEERING_PROCESS.md). STATE is the only live status.
