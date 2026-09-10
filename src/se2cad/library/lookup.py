@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import threading
+
 from se2cad.library.errors import UnknownGeometryError
 from se2cad.library.model import GeometryRecipe, LibraryRecord
 from se2cad.library.recipes import (
@@ -32,6 +34,9 @@ if LARGE_BLOCK_SMALL_HYDROGEN_THRUST_RECORD.geometry_id in _BY_GEOMETRY_ID:
 _BY_GEOMETRY_ID[LARGE_BLOCK_SMALL_HYDROGEN_THRUST_RECORD.geometry_id] = (
     LARGE_BLOCK_SMALL_HYDROGEN_THRUST_RECORD
 )
+_PACKAGED_GEOMETRY_IDS = frozenset(_BY_GEOMETRY_ID)
+_RUNTIME_LOCK = threading.Lock()
+_RUNTIME_RECORDS: dict[str, LibraryRecord] = {}
 
 
 def all_library_records() -> tuple[LibraryRecord, ...]:
@@ -61,9 +66,13 @@ def lookup_record(geometry_id: str) -> LibraryRecord:
     try:
         return _BY_GEOMETRY_ID[geometry_id]
     except KeyError:
-        raise UnknownGeometryError(
-            f"unknown geometry_id {geometry_id!r}"
-        ) from None
+        with _RUNTIME_LOCK:
+            record = _RUNTIME_RECORDS.get(geometry_id)
+        if record is None:
+            raise UnknownGeometryError(
+                f"unknown geometry_id {geometry_id!r}"
+            ) from None
+        return record
 
 
 def lookup_recipe(geometry_id: str) -> GeometryRecipe:
@@ -71,9 +80,38 @@ def lookup_recipe(geometry_id: str) -> GeometryRecipe:
     return lookup_record(geometry_id).recipe
 
 
+def packaged_library_geometry_ids() -> frozenset[str]:
+    """Return packaged library identities only. Runtime overlays are excluded."""
+    return _PACKAGED_GEOMETRY_IDS
+
+
+def register_runtime_library_record(record: LibraryRecord) -> None:
+    """Register a transient runtime bind. Does not persist the catalog."""
+    if record.geometry_id in _BY_GEOMETRY_ID:
+        raise ValueError(
+            f"runtime geometry_id {record.geometry_id!r} collides with a "
+            "packaged library identity"
+        )
+    with _RUNTIME_LOCK:
+        existing = _RUNTIME_RECORDS.get(record.geometry_id)
+        if existing is not None and existing != record:
+            raise ValueError(
+                f"runtime geometry_id {record.geometry_id!r} is already bound "
+                "to a different record"
+            )
+        _RUNTIME_RECORDS[record.geometry_id] = record
+
+
+def clear_runtime_library_records() -> None:
+    """Drop transient runtime binds. Tests use this for isolation."""
+    with _RUNTIME_LOCK:
+        _RUNTIME_RECORDS.clear()
+
+
 def bound_library_geometry_ids() -> frozenset[str]:
     """Return every geometry_id that lookup can resolve, including filler."""
-    return frozenset(_BY_GEOMETRY_ID)
+    with _RUNTIME_LOCK:
+        return frozenset(_BY_GEOMETRY_ID) | frozenset(_RUNTIME_RECORDS)
 
 
 def geometry_supports_chamfer(geometry_id: str) -> bool:

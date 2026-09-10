@@ -348,9 +348,12 @@ Ordinary vanilla cube-block object builders such as
 `MyObjectBuilder_Thrust` parse as block records. The parser does not
 reject them merely because `xsi:type` is not `MyObjectBuilder_CubeBlock`.
 Catalog lookup and conversion policy still decide support.
-`LargeBlockSmallHydrogenThrust` is the one authorized SDK-FBX
-generated part. That is not general thruster or functional-geometry
-support.
+`LargeBlockSmallHydrogenThrust` is the one packaged SDK-FBX generated
+part. Eligible Large Grid 1×1×1 vanilla TriangleMesh identities may
+also resolve on demand to a transient runtime bind when the operator
+configures a game-content root and the official SDK FBX exists as a
+binary file. That is not general thruster, multi-cell, CubeTopology,
+Small Grid, or universal vanilla support.
 
 CAD-neutral **conversion policy** then applies an explicit strict or
 permissive decision. Strict is the default: unknown or unsupported

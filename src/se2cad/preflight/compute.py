@@ -6,7 +6,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Optional
 
-from se2cad.catalog import DefinitionCatalog, UnknownSubtypeError, load_default_catalog
+from se2cad.catalog import DefinitionCatalog, load_default_catalog
 from se2cad.catalog.model import SupportStatus
 from se2cad.parser import parse_blueprint, parse_blueprint_xml
 from se2cad.parser.model import ParsedBlueprint
@@ -16,6 +16,7 @@ from se2cad.preflight.model import (
     ConversionPreflight,
 )
 from se2cad.statistics.model import NamedCount
+from se2cad.vanilla.resolve import VanillaResolveKind, resolve_vanilla_geometry
 
 
 def compute_conversion_preflight(
@@ -31,9 +32,8 @@ def compute_conversion_preflight(
     unsupported_counter: Counter[str] = Counter()
 
     for parsed_block in parsed.grid.blocks:
-        try:
-            entry = catalog.lookup(parsed_block.subtype_id)
-        except UnknownSubtypeError:
+        resolved = resolve_vanilla_geometry(parsed_block.subtype_id, catalog)
+        if resolved.kind is VanillaResolveKind.UNRESOLVED:
             unknown_count += 1
             unknown_counter[parsed_block.subtype_id] += 1
             blocks.append(
@@ -48,6 +48,13 @@ def compute_conversion_preflight(
                 )
             )
             continue
+
+        if resolved.kind is VanillaResolveKind.RUNTIME_VANILLA:
+            assert resolved.runtime is not None
+            entry = resolved.runtime.catalog_entry
+        else:
+            assert resolved.catalog_entry is not None
+            entry = resolved.catalog_entry
 
         if entry.support_status is SupportStatus.SUPPORTED:
             outcome = CatalogOutcome.SUPPORTED

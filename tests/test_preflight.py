@@ -396,6 +396,7 @@ class PreflightNeutralityTests(unittest.TestCase):
             "se2cad.preflight.compute",
             "se2cad.preflight.model",
             "se2cad.statistics.model",
+            "se2cad.vanilla.resolve",
         }
         for path in sorted(PREFLIGHT_ROOT.glob("*.py")):
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))

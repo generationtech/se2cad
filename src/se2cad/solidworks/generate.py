@@ -123,7 +123,7 @@ def generate_one_canonical_part(
         return _generate_sdk_mesh_part(session, geometry_id, recipe, config, request)
     if not isinstance(recipe, NativeSolidRecipe):
         raise SolidWorksComError(
-            f"geometry_id {geometry_id!r} has no native or authorized SDK recipe"
+            f"geometry_id {geometry_id!r} has no native or SDK-mesh recipe"
         )
     plan = plan_from_recipe(recipe)
     destination = _prepare_destination(config, geometry_id, request)

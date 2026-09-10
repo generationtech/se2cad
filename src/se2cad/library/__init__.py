@@ -25,11 +25,14 @@ from se2cad.catalog.constants import FILLER_GEOMETRY_ID
 from se2cad.library.lookup import (
     all_library_records,
     bound_library_geometry_ids,
+    clear_runtime_library_records,
     filler_library_record,
     geometry_supports_chamfer,
     lookup_recipe,
     lookup_record,
     original_library_geometry_ids,
+    packaged_library_geometry_ids,
+    register_runtime_library_record,
     representative_automatable_geometry_ids,
 )
 from se2cad.library.model import (
@@ -128,6 +131,7 @@ __all__ = [
     "ValidationProperties",
     "all_library_records",
     "bound_library_geometry_ids",
+    "clear_runtime_library_records",
     "apply_edge_treatment",
     "bounding_box",
     "cell_half_extent_mm",
@@ -137,6 +141,8 @@ __all__ = [
     "geometry_supports_chamfer",
     "lookup_recipe",
     "lookup_record",
+    "packaged_library_geometry_ids",
+    "register_runtime_library_record",
     "parse_chamfer_mm_token",
     "validate_chamfer_setback_mm",
     "mesh_edges",

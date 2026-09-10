@@ -12,7 +12,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from se2cad.catalog.authorized import AUTHORIZED_SDK_MESH_GEOMETRY_ID
 from se2cad.catalog.constants import FILLER_GEOMETRY_ID
 from se2cad.catalog.model import RecipeKind
 from se2cad.ir.model import CanonicalBlueprint
@@ -100,10 +99,7 @@ def has_qualified_untreated_builder(geometry_id: str) -> bool:
         return False
     recipe = record.recipe
     if isinstance(recipe, SdkMeshRecipe):
-        return (
-            record.geometry_id == AUTHORIZED_SDK_MESH_GEOMETRY_ID
-            and recipe.recipe_kind is RecipeKind.SDK_MESH_DIRECT
-        )
+        return recipe.recipe_kind is RecipeKind.SDK_MESH_DIRECT
     if not isinstance(recipe, NativeSolidRecipe):
         return False
     if recipe.recipe_kind is not RecipeKind.NATIVE_PROCEDURAL:

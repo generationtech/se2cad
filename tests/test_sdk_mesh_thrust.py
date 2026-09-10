@@ -44,8 +44,10 @@ from se2cad.solidworks import (
     logical_part_filename,
     placements_from_ir,
 )
+from se2cad.solidworks.com_validate import PartValidation
 from se2cad.solidworks.config import SolidWorksBackendConfig
-from se2cad.solidworks.errors import SdkSourceError
+from se2cad.solidworks.errors import CanonicalPartValidationError, SdkSourceError
+from se2cad.solidworks.sdk_convert import assert_imported_mesh_envelope
 from se2cad.solidworks.materialize import (
     demanded_untreated_geometry_ids,
     ensure_untreated_canonical_parts,
@@ -198,7 +200,7 @@ class SdkPathSafetyTests(unittest.TestCase):
             root = Path(tmp)
             source = root / "Models" / "Cubes" / "Large" / AUTHORIZED_SDK_SOURCE_FILENAME
             source.parent.mkdir(parents=True)
-            source.write_bytes(b"fbx")
+            source.write_bytes(b"Kaydara FBX Binary  \x1a\x00")
             resolved = resolve_sdk_mesh_file(recipe, sdk_root=root)
             self.assertEqual(resolved, source.resolve())
             self.assertEqual(resolved.name, AUTHORIZED_SDK_SOURCE_FILENAME)
@@ -252,14 +254,20 @@ class SdkPathSafetyTests(unittest.TestCase):
             )
 
     def test_unrelated_fbx_is_not_authorized(self) -> None:
+        recipe = lookup_recipe(AUTHORIZED_SDK_MESH_GEOMETRY_ID)
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             other = root / "Models" / "Cubes" / "Large" / "HydrogenThrusterLarge.fbx"
             other.parent.mkdir(parents=True)
             other.write_bytes(b"other")
             with self.assertRaises(SdkSourceError) as ctx:
-                contained_sdk_file(root, other)
-            self.assertIn("non-authorized SDK filename", str(ctx.exception))
+                resolve_sdk_mesh_file(recipe, sdk_root=root)
+            self.assertIn("is not a file", str(ctx.exception))
+            with self.assertRaises(SdkSourceError) as contained_ctx:
+                contained_sdk_file(
+                    root, other, expected_name=AUTHORIZED_SDK_SOURCE_FILENAME
+                )
+            self.assertIn("non-authorized SDK filename", str(contained_ctx.exception))
 
 
 class PolicyAndProvenanceTests(unittest.TestCase):
@@ -269,7 +277,7 @@ class PolicyAndProvenanceTests(unittest.TestCase):
             "\n".join(
                 [
                     _block(AUTHORIZED_SDK_MESH_SUBTYPE_ID, xsi_type="MyObjectBuilder_Thrust"),
-                    _block("LargeBlockGyro", xsi_type="MyObjectBuilder_Gyro", min_xml='<Min x="1" y="0" z="0" />'),
+                    _block("ModdedUnknownBlock", xsi_type="MyObjectBuilder_Gyro", min_xml='<Min x="1" y="0" z="0" />'),
                 ]
             )
         )
@@ -408,6 +416,30 @@ class LazyMaterializationTests(unittest.TestCase):
             destination.relative_to(root.resolve())
             with self.assertRaises(GeneratedRootError):
                 contained_destination(root, "../large_block_small_hydrogen_thrust.SLDPRT")
+
+
+class EnvelopeContractTests(unittest.TestCase):
+    def test_sub_cell_mesh_is_accepted_and_forgotten_scale_is_not(self) -> None:
+        small = PartValidation(
+            solid_body_count=1,
+            sheet_body_count=0,
+            bounding_box_min_m=(-0.25, -0.25, -0.1),
+            bounding_box_max_m=(0.25, 0.25, 0.09),
+            volume_m3=0.01,
+            center_of_mass_m=(0.0, 0.0, 0.0),
+        )
+        assert_imported_mesh_envelope(small)
+        tiny = PartValidation(
+            solid_body_count=1,
+            sheet_body_count=0,
+            bounding_box_min_m=(-0.0013, -0.0013, -0.0013),
+            bounding_box_max_m=(0.0013, 0.0013, 0.0013),
+            volume_m3=1e-8,
+            center_of_mass_m=(0.0, 0.0, 0.0),
+        )
+        with self.assertRaises(CanonicalPartValidationError) as ctx:
+            assert_imported_mesh_envelope(tiny)
+        self.assertIn("not a coherent Large Grid cell", str(ctx.exception))
 
 
 class ScanBoundaryTests(unittest.TestCase):

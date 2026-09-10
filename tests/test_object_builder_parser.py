@@ -205,7 +205,7 @@ class PolicyAndPreflightBoundaryTests(unittest.TestCase):
     def test_unknown_functional_block_is_refused_by_strict_policy(self) -> None:
         xml = _document(
             _block(
-                "LargeBlockGyro",
+                "ModdedUnknownBlock",
                 xsi_type="MyObjectBuilder_Gyro",
             )
         )
@@ -220,13 +220,13 @@ class PolicyAndPreflightBoundaryTests(unittest.TestCase):
         report = ctx.exception.preflight
         self.assertEqual(report.unknown_count, 1)
         self.assertEqual(report.supported_count, 0)
-        self.assertEqual(report.blocks[0].subtype_id, "LargeBlockGyro")
+        self.assertEqual(report.blocks[0].subtype_id, "ModdedUnknownBlock")
         self.assertEqual(report.blocks[0].catalog_outcome, CatalogOutcome.UNKNOWN)
 
     def test_unknown_functional_block_becomes_permissive_filler(self) -> None:
         xml = _document(
             _block(
-                "LargeBlockGyro",
+                "ModdedUnknownBlock",
                 xsi_type="MyObjectBuilder_Gyro",
             )
         )
@@ -237,7 +237,7 @@ class PolicyAndPreflightBoundaryTests(unittest.TestCase):
             source="permissive-gyro",
         )
         block = result.ir.grid.blocks[0]
-        self.assertEqual(block.subtype_id, "LargeBlockGyro")
+        self.assertEqual(block.subtype_id, "ModdedUnknownBlock")
         self.assertEqual(block.geometry_id, FILLER_GEOMETRY_ID)
         self.assertEqual(block.support_status, SupportStatus.UNSUPPORTED)
         self.assertEqual(block.source_index, 0)
@@ -257,7 +257,7 @@ class PolicyAndPreflightBoundaryTests(unittest.TestCase):
                         min_xml='<Min x="0" y="0" z="0" />',
                     ),
                     _block(
-                        "LargeBlockGyro",
+                        "ModdedUnknownBlock",
                         xsi_type="MyObjectBuilder_Gyro",
                         min_xml='<Min x="1" y="0" z="0" />',
                     ),
@@ -272,7 +272,7 @@ class PolicyAndPreflightBoundaryTests(unittest.TestCase):
         self.assertEqual(armor.subtype_id, "LargeBlockArmorSlope")
         self.assertEqual(armor.geometry_id, "large_armor_slope")
         self.assertEqual(armor.support_status, SupportStatus.SUPPORTED)
-        self.assertEqual(gyro.subtype_id, "LargeBlockGyro")
+        self.assertEqual(gyro.subtype_id, "ModdedUnknownBlock")
         self.assertEqual(gyro.geometry_id, FILLER_GEOMETRY_ID)
         expected_armor = build_canonical_blueprint(
             parse_blueprint_xml(

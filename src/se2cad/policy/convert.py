@@ -5,14 +5,18 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from se2cad.catalog import DefinitionCatalog, load_default_catalog
+from se2cad.catalog import DefinitionCatalog, UnknownSubtypeError, load_default_catalog
 from se2cad.catalog.constants import FILLER_GEOMETRY_ID
 from se2cad.catalog.model import RecipeKind, SupportStatus
-from se2cad.ir.convert import build_canonical_blueprint, canonical_block_from_parsed
+from se2cad.ir.convert import canonical_block_from_parsed
 from se2cad.ir.model import CanonicalBlueprint, CanonicalGrid
 from se2cad.parser import parse_blueprint, parse_blueprint_xml
 from se2cad.parser.model import ParsedBlueprint
-from se2cad.policy.errors import ConversionRefusedError, UnknownConversionPolicyError
+from se2cad.policy.errors import (
+    ConversionPolicyError,
+    ConversionRefusedError,
+    UnknownConversionPolicyError,
+)
 from se2cad.policy.model import ConversionPolicy, ConversionResult
 from se2cad.preflight import CatalogOutcome, compute_conversion_preflight
 from se2cad.preflight.model import ConversionPreflight
@@ -37,14 +41,16 @@ def convert_blueprint(
     if policy is ConversionPolicy.STRICT:
         if not preflight.all_supported:
             raise ConversionRefusedError(_refusal_message(preflight), preflight)
-        ir = build_canonical_blueprint(parsed, catalog)
+        ir = _convert_with_preflight(
+            parsed, catalog, preflight, fill_unresolved=False
+        )
         return ConversionResult(
             policy=policy,
             preflight=preflight,
             ir=ir,
             filler_count=0,
         )
-    ir = _convert_permissive(parsed, catalog, preflight)
+    ir = _convert_with_preflight(parsed, catalog, preflight, fill_unresolved=True)
     filler_count = sum(
         1 for block in ir.grid.blocks if block.geometry_id == FILLER_GEOMETRY_ID
     )
@@ -78,10 +84,12 @@ def convert_blueprint_from_xml(
     return convert_blueprint(parsed, catalog or load_default_catalog(), policy)
 
 
-def _convert_permissive(
+def _convert_with_preflight(
     parsed: ParsedBlueprint,
     catalog: DefinitionCatalog,
     preflight: ConversionPreflight,
+    *,
+    fill_unresolved: bool,
 ) -> CanonicalBlueprint:
     pitch_mm = catalog.large_grid_cell_pitch_mm
     blocks = []
@@ -89,14 +97,15 @@ def _convert_permissive(
         parsed.grid.blocks, preflight.blocks, strict=True
     ):
         if diagnosis.catalog_outcome is CatalogOutcome.SUPPORTED:
-            entry = catalog.lookup(parsed_block.subtype_id)
-            geometry_id = entry.geometry_id
-            recipe_kind = entry.recipe_kind
-            support_status = entry.support_status
-        else:
+            geometry_id, recipe_kind, support_status = _supported_binding(
+                parsed_block.subtype_id, diagnosis.geometry_id, catalog
+            )
+        elif fill_unresolved:
             geometry_id = FILLER_GEOMETRY_ID
             recipe_kind = RecipeKind.UNSUPPORTED
             support_status = SupportStatus.UNSUPPORTED
+        else:
+            raise ConversionRefusedError(_refusal_message(preflight), preflight)
         blocks.append(
             canonical_block_from_parsed(
                 parsed_block,
@@ -115,6 +124,22 @@ def _convert_permissive(
             blocks=tuple(blocks),
         ),
     )
+
+
+def _supported_binding(
+    subtype_id: str,
+    geometry_id: str | None,
+    catalog: DefinitionCatalog,
+) -> tuple[str, RecipeKind, SupportStatus]:
+    try:
+        entry = catalog.lookup(subtype_id)
+    except UnknownSubtypeError:
+        if geometry_id is None or geometry_id == "":
+            raise ConversionPolicyError(
+                f"runtime-supported subtype {subtype_id!r} has no geometry_id"
+            )
+        return geometry_id, RecipeKind.SDK_MESH_DIRECT, SupportStatus.SUPPORTED
+    return entry.geometry_id, entry.recipe_kind, entry.support_status
 
 
 def _refusal_message(preflight: ConversionPreflight) -> str:

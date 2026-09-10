@@ -491,7 +491,37 @@ This milestone is expected to need more units than the others. It does not requi
 
 **External validation.** Live SolidWorks: minimal armor+thrust assemble with generate then reuse; Big Red permissive assemble under a gitignored generated root. Required for QUALIFIED.
 
-**Completion criteria.** The one identity is supported conversion; Big Red uses one reusable thruster part for all sixteen instances; no general SDK-mesh or universal vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit is none.
+**Completion criteria.** The one identity is supported conversion; Big Red uses one reusable thruster part for all sixteen instances; no general SDK-mesh or universal vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit was none until the human later authorized S2C-11.8.1.
+
+### S2C-11.8.1 — Demand-driven vanilla TriangleMesh resolution for eligible Large Grid 1×1×1 blocks
+
+**Objective.** When a catalog-unknown Large Grid 1×1×1 vanilla TriangleMesh identity is encountered, resolve its official definition and corresponding SDK FBX on demand, create a transient runtime bind for the existing lazy materializer, and continue conversion with a real part.
+
+**Rationale.** S2C-11.7.1 proved one complete SDK-FBX builder. Remaining Big Red unknowns were still fillers solely because they were not hand-bound. This unit removes one-at-a-time packaged registration for identities that satisfy conservative eligibility rules.
+
+**Prerequisites.** S2C-11.7.1. This unit was inserted by a human-authorized amendment after S2C-11.7.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M11 history, does not start S2C-13.1.1, and does not invent a later unit.
+
+**Affected systems / expected areas.** A narrow `se2cad.vanilla` resolver; library runtime overlay; preflight/policy ordering; reuse of the S2C-11.7.1 SDK source/convert/materialize path; ordinary and live tests.
+
+**Implementation requirements.**
+
+- Packaged catalog hits keep existing behavior. Do not mutate the packaged catalog on disk.
+- Eligible automatic resolution requires all of: Large Grid; vanilla definition found; size 1×1×1; `BlockTopology == TriangleMesh`; exactly one clear primary Model; corresponding official binary SDK FBX under the configured SDK root; no required subpart/composite handling; no path ambiguity.
+- Derive a deterministic `vanilla_lg_1x1x1_*` geometry_id. `chamfer_capable` is false.
+- Fail closed to existing unknown/unsupported policy when any eligibility condition is not met.
+- Once a runtime bind is supported, builder failure must not become filler.
+- Reuse the existing lazy materializer. No eager or whole-SDK generation.
+- Operator game-content and SDK roots reuse `SE2CAD_GAME_ROOT` / `SE2CAD_SDK_ROOT` and `se2cad.local.json`.
+
+**Explicit boundaries / out of scope.** Small Grid; multi-cell placement; CubeTopology expansion; whole vanilla catalog; OBJ export; ASCII-FBX conversion; inventing a later unit.
+
+**Development validation.** Ordinary tests cover packaged bypass, the S2C-11.7.1 thruster, dynamic 1×1×1 resolve, determinism, no catalog persistence, Small Grid / multi-cell / CubeTopology / missing or ambiguous Model rejection, missing roots, missing definition, duplicate SubtypeId, missing or ASCII FBX, traversal, Construction/LOD non-selection, builder-failure ≠ filler, generate-once/reuse, chamfer disabled, unknown modded filler, strict accept/reject, per-instance colors.
+
+**Quality/security assessment focus.** Path escape; hostile XML; duplicate SubtypeId; case-insensitive filename ambiguity; Construction/LOD/interior selection; arbitrary MWM→FBX substitution; catalog/runtime collision; silent support before a usable binary FBX; supported-builder failure becoming filler; whole-install catalog expansion; Keen-derived artifacts entering git.
+
+**External validation.** Live SolidWorks: synthetic armor+thrust+two new families generate then reuse; Big Red permissive assemble under a gitignored generated root. Required for QUALIFIED.
+
+**Completion criteria.** Eligible unknowns become real parts; remaining identities stay unresolved for an exact recorded reason; no universal vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit is none.
 
 ---
 

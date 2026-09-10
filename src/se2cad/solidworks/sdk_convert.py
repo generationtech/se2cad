@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from se2cad.catalog.authorized import AUTHORIZED_SDK_MESH_GEOMETRY_ID
 from se2cad.library.model import SdkMeshRecipe
 from se2cad.solidworks.artifacts import resolve_generated_root
 from se2cad.solidworks.com_bind import com_get
@@ -22,7 +21,9 @@ from se2cad.solidworks.sdk_source import resolve_sdk_mesh_file
 BLENDER_EXE_ENV = "SE2CAD_BLENDER_EXE"
 _BLENDER_SCRIPT = Path(__file__).with_name("blender_fbx_to_stl.py")
 _WORK_DIR_NAME = "_se2cad_sdk_work"
-_MIN_AXIS_M = 1.0
+# Catch forgotten millimetre scale (the unscaled thruster was ~0.0026 m).
+# 1x1x1 placement does not require the mesh to fill the cell.
+_MIN_AXIS_M = 0.05
 _MAX_AXIS_M = 6.0
 _MAX_CENTER_OFFSET_M = 2.0
 
@@ -60,11 +61,8 @@ def convert_sdk_mesh_to_stl(
     sdk_root: Path | None = None,
 ) -> SdkConversionReport:
     """Run the bounded Blender conversion into ``work_dir``."""
-    if recipe.geometry_id != AUTHORIZED_SDK_MESH_GEOMETRY_ID:
-        raise SdkConversionError(
-            f"geometry_id {recipe.geometry_id!r} is not the authorized "
-            "SDK-mesh identity"
-        )
+    if not isinstance(recipe, SdkMeshRecipe):
+        raise SdkConversionError("SDK mesh conversion requires an SDK-mesh recipe")
     source = resolve_sdk_mesh_file(recipe, sdk_root=sdk_root)
     work = work_dir.expanduser().resolve()
     work.mkdir(parents=True, exist_ok=True)
@@ -115,7 +113,11 @@ def convert_sdk_mesh_to_stl(
             f"Blender conversion failed with exit {completed.returncode}: {detail}"
         )
     if not stl.is_file():
-        raise SdkConversionError(f"Blender did not write the intermediate mesh: {stl}")
+        detail = (completed.stderr or completed.stdout or "").strip()
+        extra = f": {detail}" if detail else ""
+        raise SdkConversionError(
+            f"Blender did not write the intermediate mesh: {stl}{extra}"
+        )
     try:
         report = json.loads(report_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -156,7 +158,12 @@ def import_stl_as_part(
 
 
 def assert_imported_mesh_envelope(observed: PartValidation) -> None:
-    """Require a spatially plausible Large Grid 1x1x1 occupancy."""
+    """Require a spatially plausible imported Large Grid mesh.
+
+    The mesh must be millimetre-scaled and cell-local. It does not have
+    to fill the 2.5 m cell. Sub-centimetre envelopes fail closed as a
+    forgotten-scale defect.
+    """
     size = tuple(
         observed.bounding_box_max_m[i] - observed.bounding_box_min_m[i]
         for i in range(3)
