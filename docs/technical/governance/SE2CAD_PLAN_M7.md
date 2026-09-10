@@ -527,6 +527,35 @@ This milestone is expected to need more units than the others. It does not requi
 
 **Completion criteria.** Both policies exist and are tested; DEV-COMPLETE from ordinary tests; QUALIFIED after live filler-assembly evidence in STATE.
 
+### S2C-12.3.1 — Vanilla object-builder parser compatibility
+
+**Objective.** Let ordinary vanilla Space Engineers cube-block-derived object builders pass through the parser as block records so existing strict/permissive policy can decide what to do with them.
+
+**Rationale.** A moderately complicated Large Grid blueprint (Big Red) failed at `CubeBlocks[1]` with `UnsupportedBlueprintError` for `xsi:type='MyObjectBuilder_Thrust'` before policy could run. Keen serializes `CubeBlocks` as `MyObjectBuilder_CubeBlock` elements whose `xsi:type` is the runtime builder. Parser rejection of those types made permissive substitution unreachable for ordinary vanilla functional blocks. This unit grants no new geometry support.
+
+**Prerequisites.** S2C-12.2.1. This unit was inserted by a human-authorized compatibility amendment after S2C-11.6.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M12 history, does not expand the packaged catalog, and does not start S2C-13.1.1.
+
+**Affected systems / expected areas.** Blueprint parser acceptance of cube-block object-builder types; parsed-block retention of `xsi:type` where useful; existing preflight/policy consumption of those records; ordinary tests; Big Red as read-only live investigation/qualification input. No new recipes.
+
+**Implementation requirements.**
+
+- Inspect the current parser and tests. Broaden acceptance only enough to represent ordinary vanilla cube-block-derived object builders.
+- Do not maintain an ever-growing allowlist of `MyObjectBuilder_Thrust`, `MyObjectBuilder_Reactor`, and similar literals. Use a structural rule based on Space Engineers `CubeBlocks` serialization and repository evidence.
+- Preserve subtype, placement, orientation, appearance, source index, and object-builder type where available. `SubtypeName` remains the primary runtime identity. Do not contaminate `geometry_id` with object-builder type.
+- Parser decides representability. Catalog/policy decide support, refusal, and filler substitution.
+- Fail closed on missing/unusable required fields, malformed XML, non-cube-block entries, multi-grid/subgrid structures already outside scope, and any case that would force invented identity.
+- Do not silently synthesize block identity. Do not accept arbitrary `xsi:type` strings or non-block XML merely because a type attribute exists.
+
+**Explicit boundaries / out of scope.** Thruster or other functional CAD; catalog expansion; CubeTopology families; FBX/MWM/OBJ import; Small Grid; multi-grid; mechanical connections; inventing later units.
+
+**Development validation.** Ordinary tests cover: existing `MyObjectBuilder_CubeBlock` unchanged; `MyObjectBuilder_Thrust` and several other functional builders parse without a literal allowlist; fields and source order survive; unknown functional blocks reach strict refusal and permissive filler; supported armor unchanged; preflight reports those identities; malformed/unusable/non-block cases remain rejected; no catalog, recipe, Small Grid, or runtime SE/SDK scan expansion.
+
+**Quality/security assessment focus.** Accidental accept-every-`xsi:type`; malformed XML becoming accepted; loss of fail-closed required fields; parser taking on policy/catalog responsibility; object-builder type changing CAD identity; catalog support expansion; Small Grid bleed; source-index/order changes; appearance regressions; filler substitution for malformed blocks; runtime game/SDK dependency.
+
+**External validation.** Ordinary tests plus read-only Big Red parse/preflight and `python -m se2cad.solidworks.assemble c:\SE-blueprints\bigred_bp.sbc --policy permissive`. Live SolidWorks is required if that command reaches assembly. If Big Red hits a new unrelated structural blocker after the parser fix, stop and record it rather than widening the unit. Required for QUALIFIED as evidence permits.
+
+**Completion criteria.** Ordinary vanilla object-builder types parse as block records; existing policy is reachable; no new geometry support is claimed; DEV-COMPLETE from ordinary tests; QUALIFIED after the named Big Red / live evidence, or after an evidenced independent blocker is recorded. After qualification, stop and report. Do not automatically start S2C-13.1.1.
+
 ---
 
 ## Milestone M13 — Small Grid support
@@ -541,7 +570,7 @@ This milestone is expected to need more units than the others. It does not requi
 
 **Rationale.** `cell_center_mm` already takes a pitch argument. Grid size is already an IR field. The missing pieces are an enum value, a named Small Grid pitch, catalog entries, and parser acceptance.
 
-**Prerequisites.** S2C-12.2.1 (program sequence).
+**Prerequisites.** S2C-12.3.1 (program sequence).
 
 **Affected systems / expected areas.** `GridSize`, catalog constants, parser, catalog entries for the Small Grid counterparts of supported armor (and any M11 Small Grid identities this unit activates), IR/transform pitch selection, library recipes parameterized by grid pitch. No SolidWorks.
 

@@ -117,6 +117,7 @@ class AcceptanceFixtureParserTests(unittest.TestCase):
             self.assertEqual(block.source_index, index)
             self.assertEqual(block.source, str(FIXTURE_PATH))
             self.assertEqual(block.subtype_id, _raw_subtype(self.raw_blocks[index]))
+            self.assertEqual(block.object_builder_type, "MyObjectBuilder_CubeBlock")
 
 
 def _raw_cube_blocks(path: Path) -> list[ET.Element]:

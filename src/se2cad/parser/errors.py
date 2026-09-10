@@ -10,7 +10,7 @@ class MalformedXmlError(BlueprintParseError):
 
 
 class UnsupportedBlueprintError(BlueprintParseError):
-    """Document structure is outside the S2C-1.2.1 support set."""
+    """Document structure is outside the supported single-grid parse set."""
 
 
 class InvalidFieldError(BlueprintParseError):

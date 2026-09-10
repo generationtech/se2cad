@@ -1,4 +1,10 @@
-"""CAD-neutral parsed representation of a single-grid Large Grid blueprint."""
+"""CAD-neutral parsed representation of a single-grid Large Grid blueprint.
+
+``ParsedBlock.object_builder_type`` is the serialized Keen ``xsi:type``
+(or the implied ``MyObjectBuilder_CubeBlock`` when omitted). It is not a
+catalog key and is not a ``geometry_id``. ``subtype_id`` remains the
+primary runtime identity.
+"""
 
 from __future__ import annotations
 
@@ -65,6 +71,7 @@ DEFAULT_COLOR_MASK_HSV = ColorMaskHSV(0.0, -1.0, 0.0)
 @dataclass(frozen=True)
 class ParsedBlock:
     subtype_id: str
+    object_builder_type: str
     min: GridCoordinate
     min_serialized: bool
     forward: Direction

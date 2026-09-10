@@ -1,4 +1,4 @@
-"""Single-grid Large Grid Space Engineers blueprint parser (S2C-1.2.1)."""
+"""Single-grid Large Grid Space Engineers blueprint parser (S2C-1.2.1 / S2C-12.3.1)."""
 
 from se2cad.parser.blueprint import parse_blueprint, parse_blueprint_xml
 from se2cad.parser.errors import (

@@ -5,10 +5,17 @@ S2C-1.2.1 support set:
 - one ``Definitions`` / ``ShipBlueprints`` / ``ShipBlueprint`` document
 - exactly one ``CubeGrid``
 - ``GridSizeEnum`` = Large
-- ``CubeBlocks`` containing ordinary ``MyObjectBuilder_CubeBlock`` entries
+- ``CubeBlocks`` items serialized as ``MyObjectBuilder_CubeBlock`` elements
 - per-block subtype identity, Min, and BlockOrientation
 
 S2C-9.1.1 adds per-block ``ColorMaskHSV`` as CAD-neutral appearance.
+
+S2C-12.3.1 accepts ordinary vanilla cube-block-derived object builders.
+Keen serializes ``CubeBlocks`` as a list of ``MyObjectBuilder_CubeBlock``
+elements whose ``xsi:type`` is the runtime builder, a
+``MyObjectBuilder_*`` identifier. Parser acceptance is that structural
+shape plus the existing field contract. It is not a catalog allowlist
+and is not a geometry-support decision.
 
 Omitted-field defaults are Space Engineers XML serialization defaults, not
 SE2CAD inventions. See ``_DEFAULT_MIN``, ``_DEFAULT_ORIENTATION``, and
@@ -21,6 +28,7 @@ blueprint content.
 from __future__ import annotations
 
 import math
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Optional
@@ -63,6 +71,8 @@ _DEFAULT_COLOR_MASK_HSV = DEFAULT_COLOR_MASK_HSV
 _XSI_TYPE = "{http://www.w3.org/2001/XMLSchema-instance}type"
 _SHIP_BLUEPRINT_TYPE = "MyObjectBuilder_ShipBlueprintDefinition"
 _CUBE_BLOCK_TYPE = "MyObjectBuilder_CubeBlock"
+# Keen object-builder type names. Not an allowlist of supported geometry.
+_OBJECT_BUILDER_TYPE_RE = re.compile(r"^MyObjectBuilder_[A-Za-z][A-Za-z0-9_]*$")
 _SUPPORTED_DIRECTIONS = {item.value: item for item in Direction}
 _DIRECTION_AXIS = {
     Direction.FORWARD: "forward_backward",
@@ -232,16 +242,40 @@ def _parse_cube_blocks(cube_blocks: ET.Element, source: str) -> list[ParsedBlock
             raise UnsupportedBlueprintError(
                 f"{source}: CubeBlocks[{index}] has unsupported element {name!r}"
             )
-        block_type = _xsi_type(child)
-        if block_type is not None and block_type != _CUBE_BLOCK_TYPE:
+        declared_type = _xsi_type(child)
+        object_builder_type = _accepted_object_builder_type(declared_type)
+        if object_builder_type is None:
             raise UnsupportedBlueprintError(
-                f"{source}: CubeBlocks[{index}] has unsupported xsi:type {block_type!r}"
+                f"{source}: CubeBlocks[{index}] has unsupported xsi:type "
+                f"{declared_type!r}"
             )
-        parsed.append(_parse_cube_block(child, index, source))
+        parsed.append(
+            _parse_cube_block(child, index, source, object_builder_type)
+        )
     return parsed
 
 
-def _parse_cube_block(block: ET.Element, index: int, source: str) -> ParsedBlock:
+def _accepted_object_builder_type(token: Optional[str]) -> Optional[str]:
+    """Return a representable cube-block object-builder type, or None.
+
+    Omitted ``xsi:type`` is the XmlSerializer default for a ``CubeBlocks``
+    item: ``MyObjectBuilder_CubeBlock``. A present token must be a Keen
+    ``MyObjectBuilder_*`` identifier. Acceptance here is structural, not
+    catalog support.
+    """
+    if token is None:
+        return _CUBE_BLOCK_TYPE
+    if _OBJECT_BUILDER_TYPE_RE.fullmatch(token):
+        return token
+    return None
+
+
+def _parse_cube_block(
+    block: ET.Element,
+    index: int,
+    source: str,
+    object_builder_type: str,
+) -> ParsedBlock:
     context = f"{source}: CubeBlocks[{index}]"
     subtype_nodes = _children(block, "SubtypeName")
     if len(subtype_nodes) != 1:
@@ -298,6 +332,7 @@ def _parse_cube_block(block: ET.Element, index: int, source: str) -> ParsedBlock
 
     return ParsedBlock(
         subtype_id=subtype_id,
+        object_builder_type=object_builder_type,
         min=coordinate,
         min_serialized=min_serialized,
         forward=forward,
@@ -502,7 +537,11 @@ def _local_name(el: ET.Element) -> str:
 
 
 def _xsi_type(el: ET.Element) -> Optional[str]:
-    return el.get(_XSI_TYPE) or el.get("type")
+    if _XSI_TYPE in el.attrib:
+        return el.attrib[_XSI_TYPE]
+    if "type" in el.attrib:
+        return el.attrib["type"]
+    return None
 
 
 def _is_nil(el: ET.Element) -> bool:

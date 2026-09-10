@@ -340,6 +340,12 @@ unsupported, and unknown are distinct outcomes. Geometry support and
 appearance support stay independently reportable. A produced preflight
 report is not a conversion. Unknown subtypes are not aliased to armor.
 
+Ordinary vanilla cube-block object builders such as
+`MyObjectBuilder_Thrust` parse as block records. The parser does not
+reject them merely because `xsi:type` is not `MyObjectBuilder_CubeBlock`.
+Catalog lookup and conversion policy still decide support. This is not
+CAD support for thrusters or other functional geometry.
+
 CAD-neutral **conversion policy** then applies an explicit strict or
 permissive decision. Strict is the default: unknown or unsupported
 blocks refuse conversion and surface the preflight diagnostics. No
@@ -353,9 +359,11 @@ and does not claim supported-library status.
 
 SE2CAD is **not yet a universal Space Engineers ship converter**. The
 first program deliberately proved the architecture with four armor
-shapes. Functional/detail blocks, broader armor families, subgrids,
-rotors, pistons, hinges, connectors, arbitrary mod blocks, and general
-game-asset geometry are not implied to work.
+shapes. Ordinary vanilla functional blocks can now parse and reach
+strict refusal or permissive filler; they do not have real CAD
+geometry. Broader armor families beyond the packaged eight, subgrids,
+rotors, pistons, hinges, connector relationships, arbitrary mod
+blocks, and general game-asset geometry are not implied to work.
 
 That narrow start is intentional. The hard architectural question ---
 whether semantic blueprint data can be reconstructed deterministically

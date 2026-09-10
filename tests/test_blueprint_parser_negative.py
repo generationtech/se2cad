@@ -167,12 +167,12 @@ class NegativeParserTests(unittest.TestCase):
         with self.assertRaises(InvalidFieldError):
             parse_blueprint_xml(xml, source="non-orthogonal")
 
-    def test_unsupported_block_builder_type(self) -> None:
+    def test_structurally_invalid_object_builder_type_is_rejected(self) -> None:
         xml = _document(
-            grids=_large_grid(_block(xsi_type="MyObjectBuilder_BatteryBlock"))
+            grids=_large_grid(_block(xsi_type="BatteryBlock"))
         )
         with self.assertRaises(UnsupportedBlueprintError):
-            parse_blueprint_xml(xml, source="battery-block")
+            parse_blueprint_xml(xml, source="invalid-builder-type")
 
     def test_malformed_cube_blocks_unknown_child(self) -> None:
         blocks = """            <NotACubeBlock>

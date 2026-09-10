@@ -88,6 +88,8 @@ A later 2026-09-09 human-authorized amendment inserted S2C-10.4.1 into M10 after
 
 A 2026-09-10 human-authorized amendment inserted S2C-11.6.1 into M11 after S2C-12.2.1 and S2C-10.4.1 were already QUALIFIED, and after the human postponed Small Grid. That unit makes already-qualified untreated canonical parts demand-driven. It does not rewrite original M11 history, does not expand the packaged catalog, does not start M13, and does not invent later M11 units. STATE records the exception. Small Grid remains postponed until the human later directs it.
 
+A later 2026-09-10 human-authorized amendment inserted S2C-12.3.1 into M12 after S2C-11.6.1 was already QUALIFIED and after the human postponed Small Grid. That unit lets ordinary vanilla cube-block object builders parse as block records so existing policy can run. It does not rewrite original M12 history, does not add CAD support for functional blocks, does not expand the packaged catalog, does not start M13, and does not invent later units. STATE records the exception. Small Grid remains postponed until the human later directs it.
+
 ## Qualification model
 
 Status words are defined in [SE2CAD_ENGINEERING_PROCESS.md](SE2CAD_ENGINEERING_PROCESS.md). STATE is the only live status.

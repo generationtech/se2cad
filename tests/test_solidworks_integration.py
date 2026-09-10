@@ -913,6 +913,69 @@ class SolidWorksIntegrationTests(unittest.TestCase):
         self.assertEqual(end_documents, start_documents)
         self.assertEqual(start_report["solidworks_revision"], end_report["solidworks_revision"])
 
+    def test_functional_object_builder_reaches_permissive_filler(self) -> None:
+        from se2cad.catalog import FILLER_GEOMETRY_ID, load_default_catalog
+        from se2cad.parser import Direction, parse_blueprint
+        from se2cad.policy import ConversionPolicy, convert_blueprint
+        from se2cad.solidworks.assemble import generate_assembly_from_ir
+        from se2cad.solidworks.transform_pack import (
+            arraydata_axes,
+            arraydata_translation_m,
+        )
+        from se2cad.transform import rotation_from_forward_up
+
+        xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-ob-probe" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_CubeBlock">
+              <SubtypeName>LargeBlockArmorBlock</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_Thrust">
+              <SubtypeName>LargeBlockSmallHydrogenThrust</SubtypeName>
+              <Min x="1" y="0" z="0" />
+              <BlockOrientation Forward="Down" Up="Forward" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ob-probe.sbc"
+            path.write_text(xml, encoding="utf-8")
+            parsed = parse_blueprint(path)
+        self.assertEqual(parsed.grid.blocks[1].object_builder_type, "MyObjectBuilder_Thrust")
+        result = convert_blueprint(
+            parsed, load_default_catalog(), ConversionPolicy.PERMISSIVE
+        )
+        self.assertEqual(result.ir.grid.block_count, 2)
+        self.assertEqual(result.filler_count, 1)
+        assembled = generate_assembly_from_ir(result.ir, self.config)
+        self.assertEqual(assembled.identity, "se2cad-ob-probe")
+        self.assertEqual(len(assembled.after_reopen), 2)
+        by_geometry = {
+            item.placement.geometry_id: item for item in assembled.after_reopen
+        }
+        self.assertEqual(set(by_geometry), {"large_armor_block", FILLER_GEOMETRY_ID})
+        armor = by_geometry["large_armor_block"]
+        filler = by_geometry[FILLER_GEOMETRY_ID]
+        self.assertEqual(armor.placement.part_filename, "large_armor_block.SLDPRT")
+        self.assertEqual(filler.placement.part_filename, "se2cad_unknown_filler.SLDPRT")
+        self.assertEqual(filler.placement.subtype_id, "LargeBlockSmallHydrogenThrust")
+        self.assertEqual(arraydata_translation_m(filler.arraydata), (2.5, 0.0, 0.0))
+        self.assertEqual(
+            arraydata_axes(filler.arraydata),
+            rotation_from_forward_up(Direction.DOWN, Direction.FORWARD).columns,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
