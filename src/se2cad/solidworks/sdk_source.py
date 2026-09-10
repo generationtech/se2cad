@@ -19,12 +19,12 @@ from se2cad.local_config import (
     read_local_config,
 )
 from se2cad.solidworks.errors import SdkSourceError
+from se2cad.solidworks.sdk_fbx_format import require_usable_sdk_fbx
 
 SDK_ROOT_ENV = "SE2CAD_SDK_ROOT"
 SDK_MESH_SUFFIX = ".fbx"
 AUTHORIZED_SDK_SOURCE_FILENAME = "HydrogenThrusterSmall.fbx"
 _FORBIDDEN_NAME_PARTS = ("lod", "construction")
-_FBX_BINARY_MAGIC = b"Kaydara FBX Binary"
 
 
 def load_sdk_root() -> Path:
@@ -63,7 +63,7 @@ def resolve_sdk_mesh_file(
     expected_name = Path(relative).name
     resolved = _unique_casefold_file(root, Path(relative).parts)
     contained = contained_sdk_file(root, resolved, expected_name=expected_name)
-    _require_binary_fbx(contained)
+    require_usable_sdk_fbx(contained)
     return contained
 
 
@@ -106,16 +106,8 @@ def contained_sdk_file(
 
 
 def _require_binary_fbx(path: Path) -> None:
-    """Refuse ASCII or otherwise non-binary FBX. No format conversion."""
-    try:
-        with path.open("rb") as handle:
-            header = handle.read(len(_FBX_BINARY_MAGIC))
-    except OSError as exc:
-        raise SdkSourceError(f"authorized SDK source is unreadable: {path}: {exc}") from exc
-    if header != _FBX_BINARY_MAGIC:
-        raise SdkSourceError(
-            f"SDK source is not a binary FBX accepted by the qualified builder: {path.name}"
-        )
+    """Refuse unusable SDK FBX. Valid ASCII is accepted only with conversion."""
+    require_usable_sdk_fbx(path)
 
 
 def _relative_source_file(stem: str) -> str:

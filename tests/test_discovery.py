@@ -482,6 +482,8 @@ class RuntimeIndependenceTests(unittest.TestCase):
         generation_only = {
             "sdk_source.py",
             "sdk_convert.py",
+            "sdk_ascii_fbx.py",
+            "sdk_fbx_format.py",
             "blender_fbx_to_stl.py",
         }
         for directory in runtime_dirs:

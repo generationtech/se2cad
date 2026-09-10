@@ -400,7 +400,11 @@ class VanillaResolveTests(unittest.TestCase):
                 _LIGHT, self.catalog, game_root=game, sdk_root=sdk
             )
         self.assertEqual(result.kind, VanillaResolveKind.UNRESOLVED)
-        self.assertIn("not a binary FBX", result.unresolved_reason)
+        self.assertTrue(
+            "not a valid ASCII FBX" in (result.unresolved_reason or "")
+            or "not a binary FBX" in (result.unresolved_reason or ""),
+            msg=result.unresolved_reason,
+        )
 
     def test_missing_sdk_fbx_stays_unresolved_before_support(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

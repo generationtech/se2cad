@@ -521,7 +521,37 @@ This milestone is expected to need more units than the others. It does not requi
 
 **External validation.** Live SolidWorks: synthetic armor+thrust+two new families generate then reuse; Big Red permissive assemble under a gitignored generated root. Required for QUALIFIED.
 
-**Completion criteria.** Eligible unknowns become real parts; remaining identities stay unresolved for an exact recorded reason; no universal vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit is none.
+**Completion criteria.** Eligible unknowns become real parts; remaining identities stay unresolved for an exact recorded reason; no universal vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit was none until the human later authorized S2C-11.9.1.
+
+### S2C-11.9.1 — ASCII SDK-FBX conversion support for existing eligible Large Grid 1×1×1 TriangleMesh blocks
+
+**Objective.** Allow the already-qualified demand-driven SDK-mesh path to consume official ASCII FBX source files when every other S2C-11.8.1 eligibility rule is already satisfied.
+
+**Rationale.** After S2C-11.8.1, Big Red’s remaining 1×1×1 fillers were official ASCII FBX (`LargeBlockConveyor`, `LargeBlockGyro`). Blender 5.2 rejects ASCII FBX. This unit is a source-format extension, not a new support-resolution architecture.
+
+**Prerequisites.** S2C-11.8.1. This unit was inserted by a human-authorized amendment after S2C-11.8.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M11 history, does not start S2C-13.1.1, and does not invent a later unit.
+
+**Affected systems / expected areas.** SDK source classification; bounded ASCII FBX 7.x normalization under generated work; Blender host diagnostics; reuse of the qualified binary-FBX convert/import/materialize path; ordinary and live tests.
+
+**Implementation requirements.**
+
+- Preserve S2C-11.8.1 resolver behavior and fail-closed support semantics.
+- Do not grant support by deleting the binary-only check. ASCII is eligible only when the conversion path can produce the same downstream artifact contract as binary FBX.
+- Binary FBX stays on the existing path and is not routed through ASCII normalization.
+- Intermediate artifacts stay under gitignored generated/temp storage, do not overwrite official SDK FBX, and do not escape configured roots.
+- If Blender remains in the pipeline, do not trust process exit code alone; require the expected STL and surface script exceptions.
+- Shared recipe normalization only; no per-instance Conveyor/Gyro assembly transforms.
+- No packaged catalog persistence and no hand registration of Conveyor/Gyro.
+
+**Explicit boundaries / out of scope.** Multi-cell placement; Small Grid; CubeTopology expansion; OBJ export; redesign of the runtime vanilla resolver; a general-purpose FBX conversion framework; animation or mechanical-subpart architecture; inventing a later unit.
+
+**Development validation.** Ordinary tests cover binary acceptance, ASCII eligibility only when conversion is available, invalid/truncated/random `.fbx` fail-closed, path containment, classification determinism, Blender diagnostics, transient overlay, Conveyor/Gyro resolve without catalog registration, generate-once/reuse, chamfer false, scale sanity, no whole-SDK conversion, and unchanged Small Grid / multi-cell / CubeTopology behavior.
+
+**Quality/security assessment focus.** Hostile or oversized ASCII; path injection; temp/cache collision; binary/ASCII misclassification; subprocess quoting; source overwrite; Blender success without artifact; facet-normal modal; silent filler after support; accidental multi-cell or Small Grid activation; Keen-derived artifacts entering git.
+
+**External validation.** Live SolidWorks: synthetic armor+binary-mesh+Conveyor+Gyro generate then reuse; Big Red permissive assemble under a gitignored generated root. Required for QUALIFIED.
+
+**Completion criteria.** Official ASCII FBX for already-eligible 1×1×1 TriangleMesh becomes a real cached part; remaining identities stay unresolved for an exact recorded reason; no universal FBX or vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit is none.
 
 ---
 

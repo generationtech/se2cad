@@ -10,6 +10,7 @@ import argparse
 import json
 import math
 import sys
+import traceback
 from pathlib import Path
 
 import bpy
@@ -29,6 +30,7 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--tx-mm", type=float, default=0.0)
     parser.add_argument("--ty-mm", type=float, default=0.0)
     parser.add_argument("--tz-mm", type=float, default=0.0)
+    parser.add_argument("--repair-normals", action="store_true")
     return parser.parse_args(argv)
 
 
@@ -72,6 +74,13 @@ def _select_meshes(meshes) -> None:
         bpy.context.view_layer.objects.active = meshes[0]
 
 
+def _make_normals_consistent() -> None:
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
 def main(argv: list[str]) -> int:
     args = _parse_args(argv)
     fbx = Path(args.fbx)
@@ -105,6 +114,8 @@ def main(argv: list[str]) -> int:
     if any(value != 0.0 for value in translation_m):
         joined.location = translation_m
         bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
+    if args.repair_normals:
+        _make_normals_consistent()
     after = _scene_bbox(_mesh_objects())
     stl.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.stl_export(
@@ -122,13 +133,36 @@ def main(argv: list[str]) -> int:
         "additional_scale": args.scale,
         "rotation_xyz_deg": [args.rx, args.ry, args.rz],
         "translation_mm": [args.tx_mm, args.ty_mm, args.tz_mm],
+        "normals_made_consistent": bool(args.repair_normals),
     }
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     return 0
+
+
+def _fail(report_path: Path, exc: BaseException) -> int:
+    print("SE2CAD_BLENDER_SCRIPT_FAILED", file=sys.stderr)
+    traceback.print_exc()
+    try:
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        (Path(str(report_path) + ".error.txt")).write_text(
+            "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)),
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
+    return 1
 
 
 if __name__ == "__main__":
     argv = sys.argv
     if "--" in argv:
         argv = argv[argv.index("--") + 1 :]
-    raise SystemExit(main(argv))
+    report_hint = Path("blender_report.json")
+    try:
+        parsed = _parse_args(argv)
+        report_hint = Path(parsed.report_json)
+        raise SystemExit(main(argv))
+    except SystemExit:
+        raise
+    except Exception as exc:
+        raise SystemExit(_fail(report_hint, exc)) from exc

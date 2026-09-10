@@ -15,17 +15,17 @@ The nine milestones, in order, are: blueprint statistics; CAD component naming; 
 
 No implementation milestone is ACTIVE. Cold-storage backlog remains outside this program. Do not invent work beyond it.
 
-A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. A later 2026-09-09 human-authorized amendment inserted S2C-10.4.1 into M10 after S2C-12.2.1 was already QUALIFIED and before S2C-13.1.1. That repair does not rewrite original M10 planning. A 2026-09-10 human-authorized amendment inserted S2C-11.6.1 into M11 after S2C-12.2.1 and S2C-10.4.1 were already QUALIFIED, and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.3.1 into M12 after S2C-11.6.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.4.1 into M12 after S2C-12.3.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.7.1 into M11 after S2C-12.4.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.8.1 into M11 after S2C-11.7.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-10.4.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-11.6.1 is QUALIFIED. S2C-11.7.1 is QUALIFIED. S2C-11.8.1 is QUALIFIED. S2C-12.1.1 is QUALIFIED. S2C-12.2.1 is QUALIFIED. S2C-12.3.1 is QUALIFIED. S2C-12.4.1 is QUALIFIED. S2C-13.1.1 remains PLANNED and is postponed. There is no next executable unit until the human later directs one.
+A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. A later 2026-09-09 human-authorized amendment inserted S2C-10.4.1 into M10 after S2C-12.2.1 was already QUALIFIED and before S2C-13.1.1. That repair does not rewrite original M10 planning. A 2026-09-10 human-authorized amendment inserted S2C-11.6.1 into M11 after S2C-12.2.1 and S2C-10.4.1 were already QUALIFIED, and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.3.1 into M12 after S2C-11.6.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.4.1 into M12 after S2C-12.3.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.7.1 into M11 after S2C-12.4.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.8.1 into M11 after S2C-11.7.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.9.1 into M11 after S2C-11.8.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-10.4.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-11.6.1 is QUALIFIED. S2C-11.7.1 is QUALIFIED. S2C-11.8.1 is QUALIFIED. S2C-11.9.1 is QUALIFIED. S2C-12.1.1 is QUALIFIED. S2C-12.2.1 is QUALIFIED. S2C-12.3.1 is QUALIFIED. S2C-12.4.1 is QUALIFIED. S2C-13.1.1 remains PLANNED and is postponed. There is no next executable unit until the human later directs one.
 
 **Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-10.4.1 configurable demand-driven chamfer variants, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression, QUALIFIED S2C-11.6.1 demand-driven qualified base-part materialization, QUALIFIED S2C-12.1.1 conversion preflight, QUALIFIED S2C-12.2.1 strict and permissive unknown-block conversion, QUALIFIED S2C-12.3.1 vanilla object-builder parser compatibility, QUALIFIED S2C-12.4.1 safe assembly filename derivation, and QUALIFIED S2C-11.7.1 single-identity SDK-FBX materialization of `LargeBlockSmallHydrogenThrust`, and QUALIFIED S2C-11.8.1 demand-driven vanilla TriangleMesh resolution for eligible Large Grid 1×1×1 blocks. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M13 units through M15 are approved, not implemented. S2C-13.1.1 is postponed.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-10.4.1 configurable demand-driven chamfer variants, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression, QUALIFIED S2C-11.6.1 demand-driven qualified base-part materialization, QUALIFIED S2C-12.1.1 conversion preflight, QUALIFIED S2C-12.2.1 strict and permissive unknown-block conversion, QUALIFIED S2C-12.3.1 vanilla object-builder parser compatibility, QUALIFIED S2C-12.4.1 safe assembly filename derivation, and QUALIFIED S2C-11.7.1 single-identity SDK-FBX materialization of `LargeBlockSmallHydrogenThrust`, QUALIFIED S2C-11.8.1 demand-driven vanilla TriangleMesh resolution for eligible Large Grid 1×1×1 blocks, and QUALIFIED S2C-11.9.1 ASCII SDK-FBX conversion support for those already-eligible identities. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M13 units through M15 are approved, not implemented. S2C-13.1.1 is postponed.
 
 ## Next executable unit
 
-None. S2C-11.8.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLANNED and is postponed by explicit human authorization. Do not start it unless the human later directs that. Do not invent a later S2C unit, general SDK-mesh support, SolidWorks Small Grid part generation, multi-cell placement, CubeTopology expansion, a whole vanilla catalog, OBJ export, multi-grid, symmetry, print-shell, or later units. Universal vanilla blueprint compatibility is not claimed.
+None. S2C-11.9.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLANNED and is postponed by explicit human authorization. Do not start it unless the human later directs that. Do not invent a later S2C unit, general SDK-mesh support, SolidWorks Small Grid part generation, multi-cell placement, CubeTopology expansion, a whole vanilla catalog, OBJ export, multi-grid, symmetry, print-shell, or later units. Universal vanilla blueprint compatibility is not claimed. Universal FBX support is not claimed.
 
 ## Unit status
 
@@ -64,6 +64,7 @@ None. S2C-11.8.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLANN
 | S2C-11.6.1 | QUALIFIED | Assembly lazily materializes already-qualified untreated `{geometry_id}.SLDPRT` files and reuses existing ones. Only demanded library-bound identities are generated. Hidden `LargeRoundArmor_*` aliases are not bound. Ordinary suite 479 tests, 9 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: missing `large_armor_block.SLDPRT` created on demand and reused; two-geometry assemble generated only slope; chamfer bootstrapped missing corner base then `*_chamfer_50mm.SLDPRT`; permissive filler completed. Distinct assessment [below](#qualitysecurity-assessment-s2c-1161). |
 | S2C-11.7.1 | QUALIFIED | One authorized `sdk_mesh_direct` bind: `LargeBlockSmallHydrogenThrust` → `large_block_small_hydrogen_thrust`. Ordinary suite 526 tests, 11 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: minimal armor+thrust generate-then-reuse; Big Red permissive 136/81/55 with 16 instances of one 4385751-byte thruster part. Distinct assessment [below](#qualitysecurity-assessment-s2c-1171). |
 | S2C-11.8.1 | QUALIFIED | Demand-driven vanilla Large Grid 1×1×1 TriangleMesh resolution. Ordinary suite 541 tests, 11 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: synthetic armor+thrust+light+battery generate-then-reuse; Big Red permissive 136/115/21 with 13 auto-resolved identities and 34 real instances. Distinct assessment [below](#qualitysecurity-assessment-s2c-1181). |
+| S2C-11.9.1 | QUALIFIED | ASCII SDK-FBX conversion for already-eligible Large Grid 1×1×1 TriangleMesh. Ordinary suite 577 tests, 11 skipped, OK excluding untracked Small Grid WIP. Live SW 2026 `RevisionNumber` 34.3.2: synthetic armor+thrust+2×Conveyor+Gyro generate-then-reuse; Big Red permissive 136/126/10 with Conveyor×9 and Gyro×2 now real parts. Distinct assessment [below](#qualitysecurity-assessment-s2c-1191). |
 | S2C-12.1.1 | QUALIFIED | CAD-neutral `se2cad.preflight` exists; fixture 24 blocks are `all_supported`; unknown, catalog-unsupported, mixed documents, and independent geometry/appearance flags covered; ordinary suite 404 tests, 6 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-12.2.1 | QUALIFIED | CAD-neutral `se2cad.policy` exists; strict refuses unknown/unsupported with preflight diagnostics; permissive emits N IR instances with designated filler `se2cad_unknown_filler`; ordinary suite 428 tests, 7 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: two-component permissive `se2cad-filler-probe.SLDASM` save/reopen used distinct `se2cad_unknown_filler.SLDPRT` at the IR pose. Distinct assessment [below](#qualitysecurity-assessment-s2c-1221). |
 | S2C-12.3.1 | QUALIFIED | Parser accepts `CubeBlocks` items serialized as `MyObjectBuilder_CubeBlock` with a well-formed `MyObjectBuilder_*` `xsi:type`. Ordinary suite 502 tests, 10 skipped, OK. Big Red (136 blocks, 15 builder types) parses and preflights: supported 65 / unknown 71. Permissive policy emits 136 IR instances and 71 fillers. Live assemble of Big Red reached materialization then `AssemblyIdentityError` for identity `'Big Red'`. Live SW 2026 `RevisionNumber` 34.3.2 completed synthetic Thrust+armor `se2cad-ob-probe.SLDASM`. Distinct assessment [below](#qualitysecurity-assessment-s2c-1231). |
@@ -78,6 +79,58 @@ None. S2C-11.8.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLANN
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-10 — S2C-11.9.1 QUALIFIED
+
+Human-authorized ASCII SDK-FBX conversion support after S2C-11.8.1 was QUALIFIED and after the human postponed Small Grid. Did not start S2C-13.1.1. Did not start Small Grid, multi-cell placement, CubeTopology expansion, OBJ export, or a general-purpose FBX framework. Did not redesign the S2C-11.8.1 runtime vanilla resolver. Did not invent a later unit. Did not commit, tag, or push. Did not commit Keen FBX or derived SLDPRT. Official `Conveyor.FBX` and `Gyroscope.FBX` hashes were unchanged after the live runs.
+
+This extends the already-qualified demand-driven SDK-mesh builder. Runtime vanilla resolution remains the S2C-11.8.1 architecture. Support is still granted only after exact vanilla identity, primary Model, contained SDK source, recognized source format, available conversion path, and downstream builder contract. Arbitrary text named `.fbx` stays unresolved. Binary FBX is not routed through ASCII normalization.
+
+Inspection of operator-local official sources (not modified):
+
+| Identity | Definition | Model | SDK FBX | Format |
+| --- | --- | --- | --- | --- |
+| `LargeBlockConveyor` | Large 1×1×1 TriangleMesh | `Models\Cubes\Large\conveyor.mwm` | `Models\Cubes\large\Conveyor.FBX` | ASCII 7.2.0 / 6,674,173 bytes / SHA-256 `367deea7f97e8229677f882beda8435869ec218fe41eddd27260bd7b1d7665f1` |
+| `LargeBlockGyro` | Large 1×1×1 TriangleMesh | `Models\Cubes\Large\gyroscope.mwm` | `Models\Cubes\large\Gyroscope.FBX` | ASCII 7.2.0 / 6,642,613 bytes / SHA-256 `19dbf593f03cc5d38f9053cfc8cad9f984da0deb7ed958c4208e3f5317927c82` |
+
+Blender 5.2 `import_scene.fbx` rejects ASCII (`ASCII FBX files are not supported`). No other already-installed automatable importer was present. Chosen path: bounded ASCII FBX 7.x node-tree transcoder → mesh-preserving binary FBX 7200 under gitignored generated work → existing Blender binary import and Rx+90° / ×1000 recipe. Detection: prefix `Kaydara FBX Binary` is binary; otherwise UTF-8 text must start as `FBXHeaderExtension` / `FBX` and parse as mesh-bearing FBX 7.1–7.4 (32 MB / 200k nodes / depth 40 / 2M array values). Intermediate files never overwrite the official SDK FBX and must stay under the generated root.
+
+Gyro is a static completed official primary model (14 Geometry / 15 Model in source). No animation or mechanical-subpart architecture was added.
+
+Ordinary verification excluding untracked Small Grid WIP: `.\.venv\Scripts\python.exe` suite 577 tests, 11 skipped, OK.
+
+Live operator roots (not hard-coded in tracked production code): `SE2CAD_GAME_ROOT=C:\SE2CAD-SE\Game\Content`, `SE2CAD_SDK_ROOT=C:\SE2CAD-SE\ModSDK\OriginalContent`, `SE2CAD_BLENDER_EXE` Blender 5.2. Attached running SW 2026 `RevisionNumber` 34.3.2 (`GetActiveObject`, `started_application` False). Document count 0 before and after targeted and Big Red runs.
+
+Targeted probe `generated/s2c-11.9.1-probe`: armor + packaged thrust + two `LargeBlockConveyor` + one `LargeBlockGyro`. Conveyor/Gyro were not packaged catalog entries. First generation (~193 s) wrote four parts; the two Conveyor instances shared `vanilla_lg_1x1x1_large_block_conveyor.SLDPRT`. Second run (~33 s) generated `()` and reused all four. Assembly `se2cad-1191-probe.SLDASM` saved and reopened (5 components). No modal SolidWorks warning required interaction.
+
+Big Red before (after S2C-11.8.1): 136 / supported 115 / unknown 21 / unsupported 0 / fillers 21.
+
+Big Red after, `generated/s2c-11.9.1-bigred`: 136 / supported 126 / unknown 10 / unsupported 0 / fillers 10. Auto-resolved 15 unique identities / 45 instances, including newly real `LargeBlockConveyor` ×9 and `LargeBlockGyro` ×2. Completing assemble reused already-written Conveyor/Gyro/battery/connector/cockpit/thrust/armor/filler and generated the remaining 13 identities (~657 s). Second assemble (~289 s) generated `()` and reused all 21 geometry IDs. Derived filename `Big_Red+ffe1ed5b9381.SLDASM`. 136 components.
+
+Reopened envelopes (metres): Conveyor ≈ 2.54×3.76×2.54, center Y ≈ 0.64 m; Gyro ≈ 2.50×2.25×2.50; FrontLight ≈ 2.50 cube; packaged thrust ≈ 2.59×2.59×2.48. Shared recipe Rx+90° / ×1000 only. No per-instance Conveyor/Gyro assembly correction. Surrounding armor/thruster/light identities reused existing parts.
+
+Remaining fillers are only the known multi-cell identities: `LargeBlockLandingGear` 4 (1×2×3), `LargeBlockLargeHydrogenThrust` 3 (3×3×3), `LargeHydrogenTank` 1 (3×3×3), `LargeBlockRadioAntenna` 1 (1×6×2), `LargeOreDetector` 1 (1×1×2).
+
+Verified remediations during live qualification:
+
+- Blender can exit 0 after a script exception. Host requires the STL, surfaces `SE2CAD_BLENDER_SCRIPT_FAILED` / traceback / `{report}.error.txt`, and does not trust exit code alone.
+- Unconditional Blender `normals_make_consistent` on binary `Light.FBX` left SolidWorks `LoadFile2` blocked with an empty document and no visible modal. Repair is now opt-in `--repair-normals` and is requested only for ASCII-normalized sources. Binary FrontLight then imported unattended (4,519,674-byte part).
+- A hung `LoadFile2` leaked an exclusive lock on the work STL after `CloseDoc`. Conversion now allocates a writable work name by exclusive create, and `cleanup_work_dir` ignores locked leftovers instead of failing a later generate.
+
+| Check | Result |
+| --- | --- |
+| Fixture SHA-256 | `99c93d199a6dc960918ecd70dcecbb154c16e18d5638d359a279a15140a95b31` unchanged |
+| Packaged catalog | 9 entries unchanged; no runtime identities persisted |
+| `all_library_records()` | still 8 native armor |
+| Leftover set | unchanged; `Slope2Base` only leftover |
+| Official ASCII FBX | Conveyor/Gyro SHA-256 unchanged; sources not written |
+| Big Red parse / preflight | 136 blocks; supported 126 / unknown 10 / unsupported 0 |
+| Big Red permissive policy | 136 IR instances; 10 fillers |
+| Newly real identities | Conveyor 9 and Gyro 2 share one part each |
+| Session hygiene | `started_application` False; leftover document count 0; revision 34.3.2 |
+| Generated artifacts | gitignored `generated/s2c-11.9.1-probe/` and `generated/s2c-11.9.1-bigred/` |
+
+No `.mwm`, `.fbx`, `.dds`, `.hkt`, or committed CAD. Distinct assessment [below](#qualitysecurity-assessment-s2c-1191).
 
 ### 2026-09-10 — S2C-11.8.1 QUALIFIED
 
@@ -1075,6 +1128,34 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-11.9.1)
+
+Hypotheses tested after the ASCII transcoder, ordinary tests, live SolidWorks targeted probe, Big Red permissive assemble, remediations, and documentation existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Arbitrary text named `.fbx` is accepted | Disproven. Classification requires binary magic or UTF-8 ASCII FBX 7.x with a mesh-bearing parse. Random text, truncated files, and header-only ASCII stay unresolved. |
+| ASCII support is granted by removing the binary-only check | Disproven. `require_usable_sdk_fbx` accepts ASCII only when `ascii_fbx_conversion_available()` and `validate_ascii_fbx` succeed. Resolver still requires the rest of the S2C-11.8.1 eligibility chain. |
+| Hostile / oversized ASCII causes runaway parse | Disproven. 32 MB / 200k nodes / depth 40 / 2M array-value bounds fail closed. |
+| Path injection / source-root escape | Disproven. Contained SDK resolve and generated-root `relative_to` checks still apply. Intermediate dest must stay under the generated root. |
+| Official SDK FBX is overwritten | Disproven. Normalized output is under `_se2cad_sdk_work/{geometry_id}/`. Convert refuses when dest resolves to the source. Live SHA-256 of Conveyor/Gyro FBX unchanged. |
+| Binary FBX is forced through ASCII normalization | Disproven. Binary magic short-circuits to the existing Blender path. Ordinary tests assert the ASCII function is not called. |
+| Conversion subprocess argument injection | Disproven. Blender is invoked with an argument list; paths are not interpolated into a shell string. |
+| Intermediate cache / temp collision | Verified then remediated. A hung import leaked an exclusive lock on `{id}.stl`. Allocation now exclusive-creates a writable name (`{id}.2.stl` …) and cleanup ignores locked leftovers. |
+| Stale intermediate reused as success | Disproven. Blender must write the chosen STL; empty or missing output fails closed. |
+| Blender exit 0 hides a script exception | Disproven. Script prints `SE2CAD_BLENDER_SCRIPT_FAILED`, writes `{report}.error.txt`, exits 1; host also treats traceback-after-0 and missing STL as failure. |
+| Facet-normal modal / unattended hang | Verified then remediated. Unconditional `normals_make_consistent` on binary Light.FBX hung `LoadFile2` with no visible dialog and a zero `GetPartBox`. Repair is ASCII-only. Conveyor/Gyro (ASCII+repair) and later binary FrontLight (no repair) saved/reopened unattended. No dialog auto-dismiss was added. |
+| Malformed STL accepted as success | Disproven. Import/open/save/reopen and envelope assertion still run. Forgotten-scale (~0.0026 m) still fails. |
+| Silent filler after support | Disproven. Builder failure still raises. Invalid/unavailable ASCII stays unresolved before support. |
+| Multi-cell or Small Grid activated | Disproven. Remaining Big Red fillers are only the five multi-cell identities. Small Grid blueprints still fail at parse. CubeTopology path unchanged. |
+| Runtime packaged-catalog mutation | Disproven. Catalog remains 9 entries. Overlay is process-local. |
+| Whole-SDK conversion | Disproven. Only demanded unique geometry IDs convert. Nearby ConveyorCap/Duct/Tube/Sorter stems are not opened for Conveyor. |
+| Keen-derived artifacts entered git | Disproven. Generated CAD remains gitignored. No `.mwm`, `.fbx`, `.dds`, or `.hkt` added to git. |
+
+Accepted residual risk: the ASCII transcoder is a mesh-preserving FBX 7.x subset, not a full FBX SDK. Operator must point game/SDK roots at a legitimate install; a substituted same-named ASCII/binary FBX would convert. Envelope assertion catches gross scale error, not every mesh-topology defect. Conveyor’s 3.76 m Y extent is allowed by the 6.0 m envelope max and is not forgotten-scale. Existing `{geometry_id}.SLDPRT` files are reused without re-validating provenance. A SolidWorks process that leaked a file handle from a hung import can retain that lock until the process exits; conversion then uses an alternate work name. Concurrent assemblies targeting the same missing filename could both decide to generate. Untracked `tests/test_small_grid.py` remains out of scope.
+
+Not claimed: universal FBX support; arbitrary ASCII `.fbx`; OBJ export; multi-cell or CubeTopology placement; Small Grid; animation/subpart architecture; that derived CAD is redistributable.
 
 ## Quality/security assessment (S2C-11.8.1)
 

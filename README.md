@@ -352,8 +352,9 @@ Catalog lookup and conversion policy still decide support.
 part. Eligible Large Grid 1×1×1 vanilla TriangleMesh identities may
 also resolve on demand to a transient runtime bind when the operator
 configures a game-content root and the official SDK FBX exists as a
-binary file. That is not general thruster, multi-cell, CubeTopology,
-Small Grid, or universal vanilla support.
+usable binary file or as a valid official ASCII FBX that the bounded
+conversion path can normalize. That is not general FBX, thruster,
+multi-cell, CubeTopology, Small Grid, or universal vanilla support.
 
 CAD-neutral **conversion policy** then applies an explicit strict or
 permissive decision. Strict is the default: unknown or unsupported

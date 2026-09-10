@@ -222,6 +222,10 @@ def _is_missing_sdk_file(message: str) -> bool:
         "is not a file" in lowered
         or "sdk source is not a file" in lowered
         or "not a binary fbx" in lowered
+        or "not a valid ascii fbx" in lowered
+        or "not a usable binary or ascii fbx" in lowered
+        or "ascii fbx conversion is not available" in lowered
+        or "ascii fbx " in lowered
         or "ascii fbx" in lowered
     )
 
