@@ -580,7 +580,37 @@ This milestone is expected to need more units than the others. It does not requi
 
 **External validation.** None. This is a CAD-neutral integer-grid foundation. A SolidWorks live run is not required.
 
-**Completion criteria.** Generalized placement math is implemented and qualified; current 1×1×1 transforms are unchanged; multi-cell identities remain runtime-ineligible; no multi-cell CAD parts were generated; no resolver eligibility was broadened; no Small Grid work occurred. After qualification, next executable unit is none.
+**Completion criteria.** Generalized placement math is implemented and qualified; current 1×1×1 transforms are unchanged; multi-cell identities remain runtime-ineligible; no multi-cell CAD parts were generated; no resolver eligibility was broadened; no Small Grid work occurred. After qualification, next executable unit was none until the human later authorized S2C-11.11.1.
+
+### S2C-11.11.1 — Demand-driven Large Grid multi-cell TriangleMesh materialization and placement
+
+**Objective.** Enable already-resolvable vanilla Large Grid TriangleMesh blocks whose definition Size is larger than 1×1×1 to use the existing demand-driven runtime resolution, SDK-FBX materialization, and SolidWorks assembly path.
+
+**Rationale.** After S2C-11.10.1, Big Red’s remaining fillers were only multi-cell identities. Occupancy-center math is already qualified. This unit removes only the blanket 1×1×1 runtime gate so those identities can consume that math through the existing resolver/materializer.
+
+**Prerequisites.** S2C-11.10.1. This unit was inserted by a human-authorized amendment after S2C-11.10.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M11 history, does not start S2C-13.1.1, and does not invent a later unit.
+
+**Affected systems / expected areas.** Vanilla eligibility; transient runtime Size/ModelOffset placement; geometry-ID compatibility; size-aware imported-mesh envelope; policy consumption of resolved placement; ordinary and live tests.
+
+**Implementation requirements.**
+
+- Remove only the blanket 1×1×1 restriction. Keep exact vanilla definition, Large Grid, positive Size, TriangleMesh, one primary Model, no Subparts, contained SDK FBX, and S2C-11.9.1 source-format rules.
+- Propagate definition Size and ModelOffset into placement metadata consumed by `canonical_block_from_parsed`. ParsedBlock stays blueprint-only. Transform code does not read Game Content. Definition Center is not CAD translation.
+- Preserve existing `vanilla_lg_1x1x1_*` geometry IDs. Multi-cell identities use a size-neutral `vanilla_lg_*` scheme. Collisions fail closed.
+- Generalize imported-mesh envelope validation from definition Size. Do not special-case subtype names.
+- Reuse the S2C-11.9.1 SDK FBX path. Do not recenter imported models. `chamfer_capable` remains false.
+- Support remains demand-driven and transient. Do not persist bindings or bulk-expand the packaged catalog.
+- A runtime-supported builder failure remains a hard failure, not filler.
+
+**Explicit boundaries / out of scope.** Small Grid; CubeTopology expansion; OBJ export; MWM-only support; modded blocks; composite/subpart or animation frameworks; whole-install pre-materialization; subtype-specific Big Red production branches; inventing a later unit.
+
+**Development validation.** Ordinary tests cover 1×1×1 regression, eligible multi-cell sizes, Size/ModelOffset propagation, Center ignored, occupancy math, Small Grid / CubeTopology / Subparts unresolved, fail-closed Size and SDK cases, builder-failure ≠ filler, geometry-ID compatibility, size-aware envelope, catalog unchanged, and no subtype-specific production branch.
+
+**Quality/security assessment focus.** Accidental Small Grid or CubeTopology activation; Center used as translation; ModelOffset units/double application; geometry-ID collision or cache incompatibility; envelope too strict or too permissive; silent filler after support; packaged catalog mutation; Keen-derived assets entering git.
+
+**External validation.** Live SolidWorks: synthetic multi-cell probe generate then reuse; Big Red permissive assemble under a gitignored generated root with exact occupancy-center transforms. Required for QUALIFIED.
+
+**Completion criteria.** Eligible multi-cell Large Grid TriangleMesh identities become real cached parts through the generic path; remaining identities stay unresolved for an exact recorded reason; no universal FBX or vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit is none.
 
 ---
 

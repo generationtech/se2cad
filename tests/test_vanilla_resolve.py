@@ -251,14 +251,13 @@ class VanillaResolveTests(unittest.TestCase):
         self.assertNotIn(_LIGHT, subtypes)
         self.assertEqual(len(reloaded.entries), len(self.catalog.entries))
 
-    def test_small_grid_and_multi_cell_and_cube_topology_are_rejected(self) -> None:
+    def test_small_grid_and_cube_topology_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             game, sdk = self._roots(tmp)
             _write_cube_blocks(
                 game,
                 "CubeBlocks_Mixed.sbc",
                 _definition_xml("SmallBlockLight", cube_size="Small")
-                + _definition_xml("LargeBlockWide", size=(2, 1, 1), model="Models\\Cubes\\Large\\wide.mwm")
                 + _definition_xml(
                     "LargeBlockArmorCube",
                     topology="Cube",
@@ -267,22 +266,42 @@ class VanillaResolveTests(unittest.TestCase):
                 ),
             )
             _write_fbx(sdk, "Models/Cubes/Large/light.fbx")
-            _write_fbx(sdk, "Models/Cubes/Large/wide.fbx")
             small = resolve_vanilla_geometry(
                 "SmallBlockLight", self.catalog, game_root=game, sdk_root=sdk
-            )
-            wide = resolve_vanilla_geometry(
-                "LargeBlockWide", self.catalog, game_root=game, sdk_root=sdk
             )
             cube = resolve_vanilla_geometry(
                 "LargeBlockArmorCube", self.catalog, game_root=game, sdk_root=sdk
             )
         self.assertEqual(small.kind, VanillaResolveKind.UNRESOLVED)
         self.assertIn("not Large", small.unresolved_reason)
-        self.assertEqual(wide.kind, VanillaResolveKind.UNRESOLVED)
-        self.assertIn("1x1x1", wide.unresolved_reason)
         self.assertEqual(cube.kind, VanillaResolveKind.UNRESOLVED)
         self.assertIn("TriangleMesh", cube.unresolved_reason)
+
+    def test_eligible_multi_cell_triangle_mesh_resolves(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            game, sdk = self._roots(tmp)
+            _write_cube_blocks(
+                game,
+                "CubeBlocks_Wide.sbc",
+                _definition_xml(
+                    "LargeBlockWide",
+                    size=(2, 1, 1),
+                    model="Models\\Cubes\\Large\\wide.mwm",
+                ),
+            )
+            _write_fbx(sdk, "Models/Cubes/Large/wide.fbx")
+            wide = resolve_vanilla_geometry(
+                "LargeBlockWide", self.catalog, game_root=game, sdk_root=sdk
+            )
+        self.assertEqual(wide.kind, VanillaResolveKind.RUNTIME_VANILLA)
+        self.assertEqual(wide.runtime.catalog_entry.observed.size.x, 2)
+        self.assertEqual(
+            wide.runtime.geometry_id,
+            vanilla_runtime_geometry_id("LargeBlockWide", wide.runtime.catalog_entry.observed.size),
+        )
+        self.assertFalse(
+            wide.runtime.geometry_id.startswith(VANILLA_RUNTIME_GEOMETRY_PREFIX)
+        )
 
     def test_missing_and_ambiguous_primary_model_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,7 +1,7 @@
-"""Demand-driven vanilla Large Grid 1x1x1 TriangleMesh resolution.
+"""Demand-driven vanilla Large Grid TriangleMesh resolution.
 
-S2C-11.8.1. Runtime binds are transient. The packaged catalog is not
-mutated. This is not universal vanilla support.
+S2C-11.8.1 / S2C-11.11.1. Runtime binds are transient. The packaged
+catalog is not mutated. This is not universal vanilla support.
 
 ``resolve`` is imported lazily so CAD-neutral preflight/policy import
 does not load the SolidWorks package.
@@ -14,6 +14,7 @@ from se2cad.vanilla.errors import (
 )
 from se2cad.vanilla.identity import (
     VANILLA_RUNTIME_GEOMETRY_PREFIX,
+    VANILLA_RUNTIME_MULTICELL_PREFIX,
     vanilla_runtime_geometry_id,
 )
 from se2cad.vanilla.lookup import (
@@ -37,6 +38,7 @@ __all__ = [
     "GAME_ROOT_ENV",
     "SDK_ROOT_ENV",
     "VANILLA_RUNTIME_GEOMETRY_PREFIX",
+    "VANILLA_RUNTIME_MULTICELL_PREFIX",
     "CubeBlockIndex",
     "TargetedDefinition",
     "TargetedHit",
@@ -77,8 +79,10 @@ def __getattr__(name: str):
 def clear_vanilla_runtime_state() -> None:
     """Drop indexes, resolve cache, and runtime library overlays."""
     from se2cad.library.lookup import clear_runtime_library_records
+    from se2cad.ir.convert import clear_runtime_placements
     from se2cad.vanilla.resolve import clear_vanilla_resolution_cache
 
     clear_vanilla_definition_index()
     clear_vanilla_resolution_cache()
     clear_runtime_library_records()
+    clear_runtime_placements()

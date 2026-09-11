@@ -195,7 +195,7 @@ def _generate_sdk_mesh_part(
         model = import_stl_as_part(session, conversion.intermediate_stl)
         try:
             after_save = read_imported_part_validation(session, model)
-            assert_imported_mesh_envelope(after_save)
+            assert_imported_mesh_envelope(after_save, recipe.occupancy_size)
             session.save_as(model, destination)
         finally:
             session.close_doc(model)
@@ -204,7 +204,7 @@ def _generate_sdk_mesh_part(
         reopened = session.open_part(destination)
         try:
             after_reopen = read_imported_part_validation(session, reopened)
-            assert_imported_mesh_envelope(after_reopen)
+            assert_imported_mesh_envelope(after_reopen, recipe.occupancy_size)
         finally:
             session.close_doc(reopened)
     finally:

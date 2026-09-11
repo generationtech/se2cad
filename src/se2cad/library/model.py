@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Union
 
-from se2cad.catalog.model import RecipeKind
+from se2cad.catalog.model import CellSize, RecipeKind
 from se2cad.library.frame import AxisAlignedBoxMm, CanonicalLocalFrame
 
 
@@ -142,6 +142,7 @@ class SdkMeshRecipe:
     additional_scale: float
     rotation_xyz_deg: tuple[float, float, float]
     translation_mm: tuple[float, float, float]
+    occupancy_size: CellSize = CellSize(1, 1, 1)
 
 
 GeometryRecipe = Union[NativeSolidRecipe, SdkMeshRecipe]

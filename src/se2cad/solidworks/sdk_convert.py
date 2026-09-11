@@ -10,8 +10,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from se2cad.catalog.constants import LARGE_GRID_CELL_PITCH_MM
+from se2cad.catalog.model import CellSize
 from se2cad.library.model import SdkMeshRecipe
 from se2cad.solidworks.artifacts import resolve_generated_root
+from se2cad.transform.placement import MILLIMETRES_PER_METRE, require_cell_size
 from se2cad.solidworks.com_bind import com_get
 from se2cad.solidworks.com_session import SolidWorksSession
 from se2cad.solidworks.com_validate import PartValidation, read_part_validation
@@ -31,8 +34,10 @@ _BLENDER_FAILURE_MARKERS = (
 # Catch forgotten millimetre scale (the unscaled thruster was ~0.0026 m).
 # 1x1x1 placement does not require the mesh to fill the cell.
 _MIN_AXIS_M = 0.05
-_MAX_AXIS_M = 6.0
-_MAX_CENTER_OFFSET_M = 2.0
+_UNIT_MAX_AXIS_M = 6.0
+_UNIT_MAX_CENTER_OFFSET_M = 2.0
+_PROTRUSION_CELLS = 1
+_UNIT_CELL = CellSize(1, 1, 1)
 
 
 @dataclass(frozen=True)
@@ -213,18 +218,39 @@ def import_stl_as_part(
         raise SdkConversionError(f"SolidWorks STL import failed: {exc}") from exc
 
 
-def assert_imported_mesh_envelope(observed: PartValidation) -> None:
+def imported_mesh_envelope_limits(occupancy: CellSize) -> tuple[float, float]:
+    """Return Size-aware (max_axis_m, max_center_offset_m) limits.
+
+    Qualified 1×1×1 limits stay 6.0 m / 2.0 m. Multi-cell limits follow
+    the longest occupancy axis plus one cell of protrusion so official
+    model origin is preserved and legs/antennas are not recentered.
+    """
+    size = require_cell_size(occupancy)
+    if size == _UNIT_CELL:
+        return _UNIT_MAX_AXIS_M, _UNIT_MAX_CENTER_OFFSET_M
+    pitch_m = LARGE_GRID_CELL_PITCH_MM / MILLIMETRES_PER_METRE
+    max_logical_m = max(size.x, size.y, size.z) * pitch_m
+    protrusion_m = _PROTRUSION_CELLS * pitch_m
+    return max_logical_m + protrusion_m, (max_logical_m / 2.0) + protrusion_m
+
+
+def assert_imported_mesh_envelope(
+    observed: PartValidation,
+    occupancy: CellSize | None = None,
+) -> None:
     """Require a spatially plausible imported Large Grid mesh.
 
-    The mesh must be millimetre-scaled and cell-local. It does not have
-    to fill the 2.5 m cell. Sub-centimetre envelopes fail closed as a
-    forgotten-scale defect.
+    The mesh must be millimetre-scaled. It does not have to fill the
+    occupancy box. Sub-centimetre envelopes fail closed as a
+    forgotten-scale defect. Legitimate multi-cell extent is allowed.
     """
+    cell = _UNIT_CELL if occupancy is None else occupancy
+    max_axis_m, max_center_m = imported_mesh_envelope_limits(cell)
     size = tuple(
         observed.bounding_box_max_m[i] - observed.bounding_box_min_m[i]
         for i in range(3)
     )
-    if any(axis < _MIN_AXIS_M or axis > _MAX_AXIS_M for axis in size):
+    if any(axis < _MIN_AXIS_M or axis > max_axis_m for axis in size):
         raise CanonicalPartValidationError(
             "imported SDK mesh envelope is not a coherent Large Grid cell: "
             f"size_m={size}"
@@ -233,9 +259,9 @@ def assert_imported_mesh_envelope(observed: PartValidation) -> None:
         (observed.bounding_box_min_m[i] + observed.bounding_box_max_m[i]) / 2.0
         for i in range(3)
     )
-    if any(abs(value) > _MAX_CENTER_OFFSET_M for value in center):
+    if any(abs(value) > max_center_m for value in center):
         raise CanonicalPartValidationError(
-            "imported SDK mesh is not centered on the cell origin: "
+            "imported SDK mesh is not local to the official model origin: "
             f"center_m={center}"
         )
     if (

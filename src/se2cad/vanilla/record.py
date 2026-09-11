@@ -15,8 +15,15 @@ from se2cad.catalog.model import (
     RecipeKind,
     SupportStatus,
 )
+from se2cad.ir.convert import (
+    clear_runtime_placements,
+    lookup_runtime_placement,
+    register_runtime_placement,
+)
 from se2cad.library.frame import CANONICAL_LOCAL_FRAME
+from se2cad.library.lookup import register_runtime_library_record
 from se2cad.library.model import LibraryRecord, PlacementSemantics, SdkMeshRecipe
+from se2cad.transform.placement import BlockPlacementDefinition
 from se2cad.vanilla.lookup import TargetedDefinition
 
 
@@ -28,6 +35,7 @@ class RuntimeVanillaRecord:
     catalog_entry: CatalogEntry
     definition_source_relative: str
     sdk_source_relative: str
+    placement: BlockPlacementDefinition
 
     @property
     def geometry_id(self) -> str:
@@ -48,6 +56,10 @@ def runtime_sdk_mesh_record(
     sdk_source_relative: str,
 ) -> RuntimeVanillaRecord:
     """Build the transient catalog/library pair for one eligible identity."""
+    placement = BlockPlacementDefinition(
+        size=definition.size,
+        model_offset=definition.model_offset,
+    )
     recipe = SdkMeshRecipe(
         geometry_id=geometry_id,
         recipe_kind=RecipeKind.SDK_MESH_DIRECT,
@@ -58,6 +70,7 @@ def runtime_sdk_mesh_record(
         additional_scale=1000.0,
         rotation_xyz_deg=(90.0, 0.0, 0.0),
         translation_mm=(0.0, 0.0, 0.0),
+        occupancy_size=definition.size,
     )
     library_record = LibraryRecord(
         geometry_id=geometry_id,
@@ -91,4 +104,21 @@ def runtime_sdk_mesh_record(
         catalog_entry=catalog_entry,
         definition_source_relative=definition_source_relative,
         sdk_source_relative=sdk_source_relative,
+        placement=placement,
     )
+
+
+def register_runtime_vanilla_record(runtime: RuntimeVanillaRecord) -> None:
+    """Register the transient library bind and subtype placement overlay."""
+    register_runtime_library_record(runtime.library_record)
+    register_runtime_placement(runtime.subtype_id, runtime.placement)
+
+
+__all__ = [
+    "RuntimeVanillaRecord",
+    "clear_runtime_placements",
+    "lookup_runtime_placement",
+    "register_runtime_placement",
+    "register_runtime_vanilla_record",
+    "runtime_sdk_mesh_record",
+]

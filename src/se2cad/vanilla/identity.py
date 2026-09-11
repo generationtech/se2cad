@@ -1,11 +1,14 @@
-"""Stable geometry identities for runtime-resolved vanilla 1x1x1 blocks."""
+"""Stable geometry identities for runtime-resolved vanilla TriangleMesh blocks."""
 
 from __future__ import annotations
 
 from se2cad.catalog.loader import checked_geometry_id
+from se2cad.catalog.model import CellSize
 from se2cad.library.lookup import packaged_library_geometry_ids
 
 VANILLA_RUNTIME_GEOMETRY_PREFIX = "vanilla_lg_1x1x1_"
+VANILLA_RUNTIME_MULTICELL_PREFIX = "vanilla_lg_"
+_UNIT_CELL = CellSize(1, 1, 1)
 _GEOMETRY_ID_CHARS = frozenset("abcdefghijklmnopqrstuvwxyz0123456789_")
 
 
@@ -28,22 +31,32 @@ def _snake_case_subtype(subtype_id: str) -> str:
     return slug
 
 
-def vanilla_runtime_geometry_id(subtype_id: str) -> str:
+def vanilla_runtime_geometry_id(
+    subtype_id: str,
+    size: CellSize | None = None,
+) -> str:
     """Derive a filesystem-safe vanilla runtime geometry identity.
 
-    The identity is a function of SubtypeName only. It does not include
-    operator paths. The ``vanilla_lg_1x1x1_`` prefix keeps it distinct
-    from hand-authored packaged identities.
+    The identity is a function of SubtypeName and whether Size is the
+    previously qualified 1×1×1 cell. It does not include operator paths,
+    orientation, Min, or source index. Existing 1×1×1 IDs keep the
+    ``vanilla_lg_1x1x1_`` prefix so qualified caches stay valid.
+    Multi-cell identities use the size-neutral ``vanilla_lg_`` prefix.
     """
     if not isinstance(subtype_id, str) or subtype_id == "":
         raise ValueError("subtype_id must be a non-empty string")
+    if size is not None and not isinstance(size, CellSize):
+        raise ValueError("size must be a CellSize when supplied")
     slug = _snake_case_subtype(subtype_id)
     if slug == "" or slug[0] not in "abcdefghijklmnopqrstuvwxyz":
         raise ValueError(
             f"subtype_id {subtype_id!r} cannot form a safe vanilla geometry_id"
         )
+    prefix = VANILLA_RUNTIME_GEOMETRY_PREFIX
+    if size is not None and size != _UNIT_CELL:
+        prefix = VANILLA_RUNTIME_MULTICELL_PREFIX
     identity = checked_geometry_id(
-        f"{VANILLA_RUNTIME_GEOMETRY_PREFIX}{slug}",
+        f"{prefix}{slug}",
         f"vanilla geometry_id for {subtype_id!r}",
     )
     if identity in packaged_library_geometry_ids():

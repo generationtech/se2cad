@@ -351,7 +351,7 @@ class AsciiVanillaResolveTests(unittest.TestCase):
         self.assertEqual(permitted.ir.grid.blocks[0].geometry_id, FILLER_GEOMETRY_ID)
         self.assertEqual(permitted.filler_count, 1)
 
-    def test_multi_cell_vanilla_block_remains_unresolved(self) -> None:
+    def test_multi_cell_ascii_resolves_when_conversion_is_available(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             game, sdk = self._roots(tmp)
             _write_cube_blocks(
@@ -367,8 +367,13 @@ class AsciiVanillaResolveTests(unittest.TestCase):
             result = resolve_vanilla_geometry(
                 "LargeBlockLandingGear", self.catalog, game_root=game, sdk_root=sdk
             )
-        self.assertEqual(result.kind, VanillaResolveKind.UNRESOLVED)
-        self.assertIn("1x1x1", result.unresolved_reason or "")
+        if ascii_fbx_conversion_available():
+            self.assertEqual(result.kind, VanillaResolveKind.RUNTIME_VANILLA)
+            size = result.runtime.catalog_entry.observed.size
+            self.assertEqual((size.x, size.y, size.z), (1, 2, 3))
+        else:
+            self.assertEqual(result.kind, VanillaResolveKind.UNRESOLVED)
+            self.assertIn("ascii", (result.unresolved_reason or "").lower())
 
     def test_small_grid_and_cube_topology_remain_untouched(self) -> None:
         xml = """<?xml version="1.0"?>

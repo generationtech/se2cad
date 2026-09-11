@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import threading
+
 from se2cad.catalog.errors import UnknownSubtypeError
 from se2cad.catalog.model import CatalogEntry, DefinitionCatalog, RecipeKind, SupportStatus
 from se2cad.ir.model import CanonicalBlock, CanonicalBlueprint, CanonicalGrid
@@ -14,25 +16,70 @@ from se2cad.transform.placement import (
 )
 from se2cad.transform.rotation import rotation_from_forward_up
 
+_PLACEMENT_LOCK = threading.Lock()
+_RUNTIME_PLACEMENTS: dict[str, BlockPlacementDefinition] = {}
+
+
+def register_runtime_placement(
+    subtype_id: str,
+    placement: BlockPlacementDefinition,
+) -> None:
+    """Remember resolved Size/ModelOffset for one runtime subtype."""
+    if not isinstance(subtype_id, str) or subtype_id == "":
+        raise ValueError("subtype_id must be a non-empty string")
+    if not isinstance(placement, BlockPlacementDefinition):
+        raise ValueError("placement must be a BlockPlacementDefinition")
+    with _PLACEMENT_LOCK:
+        existing = _RUNTIME_PLACEMENTS.get(subtype_id)
+        if existing is not None and existing != placement:
+            raise ValueError(
+                f"runtime subtype {subtype_id!r} is already bound to a "
+                "different placement"
+            )
+        _RUNTIME_PLACEMENTS[subtype_id] = placement
+
+
+def lookup_runtime_placement(subtype_id: str) -> BlockPlacementDefinition | None:
+    """Return the transient placement for a runtime-supported subtype."""
+    with _PLACEMENT_LOCK:
+        return _RUNTIME_PLACEMENTS.get(subtype_id)
+
+
+def clear_runtime_placements() -> None:
+    """Drop transient placement overlays. Tests use this for isolation."""
+    with _PLACEMENT_LOCK:
+        _RUNTIME_PLACEMENTS.clear()
+
 
 def placement_for_resolved_block(
     subtype_id: str,
     catalog: DefinitionCatalog,
     *,
     catalog_supported: bool,
+    runtime_placement: BlockPlacementDefinition | None = None,
 ) -> BlockPlacementDefinition:
     """Choose placement metadata without granting new support.
 
     Packaged catalog hits use observed Size and the established zero
-    ModelOffset. Runtime-supported vanilla identities remain 1×1×1 by
-    the S2C-11.8.1 eligibility gate. Unresolved blocks receive the
+    ModelOffset. Runtime-supported vanilla identities use the transient
+    resolved Size and ModelOffset overlay. Unresolved blocks receive the
     designated 1×1×1 filler placement contract, not a guessed Size.
     """
     if catalog_supported:
         try:
             return placement_from_catalog_entry(catalog.lookup(subtype_id))
         except UnknownSubtypeError:
-            return QUALIFIED_ONE_BY_ONE_PLACEMENT
+            found = (
+                runtime_placement
+                if runtime_placement is not None
+                else lookup_runtime_placement(subtype_id)
+            )
+            if found is None:
+                raise ValueError(
+                    f"runtime-supported subtype {subtype_id!r} has no "
+                    "placement metadata"
+                )
+            return found
     return QUALIFIED_ONE_BY_ONE_PLACEMENT
 
 

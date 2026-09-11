@@ -15,17 +15,20 @@ from typing import Optional
 
 from se2cad.catalog.constants import CATALOG_CUBE_SIZE_LARGE
 from se2cad.catalog.errors import UnknownSubtypeError
-from se2cad.catalog.model import CatalogEntry, CellSize, DefinitionCatalog
-from se2cad.library.lookup import register_runtime_library_record
+from se2cad.catalog.model import CatalogEntry, DefinitionCatalog
 from se2cad.vanilla.errors import VanillaLookupError, VanillaRootError
 from se2cad.vanilla.identity import vanilla_runtime_geometry_id
 from se2cad.vanilla.lookup import TargetedDefinition, lookup_exact_subtype
 from se2cad.vanilla.mapping import contained_game_model_path, sdk_stem_from_vanilla_model
-from se2cad.vanilla.record import RuntimeVanillaRecord, runtime_sdk_mesh_record
+from se2cad.vanilla.record import (
+    RuntimeVanillaRecord,
+    register_runtime_vanilla_record,
+    runtime_sdk_mesh_record,
+)
 from se2cad.vanilla.roots import try_load_game_content_root, try_load_sdk_root
 
-_REQUIRED_CELL = CellSize(1, 1, 1)
 _TRIANGLE_MESH = "TriangleMesh"
+_MAX_OCCUPANCY_AXIS = 32
 
 
 class VanillaResolveKind(str, Enum):
@@ -96,7 +99,7 @@ def resolve_vanilla_geometry(
         if cached is not None:
             if cached.kind is VanillaResolveKind.RUNTIME_VANILLA:
                 assert cached.runtime is not None
-                register_runtime_library_record(cached.runtime.library_record)
+                register_runtime_vanilla_record(cached.runtime)
             return cached
 
     result = _resolve_unknown(
@@ -125,11 +128,25 @@ def eligibility_reason(definition: TargetedDefinition) -> Optional[str]:
     """Return why a targeted definition is ineligible, or None if eligible."""
     if definition.cube_size != CATALOG_CUBE_SIZE_LARGE:
         return f"CubeSize {definition.cube_size!r} is not Large"
-    if definition.size != _REQUIRED_CELL:
+    if (
+        definition.size.x < 1
+        or definition.size.y < 1
+        or definition.size.z < 1
+    ):
         return (
             "block size "
             f"{definition.size.x}x{definition.size.y}x{definition.size.z} "
-            "is not 1x1x1"
+            "is not a positive cell triple"
+        )
+    if (
+        definition.size.x > _MAX_OCCUPANCY_AXIS
+        or definition.size.y > _MAX_OCCUPANCY_AXIS
+        or definition.size.z > _MAX_OCCUPANCY_AXIS
+    ):
+        return (
+            "block size "
+            f"{definition.size.x}x{definition.size.y}x{definition.size.z} "
+            "exceeds supported occupancy bound"
         )
     if definition.block_topology != _TRIANGLE_MESH:
         return f"BlockTopology {definition.block_topology!r} is not TriangleMesh"
@@ -175,7 +192,7 @@ def _resolve_unknown(
             '{"sdk_root": "..."}'
         )
 
-    geometry_id = vanilla_runtime_geometry_id(subtype_id)
+    geometry_id = vanilla_runtime_geometry_id(subtype_id, hit.definition.size)
     provisional = runtime_sdk_mesh_record(
         subtype_id=subtype_id,
         geometry_id=geometry_id,
@@ -206,7 +223,7 @@ def _resolve_unknown(
         definition_source_relative=hit.source_relative,
         sdk_source_relative=relative_used,
     )
-    register_runtime_library_record(runtime.library_record)
+    register_runtime_vanilla_record(runtime)
     return VanillaResolveResult(
         kind=VanillaResolveKind.RUNTIME_VANILLA,
         subtype_id=subtype_id,
@@ -227,6 +244,7 @@ def _is_missing_sdk_file(message: str) -> bool:
         or "ascii fbx conversion is not available" in lowered
         or "ascii fbx " in lowered
         or "ascii fbx" in lowered
+        or "ambiguous sdk path" in lowered
     )
 
 

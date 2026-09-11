@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import threading
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
 from se2cad.catalog.model import CellSize
+from se2cad.transform.errors import InvalidModelOffsetError
+from se2cad.transform.placement import ModelOffset
 from se2cad.vanilla.errors import VanillaLookupError
 
 _REJECTED_XML_MARKERS = (
@@ -45,6 +47,7 @@ class TargetedDefinition:
     has_subparts: bool
     model_count: int
     source_relative: str
+    model_offset: ModelOffset = field(default_factory=ModelOffset.zero)
 
 
 @dataclass(frozen=True)
@@ -253,6 +256,7 @@ def _parse_usable_definition(
         raise VanillaLookupError(f"{loc}: SubtypeId mismatch")
     cube_size = _required_text_child(el, "CubeSize", loc)
     size = _parse_size(el, loc)
+    model_offset = _parse_model_offset(el, loc)
     block_topology = _required_text_child(el, "BlockTopology", loc)
     cube_topology = _optional_cube_topology(el, loc)
     models = _direct_model_texts(el)
@@ -275,6 +279,7 @@ def _parse_usable_definition(
         has_subparts=has_subparts,
         model_count=len(models),
         source_relative=source_relative,
+        model_offset=model_offset,
     )
 
 
@@ -311,6 +316,69 @@ def _normalize_type_id(type_id: str) -> str:
     if type_id.startswith(_MY_OBJECT_BUILDER_PREFIX):
         return type_id[len(_MY_OBJECT_BUILDER_PREFIX) :]
     return type_id
+
+
+def _parse_model_offset(parent: ET.Element, source: str) -> ModelOffset:
+    """Read optional ModelOffset. Omitted or explicit zero is zero.
+
+    Keen serializes either attributes (``x y z``) or ``X/Y/Z`` children.
+    Definition Center is intentionally not read.
+    """
+    nodes = _children(parent, "ModelOffset")
+    if not nodes:
+        return ModelOffset.zero()
+    if len(nodes) > 1:
+        raise VanillaLookupError(
+            f"{source}: Definition must contain at most one ModelOffset"
+        )
+    el = nodes[0]
+    attrib_names = {name.lower() for name in el.attrib}
+    children = [child for child in list(el) if _local_name(child)]
+    if attrib_names and children:
+        raise VanillaLookupError(
+            f"{source}: ModelOffset must not mix attributes and children"
+        )
+    try:
+        if attrib_names:
+            by_name = {name.lower(): value for name, value in el.attrib.items()}
+            missing = [name for name in ("x", "y", "z") if name not in by_name]
+            extra = sorted(set(by_name) - _REQUIRED_SIZE)
+            if missing:
+                raise VanillaLookupError(
+                    f"{source}: ModelOffset missing attribute(s): "
+                    f"{', '.join(missing)}"
+                )
+            if extra:
+                raise VanillaLookupError(
+                    f"{source}: ModelOffset has unexpected attribute(s): "
+                    f"{', '.join(extra)}"
+                )
+            return ModelOffset.from_metres(by_name["x"], by_name["y"], by_name["z"])
+        if not children:
+            return ModelOffset.zero()
+        values: dict[str, str] = {}
+        for child in children:
+            name = _local_name(child).lower()
+            if name not in {"x", "y", "z"}:
+                raise VanillaLookupError(
+                    f"{source}: ModelOffset has unexpected child {name!r}"
+                )
+            if name in values:
+                raise VanillaLookupError(
+                    f"{source}: ModelOffset has duplicate {name!r}"
+                )
+            text = _text_of(child)
+            if text is None or text == "":
+                raise VanillaLookupError(f"{source}: ModelOffset.{name} is empty")
+            values[name] = text
+        missing = [name for name in ("x", "y", "z") if name not in values]
+        if missing:
+            raise VanillaLookupError(
+                f"{source}: ModelOffset missing child(ren): {', '.join(missing)}"
+            )
+        return ModelOffset.from_metres(values["x"], values["y"], values["z"])
+    except InvalidModelOffsetError as exc:
+        raise VanillaLookupError(f"{source}: {exc}") from exc
 
 
 def _parse_size(parent: ET.Element, source: str) -> CellSize:

@@ -1,6 +1,7 @@
 """S2C-11.10.1 CAD-neutral multi-cell placement foundation.
 
-Does not grant multi-cell runtime support. Does not generate CAD.
+S2C-11.11.1 consumes this math at runtime for eligible identities.
+This module still proves the CAD-neutral contract without generating CAD.
 """
 
 from __future__ import annotations
@@ -647,7 +648,7 @@ class OneByOneRegressionTests(unittest.TestCase):
 
 
 class RuntimeEligibilityUnchangedTests(unittest.TestCase):
-    def test_multi_cell_vanilla_identities_remain_unresolved(self) -> None:
+    def test_multi_cell_vanilla_identities_are_eligible(self) -> None:
         catalog = load_default_catalog()
         for subtype, size in _BIG_RED_SIZES.items():
             definition = TargetedDefinition(
@@ -663,10 +664,10 @@ class RuntimeEligibilityUnchangedTests(unittest.TestCase):
                 source_relative="Data/CubeBlocks/probe.sbc",
             )
             reason = eligibility_reason(definition)
-            self.assertIsNotNone(reason)
-            self.assertIn("1x1x1", reason or "")
+            self.assertIsNone(reason)
             result = resolve_vanilla_geometry(subtype, catalog)
-            self.assertNotEqual(result.kind, VanillaResolveKind.RUNTIME_VANILLA)
+            if result.kind is VanillaResolveKind.UNRESOLVED:
+                self.assertNotIn("1x1x1", result.unresolved_reason or "")
 
     def test_install_free_packaged_armor_works_without_game_root(self) -> None:
         catalog = load_default_catalog()
@@ -687,9 +688,18 @@ class RuntimeEligibilityUnchangedTests(unittest.TestCase):
         parsed = parse_blueprint_xml(
             _one_block_xml(subtype="LargeBlockLandingGear")
         )
-        result = convert_blueprint(
-            parsed, load_default_catalog(), ConversionPolicy.PERMISSIVE
-        )
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in {"SE2CAD_GAME_ROOT", "SE2CAD_SDK_ROOT"}
+        }
+        with patch.dict(os.environ, env, clear=True):
+            with patch(
+                "se2cad.vanilla.roots.discover_local_config", return_value=None
+            ):
+                result = convert_blueprint(
+                    parsed, load_default_catalog(), ConversionPolicy.PERMISSIVE
+                )
         block = result.ir.grid.blocks[0]
         self.assertEqual(block.geometry_id, FILLER_GEOMETRY_ID)
         self.assertEqual(block.position_mm, cell_center_mm(block.grid_min))
@@ -869,16 +879,27 @@ class BigRedReadOnlyVerificationTests(unittest.TestCase):
         result = convert_blueprint(parsed, catalog, ConversionPolicy.PERMISSIVE)
         preflight = result.preflight
         self.assertEqual(preflight.block_count, 136)
-        self.assertEqual(preflight.supported_count, 126)
-        self.assertEqual(preflight.unknown_count, 10)
+        self.assertEqual(preflight.supported_count, 136)
+        self.assertEqual(preflight.unknown_count, 0)
         self.assertEqual(preflight.unsupported_count, 0)
-        self.assertEqual(result.filler_count, 10)
-        unknown = {item.subtype_id for item in preflight.blocks if item.catalog_outcome is CatalogOutcome.UNKNOWN}
-        self.assertTrue(set(_MULTI_CELL_SUBTYPES) <= unknown)
+        self.assertEqual(result.filler_count, 0)
+        unknown = {
+            item.subtype_id
+            for item in preflight.blocks
+            if item.catalog_outcome is CatalogOutcome.UNKNOWN
+        }
+        self.assertFalse(set(_MULTI_CELL_SUBTYPES) & unknown)
+        expected = {
+            (row["subtype"], row["source_index"]): row["translation_mm"]
+            for row in rows
+        }
         for block in result.ir.grid.blocks:
             if block.subtype_id in _BIG_RED_SIZES:
-                self.assertEqual(block.geometry_id, FILLER_GEOMETRY_ID)
-                self.assertEqual(block.position_mm, cell_center_mm(block.grid_min))
+                self.assertNotEqual(block.geometry_id, FILLER_GEOMETRY_ID)
+                self.assertEqual(
+                    block.position_mm.as_tuple(),
+                    expected[(block.subtype_id, block.source_index)],
+                )
 
 
 if __name__ == "__main__":

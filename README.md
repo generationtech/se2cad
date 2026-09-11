@@ -272,10 +272,10 @@ exactly 24 components; all 24 reopened SolidWorks transforms match the
 IR-derived transforms; and all 24 reopened component short names match
 the IR-derived names. Large Grid placement uses the established 2.5 m
 pitch. Qualified 1×1×1 conversion still places each block at its `Min`
-cell center with no half-cell offset. The CAD-neutral transform engine
-can also compute occupancy-center translation for arbitrary Size;
-multi-cell identities remain runtime-ineligible. No placement mates are
-required.
+cell center with no half-cell offset. Eligible Large Grid vanilla
+TriangleMesh identities whose definition Size is larger than 1×1×1 use
+occupied-AABB center plus rotated ModelOffset. Definition Center is not
+CAD translation. No placement mates are required.
 
 Qualification was performed with SolidWorks 2026 on Windows.
 
@@ -353,14 +353,16 @@ Ordinary vanilla cube-block object builders such as
 reject them merely because `xsi:type` is not `MyObjectBuilder_CubeBlock`.
 Catalog lookup and conversion policy still decide support.
 `LargeBlockSmallHydrogenThrust` is the one packaged SDK-FBX generated
-part. Eligible Large Grid 1×1×1 vanilla TriangleMesh identities may
-also resolve on demand to a transient runtime bind when the operator
+part. Eligible Large Grid vanilla TriangleMesh identities may also
+resolve on demand to a transient runtime bind when the operator
 configures a game-content root and the official SDK FBX exists as a
 usable binary file or as a valid official ASCII FBX that the bounded
-conversion path can normalize. That is not general FBX, thruster,
-multi-cell, CubeTopology, Small Grid, or universal vanilla support.
-CAD-neutral occupancy-center placement math exists for arbitrary Size;
-it does not make those blocks supported conversion.
+conversion path can normalize. Size and ModelOffset come from the exact
+vanilla definition. Official SDK model origin is preserved. Imported
+SDK meshes remain `chamfer_capable=false`. That is not general FBX,
+CubeTopology, Small Grid, OBJ, or universal vanilla support. Runtime
+resolution remains demand-driven and transient. The packaged catalog
+stays intentionally small.
 
 CAD-neutral **conversion policy** then applies an explicit strict or
 permissive decision. Strict is the default: unknown or unsupported
@@ -380,11 +382,13 @@ names such as `se2cad-test1.SLDASM` are unchanged.
 
 SE2CAD is **not yet a universal Space Engineers ship converter**. The
 first program deliberately proved the architecture with four armor
-shapes. Ordinary vanilla functional blocks can now parse and reach
-strict refusal or permissive filler; they do not have real CAD
-geometry. Broader armor families beyond the packaged eight, subgrids,
-rotors, pistons, hinges, connector relationships, arbitrary mod
-blocks, and general game-asset geometry are not implied to work.
+shapes. Eligible Large Grid vanilla TriangleMesh identities can resolve
+on demand to real reusable parts when official SDK FBX is available;
+other functional blocks still reach strict refusal or permissive filler.
+Broader armor families beyond the packaged eight, subgrids, rotors,
+pistons, hinges, connector relationships, arbitrary mod blocks, Small
+Grid, CubeTopology expansion, OBJ export, and general game-asset
+geometry are not implied to work.
 
 That narrow start is intentional. The hard architectural question ---
 whether semantic blueprint data can be reconstructed deterministically

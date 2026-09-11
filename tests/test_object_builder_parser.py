@@ -300,7 +300,7 @@ class PolicyAndPreflightBoundaryTests(unittest.TestCase):
                         min_xml='<Min x="4" y="0" z="0" />',
                     ),
                     _block(
-                        "LargeBlockRadioAntenna",
+                        "ModdedRadioAntenna",
                         xsi_type="MyObjectBuilder_RadioAntenna",
                         min_xml='<Min x="5" y="0" z="0" />',
                     ),
@@ -315,7 +315,7 @@ class PolicyAndPreflightBoundaryTests(unittest.TestCase):
         self.assertEqual(report.unknown_count, 1)
         self.assertFalse(report.all_supported)
         self.assertEqual(report.blocks[1].subtype_id, "LargeBlockSmallHydrogenThrust")
-        self.assertEqual(report.blocks[2].subtype_id, "LargeBlockRadioAntenna")
+        self.assertEqual(report.blocks[2].subtype_id, "ModdedRadioAntenna")
         self.assertEqual(report.blocks[1].geometry_id, "large_block_small_hydrogen_thrust")
         self.assertEqual(report.blocks[1].catalog_outcome, CatalogOutcome.SUPPORTED)
         self.assertIsNone(report.blocks[2].geometry_id)

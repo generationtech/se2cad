@@ -39,7 +39,7 @@ The initial-program library record (`se2cad.library.LibraryRecord`) expresses:
 Strategy vocabulary (not an implementation checklist):
 
 - `native_procedural` — construct CAD solid from SE2CAD recipes
-- `sdk_mesh_direct` — later; out of initial program. When STATE records S2C-11.7.1, exactly one packaged identity uses this strategy. When STATE records S2C-11.8.1, eligible Large Grid 1×1×1 vanilla TriangleMesh identities may receive a transient runtime bind of the same kind.
+- `sdk_mesh_direct` — later; out of initial program. When STATE records S2C-11.7.1, exactly one packaged identity uses this strategy. When STATE records S2C-11.8.1, eligible Large Grid 1×1×1 vanilla TriangleMesh identities may receive a transient runtime bind of the same kind. When STATE records S2C-11.11.1, eligible Large Grid vanilla TriangleMesh identities whose Size is larger than 1×1×1 may receive the same kind of transient bind.
 - `sdk_mesh_manifold` — later; out of initial program
 - `hand_authored` — later; out of initial program
 - `unsupported` — explicit non-support; do not silently substitute
@@ -105,7 +105,7 @@ All four solids have the same expected bounding box as the cell envelope. That d
 
 Deterministic validation properties stored on each recipe: vertex count, face count, outward-wound `volume_times_6_mm3`, and the exact integer bounding box. Faces are sufficient for later solid construction together with the construction kind.
 
-Placement semantics for these 1×1×1 parts: insert at the cell center with no additional offset. The IR transform is the only placement. When STATE records S2C-11.10.1, that 1×1×1 result is the occupancy-center special case of the generalized Size/ModelOffset formula; multi-cell runtime materialization is still out of scope.
+Placement semantics for these 1×1×1 parts: insert at the cell center with no additional offset. The IR transform is the only placement. When STATE records S2C-11.10.1, that 1×1×1 result is the occupancy-center special case of the generalized Size/ModelOffset formula. When STATE records S2C-11.11.1, eligible multi-cell Large Grid TriangleMesh identities use the same occupancy-center plus rotated ModelOffset placement; official SDK model origin is preserved and imported meshes remain `chamfer_capable=false`.
 
 ## Designated unknown-block filler
 
@@ -154,7 +154,7 @@ When STATE records S2C-11.6.1, assembly materializes already-qualified untreated
 
 When STATE records S2C-11.7.1, exactly one TriangleMesh identity is an authorized packaged `sdk_mesh_direct` bind: `LargeBlockSmallHydrogenThrust` → `large_block_small_hydrogen_thrust`. Classification of TriangleMesh remains long-tail. Selection and leftover honesty keep a narrow exception for that explicit catalog/library bind. Demand-driven generation may resolve one official ModSDK FBX under the operator-configured SDK root and invoke a bounded Blender conversion. Other packaged `sdk_mesh_*` assignments stay forbidden.
 
-When STATE records S2C-11.8.1, catalog-unknown Large Grid 1×1×1 TriangleMesh identities may receive a transient runtime bind instead of remaining unknown solely because they are absent from the packaged catalog. Public entrypoints: `se2cad.vanilla.resolve_vanilla_geometry`, `vanilla_runtime_geometry_id`. Resolution requires an operator-configured game-content root, an exact SubtypeId definition, a single primary Model, and a contained official binary SDK FBX. Runtime records are not written to the packaged catalog. Multi-cell, CubeTopology, Small Grid, ASCII FBX, and ambiguous/composite definitions stay unresolved. This generalizes source resolution, not universal geometry. OBJ is not part of this path.
+When STATE records S2C-11.8.1, catalog-unknown Large Grid 1×1×1 TriangleMesh identities may receive a transient runtime bind instead of remaining unknown solely because they are absent from the packaged catalog. Public entrypoints: `se2cad.vanilla.resolve_vanilla_geometry`, `vanilla_runtime_geometry_id`. Resolution requires an operator-configured game-content root, an exact SubtypeId definition, a single primary Model, and a contained official SDK FBX already supported by S2C-11.9.1. Runtime records are not written to the packaged catalog. When STATE records S2C-11.11.1, Size larger than 1×1×1 is no longer a blanket ineligibility reason; Size and ModelOffset propagate into CAD-neutral placement metadata. CubeTopology, Small Grid, ambiguous/composite definitions, and unsupported source formats stay unresolved. This generalizes source resolution and occupancy placement, not universal geometry. OBJ is not part of this path. Existing `vanilla_lg_1x1x1_*` geometry IDs stay compatible; newly supported multi-cell identities use size-neutral `vanilla_lg_*` IDs.
 
 ## Asset boundary
 
