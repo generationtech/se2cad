@@ -51,6 +51,10 @@ Each block reports subtype, `Min`, catalog outcome, geometry support, and appear
 
 Malformed and unsupported document shapes fail at the parser, with the same errors as direct parse. Runtime `catalog.lookup` and `build_canonical_blueprint` remain fail-closed on unknown subtypes. When STATE records S2C-12.3.1, ordinary vanilla cube-block-derived object builders (`MyObjectBuilder_CubeBlock` elements under `CubeBlocks` with a well-formed `MyObjectBuilder_*` `xsi:type`) parse as block records; catalog support is still a later decision. When STATE records S2C-12.2.1, `se2cad.policy` applies an explicit conversion policy on top of that diagnosis.
 
+## Compatibility survey
+
+When STATE records S2C-11.12.1, `se2cad.survey` is a CAD-neutral classification report. It consumes existing parse, catalog, and vanilla-resolution outcomes and does not grant support. Official Prefab XML may be wrapped or extracted for survey intake only; production parse remains ShipBlueprint. Public entrypoints: `se2cad.survey.compute_compatibility_survey_from_path` and `python -m se2cad.survey <blueprint-or-prefab.sbc>`. Durable evidence: [S2C-11.12.1_REAL_BLUEPRINT_COMPATIBILITY.md](../surveys/S2C-11.12.1_REAL_BLUEPRINT_COMPATIBILITY.md).
+
 ## Conversion policy
 
 Conversion policy is CAD-neutral. It consumes preflight and produces IR. It does not import SolidWorks types.

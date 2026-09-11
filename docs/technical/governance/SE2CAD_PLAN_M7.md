@@ -610,7 +610,33 @@ This milestone is expected to need more units than the others. It does not requi
 
 **External validation.** Live SolidWorks: synthetic multi-cell probe generate then reuse; Big Red permissive assemble under a gitignored generated root with exact occupancy-center transforms. Required for QUALIFIED.
 
-**Completion criteria.** Eligible multi-cell Large Grid TriangleMesh identities become real cached parts through the generic path; remaining identities stay unresolved for an exact recorded reason; no universal FBX or vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit is none.
+**Completion criteria.** Eligible multi-cell Large Grid TriangleMesh identities become real cached parts through the generic path; remaining identities stay unresolved for an exact recorded reason; no universal FBX or vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit was none until the human later authorized S2C-11.12.1.
+
+### S2C-11.12.1 — Real-blueprint compatibility survey and next-gap classification
+
+**Objective.** Use one or more substantially more complicated real vanilla Large Grid blueprints to measure the practical reach of the qualified pipeline after S2C-11.11.1, and classify remaining identities by evidenced root cause.
+
+**Rationale.** Big Red is fully supported. The next implementation decision, if any, must come from a harder real vanilla ship rather than from an invented gap.
+
+**Prerequisites.** S2C-11.11.1. This unit was inserted by a human-authorized investigation after S2C-11.11.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M11 history, does not start S2C-13.1.1, and does not invent a later implementation unit.
+
+**Affected systems / expected areas.** CAD-neutral survey reporting; ordinary tests of classification; a durable technical report. Prefer existing parse / preflight / resolve paths. Add only the smallest reporting support the survey itself needs.
+
+**Implementation requirements.**
+
+- Do not grant new compatibility support. Do not start Small Grid. Do not expand CubeTopology. Do not add OBJ, subpart/animation/mechanical support, or a bulk catalog expansion.
+- Record blueprint inventory, SHA-256, support coverage, packaged vs runtime, unresolved identities, root causes, rankings, hypothetical cumulative coverage, and a generic-solvability label per cause.
+- Recommend at most one next implementation direction from evidence. Do not create or start that unit.
+
+**Explicit boundaries / out of scope.** Implementing any compatibility gap; Small Grid; CubeTopology expansion; OBJ export; MWM decoding; mod resolution; inventing a later unit.
+
+**Development validation.** Ordinary tests prove classification mappings, Prefab wrap/extract without production-parser support, empty-subtype recording, CubeTopology remaining unresolved, percentage denominators, and no hard-coded survey-ship names in production survey code.
+
+**Quality/security assessment focus.** Accidental support grant; catalog mutation; path escape; unbounded install scan; Small Grid / CubeTopology / OBJ activation; unknown/unsupported conflation; Keen assets entering git.
+
+**External validation.** Operator-local real vanilla blueprint/prefab classification. Live SolidWorks assembly is optional and is not required for QUALIFIED.
+
+**Completion criteria.** The survey/classification is complete and reproducible. No compatibility category was newly activated. QUALIFIED when the durable report and STATE record the evidence. After qualification, next executable unit is none.
 
 ---
 

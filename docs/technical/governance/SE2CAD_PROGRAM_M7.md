@@ -102,6 +102,8 @@ A later 2026-09-10 human-authorized amendment inserted S2C-11.10.1 into M11 afte
 
 A later 2026-09-10 human-authorized amendment inserted S2C-11.11.1 into M11 after S2C-11.10.1 was already QUALIFIED and after the human postponed Small Grid. That unit removes only the blanket 1×1×1 runtime gate so already-eligible Large Grid vanilla TriangleMesh identities can materialize and place through the existing demand-driven path. It does not rewrite original M11 history, does not expand the packaged catalog, does not start Small Grid, CubeTopology expansion, or OBJ export, and does not invent a later unit. STATE records the exception. Small Grid remains postponed until the human later directs it.
 
+A later 2026-09-11 human-authorized amendment inserted S2C-11.12.1 into M11 after S2C-11.11.1 was already QUALIFIED and after the human postponed Small Grid. That unit is a real-blueprint compatibility survey and next-gap classification. It does not rewrite original M11 history, does not grant new compatibility support, does not expand the packaged catalog, does not start Small Grid, CubeTopology expansion, or OBJ export, and does not invent or begin a later implementation unit. STATE records the exception. Small Grid remains postponed until the human later directs it.
+
 ## Qualification model
 
 Status words are defined in [SE2CAD_ENGINEERING_PROCESS.md](SE2CAD_ENGINEERING_PROCESS.md). STATE is the only live status.

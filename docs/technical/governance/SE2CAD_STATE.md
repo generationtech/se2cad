@@ -15,17 +15,17 @@ The nine milestones, in order, are: blueprint statistics; CAD component naming; 
 
 No implementation milestone is ACTIVE. Cold-storage backlog remains outside this program. Do not invent work beyond it.
 
-A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. A later 2026-09-09 human-authorized amendment inserted S2C-10.4.1 into M10 after S2C-12.2.1 was already QUALIFIED and before S2C-13.1.1. That repair does not rewrite original M10 planning. A 2026-09-10 human-authorized amendment inserted S2C-11.6.1 into M11 after S2C-12.2.1 and S2C-10.4.1 were already QUALIFIED, and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.3.1 into M12 after S2C-11.6.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.4.1 into M12 after S2C-12.3.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.7.1 into M11 after S2C-12.4.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.8.1 into M11 after S2C-11.7.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.9.1 into M11 after S2C-11.8.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.10.1 into M11 after S2C-11.9.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.11.1 into M11 after S2C-11.10.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-10.4.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-11.6.1 is QUALIFIED. S2C-11.7.1 is QUALIFIED. S2C-11.8.1 is QUALIFIED. S2C-11.9.1 is QUALIFIED. S2C-11.10.1 is QUALIFIED. S2C-11.11.1 is QUALIFIED. S2C-12.1.1 is QUALIFIED. S2C-12.2.1 is QUALIFIED. S2C-12.3.1 is QUALIFIED. S2C-12.4.1 is QUALIFIED. S2C-13.1.1 remains PLANNED and is postponed. There is no next executable unit until the human later directs one.
+A 2026-09-09 human-authorized amendment inserted S2C-10.3.1 into M10 after S2C-11.1.1 was already QUALIFIED. M11 has started; that history is preserved. A later 2026-09-09 human-authorized amendment inserted S2C-10.4.1 into M10 after S2C-12.2.1 was already QUALIFIED and before S2C-13.1.1. That repair does not rewrite original M10 planning. A 2026-09-10 human-authorized amendment inserted S2C-11.6.1 into M11 after S2C-12.2.1 and S2C-10.4.1 were already QUALIFIED, and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.3.1 into M12 after S2C-11.6.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. A later 2026-09-10 human-authorized amendment inserted S2C-12.4.1 into M12 after S2C-12.3.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M12 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.7.1 into M11 after S2C-12.4.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.8.1 into M11 after S2C-11.7.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.9.1 into M11 after S2C-11.8.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.10.1 into M11 after S2C-11.9.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-10 human-authorized amendment inserted S2C-11.11.1 into M11 after S2C-11.10.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. A later 2026-09-11 human-authorized amendment inserted S2C-11.12.1 into M11 after S2C-11.11.1 was already QUALIFIED and after the human postponed Small Grid. That insertion does not rewrite original M11 history. S2C-11.1.1 remains QUALIFIED. S2C-10.3.1 is QUALIFIED. S2C-10.4.1 is QUALIFIED. S2C-11.2.1 is QUALIFIED. S2C-11.3.1 is QUALIFIED. S2C-11.4.1 is QUALIFIED. S2C-11.5.1 is QUALIFIED. S2C-11.6.1 is QUALIFIED. S2C-11.7.1 is QUALIFIED. S2C-11.8.1 is QUALIFIED. S2C-11.9.1 is QUALIFIED. S2C-11.10.1 is QUALIFIED. S2C-11.11.1 is QUALIFIED. S2C-11.12.1 is QUALIFIED. S2C-12.1.1 is QUALIFIED. S2C-12.2.1 is QUALIFIED. S2C-12.3.1 is QUALIFIED. S2C-12.4.1 is QUALIFIED. S2C-13.1.1 remains PLANNED and is postponed. There is no next executable unit until the human later directs one.
 
 **Historical initial program (complete):** four Large Grid armor subtypes, single grid, SolidWorks assembly via canonical reusable parts. See [SE2CAD_PROGRAM.md](SE2CAD_PROGRAM.md) and [SE2CAD_PLAN.md](SE2CAD_PLAN.md).
 
 The initial program end state is met. The unchanged four-block Large Grid acceptance fixture converts through parser, catalog, canonical IR, qualified geometry recipes, qualified canonical SolidWorks parts, and transform-placed assembly generation to a reopened native `se2cad-test1.SLDASM` whose 24 component identities, IR-derived names, and transforms match the fixture-derived IR. Generated canonical `.SLDPRT` and `.SLDASM` files remain local cache and are not committed.
 
-Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-10.4.1 configurable demand-driven chamfer variants, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression, QUALIFIED S2C-11.6.1 demand-driven qualified base-part materialization, QUALIFIED S2C-12.1.1 conversion preflight, QUALIFIED S2C-12.2.1 strict and permissive unknown-block conversion, QUALIFIED S2C-12.3.1 vanilla object-builder parser compatibility, QUALIFIED S2C-12.4.1 safe assembly filename derivation, and QUALIFIED S2C-11.7.1 single-identity SDK-FBX materialization of `LargeBlockSmallHydrogenThrust`, QUALIFIED S2C-11.8.1 demand-driven vanilla TriangleMesh resolution for eligible Large Grid 1×1×1 blocks, QUALIFIED S2C-11.9.1 ASCII SDK-FBX conversion support for those already-eligible identities, QUALIFIED S2C-11.10.1 CAD-neutral multi-cell placement metadata and occupancy-center transform foundation, and QUALIFIED S2C-11.11.1 demand-driven Large Grid multi-cell TriangleMesh materialization and occupancy-center placement. Eligible Large Grid vanilla TriangleMesh identities whose definition Size is larger than 1×1×1 may resolve, materialize, and place through the existing demand-driven path; that is not universal vanilla or universal FBX support. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M13 units through M15 are approved, not implemented. S2C-13.1.1 is postponed.
+Public capability text in [README.md](../../../README.md) matches the qualified initial capability plus QUALIFIED S2C-7.1.1 blueprint statistics, QUALIFIED S2C-8.1.1 component names, QUALIFIED S2C-9.1.1 CAD-neutral `ColorMaskHSV` appearance, QUALIFIED S2C-9.2.1 per-instance SolidWorks component appearance, QUALIFIED S2C-10.1.1 optional block-edge treatment contract, QUALIFIED S2C-10.2.1 optional treated canonical parts, QUALIFIED S2C-10.3.1 explicit treated-part assembly selection, QUALIFIED S2C-10.4.1 configurable demand-driven chamfer variants, QUALIFIED S2C-11.1.1 operator-local definition discovery, QUALIFIED S2C-11.2.1 catalog identity expansion, QUALIFIED S2C-11.3.1 geometry provenance and recipe selection, QUALIFIED S2C-11.4.1 automated generation of the representative heavy-armor subset, QUALIFIED S2C-11.5.1 leftover/long-tail exception workflow and expansion regression, QUALIFIED S2C-11.6.1 demand-driven qualified base-part materialization, QUALIFIED S2C-12.1.1 conversion preflight, QUALIFIED S2C-12.2.1 strict and permissive unknown-block conversion, QUALIFIED S2C-12.3.1 vanilla object-builder parser compatibility, QUALIFIED S2C-12.4.1 safe assembly filename derivation, and QUALIFIED S2C-11.7.1 single-identity SDK-FBX materialization of `LargeBlockSmallHydrogenThrust`, QUALIFIED S2C-11.8.1 demand-driven vanilla TriangleMesh resolution for eligible Large Grid 1×1×1 blocks, QUALIFIED S2C-11.9.1 ASCII SDK-FBX conversion support for those already-eligible identities, QUALIFIED S2C-11.10.1 CAD-neutral multi-cell placement metadata and occupancy-center transform foundation, and QUALIFIED S2C-11.11.1 demand-driven Large Grid multi-cell TriangleMesh materialization and occupancy-center placement, and QUALIFIED S2C-11.12.1 real-blueprint compatibility survey and next-gap classification. Eligible Large Grid vanilla TriangleMesh identities whose definition Size is larger than 1×1×1 may resolve, materialize, and place through the existing demand-driven path; that is not universal vanilla or universal FBX support. S2C-11.12.1 did not activate any additional compatibility category. Generated parts and assemblies remain local cache; live SolidWorks 2026 end-to-end qualification of the acceptance fixture is recorded only here. STATE does not claim universal vanilla support. Remaining later M13 units through M15 are approved, not implemented. S2C-13.1.1 is postponed.
 
 ## Next executable unit
 
-None. S2C-11.11.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLANNED and is postponed by explicit human authorization. Do not start it unless the human later directs that. Do not invent a later support-enablement unit, general SDK-mesh support, SolidWorks Small Grid part generation, CubeTopology expansion, a whole vanilla catalog, OBJ export, multi-grid, symmetry, print-shell, or later units. Universal vanilla blueprint compatibility is not claimed. Universal FBX support is not claimed.
+None. S2C-11.12.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLANNED and is postponed by explicit human authorization. Do not start it unless the human later directs that. Do not invent a later support-enablement unit, CubeTopology expansion, general SDK-mesh support, SolidWorks Small Grid part generation, a whole vanilla catalog, OBJ export, multi-grid, symmetry, print-shell, or later units. The S2C-11.12.1 recommendation is evidence only; it is not an authorized next unit. Universal vanilla blueprint compatibility is not claimed. Universal FBX support is not claimed.
 
 ## Unit status
 
@@ -67,6 +67,7 @@ None. S2C-11.11.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLAN
 | S2C-11.9.1 | QUALIFIED | ASCII SDK-FBX conversion for already-eligible Large Grid 1×1×1 TriangleMesh. Ordinary suite 577 tests, 11 skipped, OK excluding untracked Small Grid WIP. Live SW 2026 `RevisionNumber` 34.3.2: synthetic armor+thrust+2×Conveyor+Gyro generate-then-reuse; Big Red permissive 136/126/10 with Conveyor×9 and Gyro×2 now real parts. Distinct assessment [below](#qualitysecurity-assessment-s2c-1191). |
 | S2C-11.10.1 | QUALIFIED | CAD-neutral Size/ModelOffset placement metadata and occupancy-center transform. Ordinary suite 627 tests, 12 skipped, OK excluding untracked Small Grid WIP. Acceptance 1×1×1 transforms unchanged. Multi-cell identities remain runtime-ineligible. Big Red read-only 136/126/10/0/10; expected future translations recorded under gitignored `tmp/generated/s2c-11.10.1/`. No multi-cell CAD generated. Distinct assessment [below](#qualitysecurity-assessment-s2c-11101). |
 | S2C-11.11.1 | QUALIFIED | Demand-driven Large Grid multi-cell TriangleMesh materialization and occupancy-center placement. Ordinary suite 649 tests, 12 skipped, OK excluding untracked Small Grid WIP. Big Red permissive 136/136/0/0/0; existing 126 components unchanged; ten formerly-filler instances use qualified occupancy-center poses and five reusable official-SDK SLDPRTs. Packaged catalog still 9 entries. Distinct assessment [below](#qualitysecurity-assessment-s2c-11111). |
+| S2C-11.12.1 | QUALIFIED | Real-blueprint compatibility survey of official Prefab `Eco_Ship_RST6Salvador` (SHA-256 `2f8b6bce30d9919d4ede9c83bd611200f3b41877150a01df87a6a2618d00f834`): 1,237 blocks / 183 identities; supported 725 (58.61%; packaged 219 / runtime 506); unknown unresolved 512 (41.39%); unsupported known 0. Dominant cause `CUBETOPOLOGY_NOT_SUPPORTED` 493 / 19 (96.29% of unresolved). Ordinary suite 662 tests, 12 skipped, OK excluding untracked Small Grid WIP. Big Red remains 136/136/0/0/0. No compatibility category newly activated. Packaged catalog still 9 entries. Distinct assessment [below](#qualitysecurity-assessment-s2c-11121). |
 | S2C-12.1.1 | QUALIFIED | CAD-neutral `se2cad.preflight` exists; fixture 24 blocks are `all_supported`; unknown, catalog-unsupported, mixed documents, and independent geometry/appearance flags covered; ordinary suite 404 tests, 6 skipped, OK. External validation was not required. Distinct assessment recorded below. |
 | S2C-12.2.1 | QUALIFIED | CAD-neutral `se2cad.policy` exists; strict refuses unknown/unsupported with preflight diagnostics; permissive emits N IR instances with designated filler `se2cad_unknown_filler`; ordinary suite 428 tests, 7 skipped, OK. Live SW 2026 `RevisionNumber` 34.3.2: two-component permissive `se2cad-filler-probe.SLDASM` save/reopen used distinct `se2cad_unknown_filler.SLDPRT` at the IR pose. Distinct assessment [below](#qualitysecurity-assessment-s2c-1221). |
 | S2C-12.3.1 | QUALIFIED | Parser accepts `CubeBlocks` items serialized as `MyObjectBuilder_CubeBlock` with a well-formed `MyObjectBuilder_*` `xsi:type`. Ordinary suite 502 tests, 10 skipped, OK. Big Red (136 blocks, 15 builder types) parses and preflights: supported 65 / unknown 71. Permissive policy emits 136 IR instances and 71 fillers. Live assemble of Big Red reached materialization then `AssemblyIdentityError` for identity `'Big Red'`. Live SW 2026 `RevisionNumber` 34.3.2 completed synthetic Thrust+armor `se2cad-ob-probe.SLDASM`. Distinct assessment [below](#qualitysecurity-assessment-s2c-1231). |
@@ -81,6 +82,68 @@ None. S2C-11.11.1 is QUALIFIED. S2C-13.1.1 Small Grid semantic path remains PLAN
 | S2C-15.4.1 | PLANNED | |
 
 ## Session history
+
+### 2026-09-11 — S2C-11.12.1 QUALIFIED
+
+Human-authorized real-blueprint compatibility survey and next-gap classification after S2C-11.11.1 was QUALIFIED and after the human postponed Small Grid. Did not start S2C-13.1.1. Did not grant new compatibility support. Did not start Small Grid. Did not expand CubeTopology. Did not add OBJ export, subpart/animation/mechanical support, MWM decoding, mod resolution, or a bulk catalog expansion. Did not invent or begin a later implementation unit. Did not commit, tag, or push. Did not commit Keen assets or generated CAD.
+
+Qualification means the survey/classification is complete and reproducible. It does not mean additional block categories became supported.
+
+Operator `C:\SE-blueprints` still contains only Big Red. Bounded inventory of official Prefabs already present under the configured game-content tree (`Data/Prefabs/CargoShips` and `Data/Prefabs/Economy/Sales` Eco_Ship_* only; no workshop scrape) found 34 single-grid Large Grid ships larger than Big Red. Primary survey document is official Prefab `Eco_Ship_RST6Salvador` (RST-6 Salvador).
+
+| Field | Value |
+| --- | --- |
+| Source | `C:\SE2CAD-SE\Game\Content\Data\Prefabs\Economy\Sales\Eco_Ship_RST6Salvador.sbc` |
+| Kind | Official Keen Prefab (not ShipBlueprint) |
+| SHA-256 | `2f8b6bce30d9919d4ede9c83bd611200f3b41877150a01df87a6a2618d00f834` |
+| Bytes | 742,549 |
+| Grids | 1 Large; 0 mechanical groups; no Small Grid; no docked construct; no evidenced modded identities |
+| Blocks | 1,237 |
+| Structural unique SubtypeIds | 181 |
+| Survey unique identities | 183 |
+| Cell extents (Min span) | x[-6..18] y[-6..5] z[-9..9] |
+| Dimensions mm | 62,500 × 30,000 × 47,500 |
+| Supported | 725 instances / 157 identities (58.61%) |
+| Packaged | 219 / 4 (`LargeBlockArmorBlock` 194, `LargeHeavyBlockArmorBlock` 11, `LargeBlockArmorSlope` 4, `LargeBlockSmallHydrogenThrust` 10) |
+| Runtime vanilla | 506 / 153 (15 multi-cell; 0 definition-level Subparts among supported) |
+| Unsupported known | 0 / 0 |
+| Unknown unresolved | 512 / 26 (41.39%) |
+
+Root causes (unresolved only):
+
+| Cause | Instances | Unique | % blocks | % unresolved |
+| --- | ---: | ---: | ---: | ---: |
+| `CUBETOPOLOGY_NOT_SUPPORTED` | 493 | 19 | 39.85 | 96.29 |
+| `DEFINITION_PARSE_UNSUPPORTED` | 16 | 4 | 1.29 | 3.12 |
+| `EMPTY_SUBTYPE_OBJECT_BUILDER_DEFAULT` | 3 | 3 | 0.24 | 0.59 |
+
+Did not appear: Small Grid, Subparts, multi-model, missing model, MWM-only, missing/ambiguous FBX, unsupported FBX format, modded, pathological Size.
+
+Hypothetical classification coverage only: 58.61% now; 98.46% after CubeTopology; 99.76% after parse; 100% after empty-subtype. Those causes were not implemented.
+
+Production parser still accepts ShipBlueprint only. Survey wrap of a single Large Grid Prefab is intake-only. Salvador production parse of the wrap fails closed on empty `SubtypeName` at `CubeBlocks[297]`; survey extract records the three empty-subtype defaults distinctly and does not invent SubtypeIds.
+
+Big Red contrast (same pipeline): SHA-256 `420a671374666725e88ee117e1dac668fc1ee455081c0ac90ba6ce4ff122b895`; preflight 136 / supported 136 / unknown 0 / unsupported 0 / fillers 0. Survey classification packaged 81 / runtime 55 / unknown 0.
+
+Optional Salvador SolidWorks assembly was not run (1,237 blocks / 512 unresolved would not classify additional identities).
+
+Recommended next decision if the human later authorizes exactly one implementation unit: CubeTopology native constructions, starting with leftover `Slope2Base` / `Slope2Tip` and other planar Sides-driven tokens; distinguish RoundSlope / RoundCorner as needing broader curved primitives. That unit is not created and is not started. Next executable unit remains none.
+
+Durable report: [S2C-11.12.1_REAL_BLUEPRINT_COMPATIBILITY.md](../surveys/S2C-11.12.1_REAL_BLUEPRINT_COMPATIBILITY.md). Survey package `se2cad.survey` is classification/reporting only. Ordinary verification excluding untracked Small Grid WIP, with `SE2CAD_GAME_ROOT` / `SE2CAD_SDK_ROOT` unset: `.\.venv\Scripts\python.exe` suite 662 tests, 12 skipped, OK.
+
+| Check | Result |
+| --- | --- |
+| Packaged catalog | 9 entries unchanged |
+| Leftover set | unchanged; `Slope2Base` remains residual automatable |
+| CubeTopology / Small Grid / OBJ | unchanged / postponed / not introduced |
+| Transient runtime records | in-process only; not persisted |
+| Big Red preflight | 136 / supported 136 / unknown 0 / unsupported 0 / `all_supported=true` |
+| Big Red permissive policy | 136 IR; `filler_count=0` |
+| Ordinary suite | 662 tests, 12 skipped, OK (env unset; Small Grid WIP excluded) |
+| Keen assets / generated CAD committed | none |
+| Commit / tag / push / deploy | none |
+
+Distinct assessment [below](#qualitysecurity-assessment-s2c-11121).
 
 ### 2026-09-11 — S2C-11.11.1 QUALIFIED
 
@@ -1199,6 +1262,34 @@ Host: Windows 11 VM. Python 3.14.7 x64. pywin32 312. SolidWorks `RevisionNumber`
 | `InsertProtrusionBlend2` | 18-arg call is accepted; with two 3D sketches still returns None |
 | Generated artifacts (gitignored `generated/`) | After QUALIFIED rerun: `large_armor_block.SLDPRT` (58873), `large_armor_slope.SLDPRT` (60010), `large_armor_corner.SLDPRT` (69962), `large_armor_corner_inv.SLDPRT` (75675) |
 | Library `part_locator` | still `None` on all four records |
+
+## Quality/security assessment (S2C-11.12.1)
+
+Hypotheses tested after survey classification, ordinary suite, Big Red preflight regression, catalog/leftover inspection, and documentation existed. Outcomes:
+
+| Hypothesis | Outcome |
+| --- | --- |
+| Survey grants runtime support | Disproven. `se2cad.survey` classifies existing `resolve_vanilla_geometry` outcomes. CubeTopology, empty-subtype, and parse-unsupported identities remain `UNKNOWN_UNRESOLVED`. Ordinary tests assert CubeTopology does not become supported and `support_granted=false`. |
+| Packaged catalog mutates | Disproven. `large_grid_armor.json` still has 9 entries. Leftover set still records `Slope2Base` as residual automatable. No catalog JSON change. |
+| Transient records persist | Disproven. Survey does not write catalog or leftover JSON. Runtime binds remain the existing in-process resolver cache. |
+| Scanning outside configured roots | Disproven. Definition lookup uses existing targeted subtype lookup under `try_load_game_content_root`. SDK probes stay under `try_load_sdk_root` with `relative_to` containment. Inventory was two bounded Prefab folders, not a whole-install scrape. |
+| Path traversal / unsafe XML | Disproven. Survey intake rejects doctype/entity/xinclude. Extra-definition reads resolve then `relative_to` the configured game root. |
+| Unbounded memory / whole-install scan | Disproven. Classification is one operator-selected document plus one targeted lookup per unique SubtypeId. |
+| Small Grid / CubeTopology / OBJ activated | Disproven. Eligibility still requires Large + TriangleMesh. CubeTopology remains unresolved. No OBJ path was added. S2C-13.1.1 stays postponed. |
+| Modded identities treated as vanilla | Disproven. Missing exact vanilla definition maps to `MODDED_OR_NONVANILLA`. Salvador had none. |
+| Unknown conflated with unsupported | Disproven. Packaged `unsupported` is `UNSUPPORTED_KNOWN`; resolver miss is `UNKNOWN_UNRESOLVED`. Salvador unsupported known is 0. |
+| Percentages use the wrong denominator | Disproven. Ordinary test asserts block-count and unresolved-instance denominators. Salvador 725/1237=58.61; 493/512=96.29. |
+| Instance vs unique counts confused | Disproven. Report and STATE tables keep both. CubeTopology is 493 instances / 19 identities. |
+| Survey-ship names hard-coded in production | Disproven. Ordinary test forbids `RST6Salvador` / `Big Red` / `bigred` in `src/se2cad/survey`. |
+| Prefab wrap becomes production parse support | Disproven. Production parser still requires ShipBlueprint. Wrap is survey-only and recorded in warnings. |
+| Empty SubtypeName invents a default identity | Disproven. Survey records `(empty SubtypeName)/MyObjectBuilder_*` as unresolved. Production parser still fails closed. |
+| Big Red support semantics changed | Disproven. Final preflight remains 136 / 136 / 0 / 0 / 0. |
+| Keen assets or generated CAD enter git | Disproven. Machine output is under gitignored `tmp/`. Durable report contains subtype names and paths only. |
+| Stale operator env affects ordinary tests | Verified as pre-existing isolation: discovery tests scan a configured SDK root when `SE2CAD_SDK_ROOT` is set. Ordinary suite for this unit was run with those variables unset. Not a survey support grant. |
+
+Accepted residual risks: Salvador extents are Min-cell span, not Size occupancy, because production parse of the wrap fails on empty `SubtypeName`. Prefab wrap is not production Prefab support. No second ship was fully classified; Salvador’s top cause is 96.29% of unresolved, so another ship would not change the recommendation. No Salvador SolidWorks assembly was run. Hypothetical coverage assumes every instance of a solved cause would become a correct CAD solid; Round* tokens may need more than a planar cut. Untracked `tests/test_small_grid.py` remains out of scope.
+
+Not claimed: CubeTopology support; Small Grid; OBJ; MWM decoding; subpart/animation/mechanical assembly; Prefab as a production document type; that derived CAD is redistributable; that the recommended CubeTopology direction is an authorized next unit.
 
 ## Quality/security assessment (S2C-11.11.1)
 

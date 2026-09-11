@@ -362,7 +362,9 @@ vanilla definition. Official SDK model origin is preserved. Imported
 SDK meshes remain `chamfer_capable=false`. That is not general FBX,
 CubeTopology, Small Grid, OBJ, or universal vanilla support. Runtime
 resolution remains demand-driven and transient. The packaged catalog
-stays intentionally small.
+stays intentionally small. S2C-11.12.1 surveyed a harder official
+vanilla Large Grid ship without activating CubeTopology, Small Grid,
+OBJ, or additional packaged identities.
 
 CAD-neutral **conversion policy** then applies an explicit strict or
 permissive decision. Strict is the default: unknown or unsupported
