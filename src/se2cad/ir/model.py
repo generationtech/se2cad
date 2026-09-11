@@ -24,7 +24,12 @@ from se2cad.transform.translation import MillimetrePosition
 
 @dataclass(frozen=True)
 class CanonicalBlock:
-    """One catalog-resolved block with an exact canonical placement."""
+    """One catalog-resolved block with an exact canonical placement.
+
+    Size, occupied Max, ModelOffset, and definition Center are not IR
+    fields. Placement math lives in the transform engine; this record
+    stores the resulting ``(R, t)``.
+    """
 
     subtype_id: str
     geometry_id: str

@@ -105,7 +105,7 @@ All four solids have the same expected bounding box as the cell envelope. That d
 
 Deterministic validation properties stored on each recipe: vertex count, face count, outward-wound `volume_times_6_mm3`, and the exact integer bounding box. Faces are sufficient for later solid construction together with the construction kind.
 
-Placement semantics for these 1×1×1 parts: insert at the cell center with no additional offset. The IR transform is the only placement.
+Placement semantics for these 1×1×1 parts: insert at the cell center with no additional offset. The IR transform is the only placement. When STATE records S2C-11.10.1, that 1×1×1 result is the occupancy-center special case of the generalized Size/ModelOffset formula; multi-cell runtime materialization is still out of scope.
 
 ## Designated unknown-block filler
 

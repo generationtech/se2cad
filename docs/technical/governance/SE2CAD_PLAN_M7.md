@@ -551,7 +551,36 @@ This milestone is expected to need more units than the others. It does not requi
 
 **External validation.** Live SolidWorks: synthetic armor+binary-mesh+Conveyor+Gyro generate then reuse; Big Red permissive assemble under a gitignored generated root. Required for QUALIFIED.
 
-**Completion criteria.** Official ASCII FBX for already-eligible 1×1×1 TriangleMesh becomes a real cached part; remaining identities stay unresolved for an exact recorded reason; no universal FBX or vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit is none.
+**Completion criteria.** Official ASCII FBX for already-eligible 1×1×1 TriangleMesh becomes a real cached part; remaining identities stay unresolved for an exact recorded reason; no universal FBX or vanilla claim; DEV-COMPLETE from ordinary tests; QUALIFIED after live evidence in STATE. After qualification, next executable unit was none until the human later authorized S2C-11.10.1.
+
+### S2C-11.10.1 — Multi-cell placement metadata and CAD-neutral transform foundation
+
+**Objective.** Represent Size and ModelOffset as CAD-neutral placement metadata and compute occupied Min/Max plus occupancy-center translation for arbitrary block Size, without enabling multi-cell runtime support.
+
+**Rationale.** After S2C-11.9.1, Big Red’s remaining fillers are only multi-cell identities. A read-only investigation established Keen’s generic occupied-Max and occupancy-center placement rule. This unit qualifies that math independently so a later authorized unit can consume it. It does not grant support.
+
+**Prerequisites.** S2C-11.9.1. This unit was inserted by a human-authorized amendment after S2C-11.9.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M11 history, does not start S2C-13.1.1, and does not invent a later resolver or materialization unit.
+
+**Affected systems / expected areas.** CAD-neutral transform engine; IR construction inputs; policy/preflight consumers of `canonical_block_from_parsed`; ordinary tests. No packaged-catalog change. No SolidWorks live generation.
+
+**Implementation requirements.**
+
+- Supply Size and ModelOffset as an immutable placement value object to IR construction. Keep `ParsedBlock` blueprint-only. Do not bind `CanonicalBlock` to the vanilla resolver.
+- `Min` is the occupied AABB minimum. Size is local Right/Up/Back before orientation. `Max = Min + abs(R · (Size − 1))` with componentwise abs after rotation.
+- Translation is occupancy-center times pitch plus one rotated ModelOffset, converted from Keen metres to millimetres. Definition `Center` is not CAD translation.
+- 1×1×1 plus zero ModelOffset must reproduce the qualified cell-center transform exactly.
+- Existing packaged/library 1×1×1 identities continue to work without a game-content root. Do not globally assume unknown blocks are 1×1×1.
+- Reject invalid Size at the transform boundary. Invalid orientations continue to fail closed.
+
+**Explicit boundaries / out of scope.** Multi-cell runtime support; relaxing the S2C-11.8.1 1×1×1 eligibility gate; generating multi-cell SolidWorks parts; changing the packaged catalog; Small Grid; CubeTopology expansion; subtype-specific placement hacks; raising the imported-mesh envelope limit; inventing the subsequent resolver/materialization unit.
+
+**Development validation.** Ordinary tests cover 1×1×1 exact regression including the acceptance fixture; all 24 orientations; multiple Size shapes including Big Red reference vectors; half-cell and integer occupancy centers; ModelOffset rotation/units/once-only; Center ignored; invalid Size; unchanged vanilla multi-cell unresolved status; unchanged Big Red 126/10/0/10 when that fixture and roots are available; install-free packaged armor; no SolidWorks types in transform/IR.
+
+**Quality/security assessment focus.** Size axis swap; signed rotation before abs; half-cell truncation; Center used in translation; ModelOffset axes/units/double application; game-content leaking into the transform engine; accidental multi-cell support; unknown blocks silently assigned Size=1; acceptance-transform change; determinant regression; subtype-specific hacks.
+
+**External validation.** None. This is a CAD-neutral integer-grid foundation. A SolidWorks live run is not required.
+
+**Completion criteria.** Generalized placement math is implemented and qualified; current 1×1×1 transforms are unchanged; multi-cell identities remain runtime-ineligible; no multi-cell CAD parts were generated; no resolver eligibility was broadened; no Small Grid work occurred. After qualification, next executable unit is none.
 
 ---
 

@@ -128,7 +128,7 @@ When STATE records S2C-11.1.1, library-build discovery may read an operator-loca
 
 Coordinate and orientation transformation is an independent subsystem. It finishes before the SolidWorks backend is invoked.
 
-Public entrypoints: `se2cad.transform.rotation_from_forward_up`, `se2cad.transform.cell_center_mm`, and `se2cad.ir.build_canonical_blueprint`.
+Public entrypoints: `se2cad.transform.rotation_from_forward_up`, `se2cad.transform.cell_center_mm`, `se2cad.transform.occupied_max`, `se2cad.transform.placement_translation_mm`, and `se2cad.ir.build_canonical_blueprint`. When STATE records S2C-11.10.1, Size and ModelOffset are supplied as CAD-neutral `BlockPlacementDefinition` inputs; the transform engine does not look up game content.
 
 Large Grid cell pitch is 2500 mm, from the single catalog/dimensional constant `LARGE_GRID_CELL_PITCH_MM`. Do not copy the literal through converter code.
 
@@ -169,9 +169,25 @@ Units are millimetres. Grid/world +X/+Y/+Z are the Space Engineers axes above.
 
 Keen `GridIntegerToWorld` multiplies the integer cell by grid pitch and applies the grid world matrix, with no half-cell add. `WorldToGridInteger` is `Round(local / GridSize)`. Current local `Sandbox.Game.dll` still exports `GridIntegerToWorld`, `WorldToGridInteger`, `GridSizeHalf`, and `GridSizeHalfVector`. Published AABB construction is `[Min * GridSize − GridSizeHalf, Max * GridSize + GridSizeHalf]`.
 
-Therefore a 1×1×1 block at `Min = (i, j, k)` is **centered** at `(i, j, k) * LARGE_GRID_CELL_PITCH_MM`. `Min = (0, 0, 0)` is centered at the canonical origin. Signs are preserved: negative Z remains negative.
+`Min` is the axis-aligned minimum occupied grid cell. It is not the geometric center, the block-local origin cell, the definition `Center`, or the in-game rotation pivot.
 
-For these 1×1×1 CubeTopology blocks, occupancy is a single cell. Orientation does not change the Min-cell anchor; it only rotates the local frame about that center. Multi-cell occupancy is not generalized here.
+Size is local Right/Up/Back cell occupancy **before** orientation. Occupied Max is the integer mapping
+
+    Max = Min + abs(R · (Size − 1))
+
+with the componentwise absolute value applied after rotating the local `Size − 1` vector into grid axes. `R` is the qualified orthonormal signed-permutation rotation.
+
+CAD translation is the occupancy-center plus one rotated Keen `ModelOffset`:
+
+    t = ((Min + Max) / 2) * pitch_mm + R · ModelOffset_mm
+
+Half-cell occupancy centers are kept exact. Large Grid pitch is `LARGE_GRID_CELL_PITCH_MM` (2500 mm), so a half-cell remains an integer millimetre. Keen `ModelOffset` is metres in the local Right/Up/Back frame (`TransformNormal`); SE2CAD converts with `MILLIMETRES_PER_METRE` (1000). ModelOffset is not scaled by Size and is applied once.
+
+Definition `Center` is pivot/reference metadata. It is not a CAD translation input.
+
+Therefore a 1×1×1 block (`Size − 1 = (0,0,0)`, `Max = Min`) at `Min = (i, j, k)` with zero ModelOffset is **centered** at `(i, j, k) * LARGE_GRID_CELL_PITCH_MM`. That is exactly the qualified S2C-3.1.1 result. `Min = (0, 0, 0)` is centered at the canonical origin. Signs are preserved: negative Z remains negative. Orientation does not change that 1×1×1 anchor; it only rotates the local frame about that center.
+
+When STATE records S2C-11.10.1, this occupancy-center formula is implemented and tested for arbitrary Size. Multi-cell runtime support remains disabled: the S2C-11.8.1 1×1×1 eligibility gate is unchanged, and unresolved multi-cell identities still receive the designated 1×1×1 filler at `Min` under permissive policy. Big Red is not filler-free.
 
 ### Matrix / vector convention
 

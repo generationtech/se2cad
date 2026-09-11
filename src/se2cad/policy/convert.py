@@ -8,7 +8,7 @@ from typing import Optional
 from se2cad.catalog import DefinitionCatalog, UnknownSubtypeError, load_default_catalog
 from se2cad.catalog.constants import FILLER_GEOMETRY_ID
 from se2cad.catalog.model import RecipeKind, SupportStatus
-from se2cad.ir.convert import canonical_block_from_parsed
+from se2cad.ir.convert import canonical_block_from_parsed, placement_for_resolved_block
 from se2cad.ir.model import CanonicalBlueprint, CanonicalGrid
 from se2cad.parser import parse_blueprint, parse_blueprint_xml
 from se2cad.parser.model import ParsedBlueprint
@@ -113,6 +113,12 @@ def _convert_with_preflight(
                 recipe_kind=recipe_kind,
                 support_status=support_status,
                 pitch_mm=pitch_mm,
+                placement=placement_for_resolved_block(
+                    parsed_block.subtype_id,
+                    catalog,
+                    catalog_supported=diagnosis.catalog_outcome
+                    is CatalogOutcome.SUPPORTED,
+                ),
             )
         )
     return CanonicalBlueprint(

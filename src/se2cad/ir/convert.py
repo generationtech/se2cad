@@ -2,11 +2,47 @@
 
 from __future__ import annotations
 
-from se2cad.catalog.model import DefinitionCatalog, RecipeKind, SupportStatus
+from se2cad.catalog.errors import UnknownSubtypeError
+from se2cad.catalog.model import CatalogEntry, DefinitionCatalog, RecipeKind, SupportStatus
 from se2cad.ir.model import CanonicalBlock, CanonicalBlueprint, CanonicalGrid
 from se2cad.parser.model import ParsedBlock, ParsedBlueprint
+from se2cad.transform.placement import (
+    QUALIFIED_ONE_BY_ONE_PLACEMENT,
+    BlockPlacementDefinition,
+    placement_from_cell_size,
+    placement_translation_mm,
+)
 from se2cad.transform.rotation import rotation_from_forward_up
-from se2cad.transform.translation import cell_center_mm
+
+
+def placement_for_resolved_block(
+    subtype_id: str,
+    catalog: DefinitionCatalog,
+    *,
+    catalog_supported: bool,
+) -> BlockPlacementDefinition:
+    """Choose placement metadata without granting new support.
+
+    Packaged catalog hits use observed Size and the established zero
+    ModelOffset. Runtime-supported vanilla identities remain 1×1×1 by
+    the S2C-11.8.1 eligibility gate. Unresolved blocks receive the
+    designated 1×1×1 filler placement contract, not a guessed Size.
+    """
+    if catalog_supported:
+        try:
+            return placement_from_catalog_entry(catalog.lookup(subtype_id))
+        except UnknownSubtypeError:
+            return QUALIFIED_ONE_BY_ONE_PLACEMENT
+    return QUALIFIED_ONE_BY_ONE_PLACEMENT
+
+
+def placement_from_catalog_entry(entry: CatalogEntry) -> BlockPlacementDefinition:
+    """Use packaged observed Size and the established zero ModelOffset.
+
+    Packaged identities have no ModelOffset field. The qualified
+    library/catalog contract for those identities is zero offset.
+    """
+    return placement_from_cell_size(entry.observed.size)
 
 
 def canonical_block_from_parsed(
@@ -16,8 +52,15 @@ def canonical_block_from_parsed(
     recipe_kind: RecipeKind,
     support_status: SupportStatus,
     pitch_mm: int,
+    placement: BlockPlacementDefinition,
 ) -> CanonicalBlock:
-    """Place one parsed block. Pose uses Min, Forward, and Up only."""
+    """Place one parsed block from blueprint facts plus placement metadata.
+
+    ``ParsedBlock`` stays blueprint-only. Size and ModelOffset come from
+    ``placement``. Definition Center is not an IR or translation input.
+    CanonicalBlock retains the resulting ``(R, t)`` only.
+    """
+    rotation = rotation_from_forward_up(parsed_block.forward, parsed_block.up)
     return CanonicalBlock(
         subtype_id=parsed_block.subtype_id,
         geometry_id=geometry_id,
@@ -31,8 +74,10 @@ def canonical_block_from_parsed(
         color_mask_hsv=parsed_block.color_mask_hsv,
         color_serialized=parsed_block.color_serialized,
         appearance_support=parsed_block.appearance_support,
-        position_mm=cell_center_mm(parsed_block.min, pitch_mm),
-        rotation=rotation_from_forward_up(parsed_block.forward, parsed_block.up),
+        position_mm=placement_translation_mm(
+            parsed_block.min, placement, rotation, pitch_mm
+        ),
+        rotation=rotation,
         source_index=parsed_block.source_index,
         source=parsed_block.source,
     )
@@ -54,6 +99,7 @@ def build_canonical_blueprint(
                 recipe_kind=entry.recipe_kind,
                 support_status=entry.support_status,
                 pitch_mm=pitch_mm,
+                placement=placement_from_catalog_entry(entry),
             )
         )
     return CanonicalBlueprint(

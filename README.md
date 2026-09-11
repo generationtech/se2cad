@@ -271,7 +271,11 @@ generate and survive save/close/reopen; the native `.SLDASM` contains
 exactly 24 components; all 24 reopened SolidWorks transforms match the
 IR-derived transforms; and all 24 reopened component short names match
 the IR-derived names. Large Grid placement uses the established 2.5 m
-pitch with no half-cell offset, and no placement mates are required.
+pitch. Qualified 1×1×1 conversion still places each block at its `Min`
+cell center with no half-cell offset. The CAD-neutral transform engine
+can also compute occupancy-center translation for arbitrary Size;
+multi-cell identities remain runtime-ineligible. No placement mates are
+required.
 
 Qualification was performed with SolidWorks 2026 on Windows.
 
@@ -355,6 +359,8 @@ configures a game-content root and the official SDK FBX exists as a
 usable binary file or as a valid official ASCII FBX that the bounded
 conversion path can normalize. That is not general FBX, thruster,
 multi-cell, CubeTopology, Small Grid, or universal vanilla support.
+CAD-neutral occupancy-center placement math exists for arbitrary Size;
+it does not make those blocks supported conversion.
 
 CAD-neutral **conversion policy** then applies an explicit strict or
 permissive decision. Strict is the default: unknown or unsupported

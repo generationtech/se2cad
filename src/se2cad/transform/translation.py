@@ -1,4 +1,10 @@
-"""Integer grid-cell to millimetre translation for 1×1×1 Large Grid blocks."""
+"""Integer grid-cell to millimetre translation.
+
+``cell_center_mm`` remains the qualified 1×1×1 Min-cell mapping.
+Multi-cell occupancy-center translation lives in
+``se2cad.transform.placement`` and is exactly this function when
+Size is 1×1×1 and ModelOffset is zero.
+"""
 
 from __future__ import annotations
 
