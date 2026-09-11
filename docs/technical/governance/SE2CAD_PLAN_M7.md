@@ -665,7 +665,35 @@ This milestone is expected to need more units than the others. It does not requi
 
 **External validation.** Operator-local vanilla definitions and live SolidWorks 2026 part/fixture generation. Full Salvador assembly is optional if preflight gain is substantial and runtime is reasonable.
 
-**Completion criteria.** A small reusable construction vocabulary plus evidence-backed identity mappings plus a measurable Salvador coverage gain. QUALIFIED when STATE records the evidence. After qualification, next executable unit is none.
+**Completion criteria.** A small reusable construction vocabulary plus evidence-backed identity mappings plus a measurable Salvador coverage gain. QUALIFIED when STATE records the evidence. After qualification, next executable unit was none until the human later authorized S2C-11.14.1.
+
+### S2C-11.14.1 — Remaining planar CubeTopology geometry reconstruction study
+
+**Objective.** Determine, from actual Space Engineers definition/source evidence and independent geometric validation, the exact reusable CAD constructions needed for the remaining Salvador non-curved CubeTopology identities left unresolved after S2C-11.13.1. Do not add support.
+
+**Rationale.** S2C-11.13.1 qualified Slope2Base, Slope2Tip, and HalfBox. 115 remaining planar CubeTopology instances / 13 identities still lack constructions. A later implementation unit must not guess those solids from subtype names.
+
+**Prerequisites.** S2C-11.13.1. This unit was inserted by a human-authorized investigation after S2C-11.13.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M11 history, does not start S2C-13.1.1, and does not invent or begin a later implementation unit.
+
+**Affected systems / expected areas.** Durable technical report; STATE/PLAN/PROGRAM amendment text; optional gitignored analysis harness. Prefer existing parse / leftover / catalog / library read paths. Do not mutate production CubeTopology support.
+
+**Implementation requirements.**
+
+- Inspect remaining Salvador non-curved CubeTopology identities from local definitions first.
+- Use definition/source evidence for intended semantics; use mesh only as validation.
+- Classify each identity as implementation-ready or not. Only PROVEN families count as solved.
+- Do not grant runtime support. Do not implement RoundSlope or RoundCorner. Do not start Small Grid. Do not add OBJ or generic subpart/animation support.
+- Recommend at most one later implementation boundary. Do not create that unit.
+
+**Explicit boundaries / out of scope.** Production CubeTopology implementation; curved primitives; Small Grid; OBJ; bulk catalog expansion; subtype-specific Salvador hacks; inventing a later unit.
+
+**Development validation.** Ordinary tests and Big Red preflight prove no support-semantic change when production code is untouched. Salvador survey may be re-run as confirmation.
+
+**Quality/security assessment focus.** Name-only topology inference; 2018 source treated as complete for later tokens; mesh confused with logical solid; Sides treated as a universal solid grammar; mirrored shape treated as a legal rotation without proof; determinant −1; catalog/leftover mutation; Keen assets entering git; accidental support grant.
+
+**External validation.** Operator-local vanilla definitions and optional official-mesh classification. Live SolidWorks is not required.
+
+**Completion criteria.** The geometry reconstruction study is complete and reproducible. No compatibility category was newly activated. QUALIFIED when the durable report and STATE record the evidence. After qualification, next executable unit is none.
 
 ---
 

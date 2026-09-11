@@ -103,6 +103,8 @@ Recipes are SE2CAD constructive solids. Vertex signs are the cell-local ±1 cube
 
 When STATE records S2C-11.13.1, three additional Large Grid planar constructions are native-procedural library records. Sides data on these vanilla definitions is mount/texture-panel metadata, not a universal solid grammar. Bindings are explicit identity mappings, not a CubeTopology interpreter. CubeTopology as a class remains unsupported.
 
+When STATE records S2C-11.14.1, remaining later CubeTopology tokens used on Salvador (HalfSlopeInverted, HalfCorner, HalfSlopedCorner, SlopedCorner*, SquareSlopedCornerBase, HalfSlopeBox, SlopeTransitionTip / Mirrored, and InteriorWall `StandaloneBox`) still have no public vertex or closed-solid table. The 2018 Keen tile table covers StandaloneBox / RoundSlope / RoundCorner as mount and connectivity metadata only. That study granted no runtime support.
+
 | geometry_id | Observed `CubeTopology` | Solid kind | Identity convention |
 | --- | --- | --- | --- |
 | `large_block_armor_slope2_base` | `Slope2Base` | trapezoidal YZ prism extruded along X | keep `2Y + Z <= +h`; full faces on Forward and Down; complements Slope2Tip |
