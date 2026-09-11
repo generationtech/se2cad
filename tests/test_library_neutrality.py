@@ -77,7 +77,7 @@ class LibraryNeutralityTests(unittest.TestCase):
         from se2cad.library import all_library_records, lookup_recipe
 
         records = all_library_records()
-        self.assertEqual(len(records), 8)
+        self.assertEqual(len(records), 12)
         self.assertEqual(
             lookup_recipe("large_armor_corner").geometry_id, "large_armor_corner"
         )

@@ -16,6 +16,7 @@ from se2cad.library import (
     SolidKind,
     TETRAHEDRON_CUT_FACES,
     TetrahedronConstruction,
+    TrapezoidalPrismConstruction,
     lookup_recipe,
     signed_volume_times_6,
 )
@@ -40,6 +41,21 @@ class PrismPlan:
     """YZ right triangle extruded along X, in metres."""
 
     profile_yz_m: tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
+    extrusion_min_m: float
+    extrusion_max_m: float
+    midplane_depth_m: float
+
+
+@dataclass(frozen=True)
+class TrapezoidalPrismPlan:
+    """YZ trapezoid extruded along X, in metres."""
+
+    profile_yz_m: tuple[
+        tuple[float, float],
+        tuple[float, float],
+        tuple[float, float],
+        tuple[float, float],
+    ]
     extrusion_min_m: float
     extrusion_max_m: float
     midplane_depth_m: float
@@ -78,6 +94,7 @@ class ConstructionPlan:
     faces: tuple[tuple[int, ...], ...]
     box: BoxPlan | None
     prism: PrismPlan | None
+    trapezoidal_prism: TrapezoidalPrismPlan | None
     tetrahedron: TetrahedronPlan | None
     box_minus_tetrahedron: BoxMinusTetrahedronPlan | None
     expected: ExpectedSolid
@@ -129,6 +146,47 @@ def _prism_plan(construction: PrismConstruction) -> PrismPlan:
     )
 
 
+def _trapezoid_plan(
+    construction: TrapezoidalPrismConstruction,
+) -> TrapezoidalPrismPlan:
+    if construction.profile_plane != "YZ" or construction.extrusion_axis != "X":
+        raise ValueError(
+            "backend consumes the qualified YZ-along-X trapezoid; "
+            f"got plane={construction.profile_plane!r} "
+            f"axis={construction.extrusion_axis!r}"
+        )
+    profile = tuple(
+        (mm_to_metres(y), mm_to_metres(z)) for y, z in construction.profile_yz_mm
+    )
+    return TrapezoidalPrismPlan(
+        profile_yz_m=(profile[0], profile[1], profile[2], profile[3]),
+        extrusion_min_m=mm_to_metres(construction.extrusion_min_mm),
+        extrusion_max_m=mm_to_metres(construction.extrusion_max_mm),
+        midplane_depth_m=mm_to_metres(
+            construction.extrusion_max_mm - construction.extrusion_min_mm
+        ),
+    )
+
+
+def _polygon_centroid_yz(
+    points: tuple[tuple[float, float], ...],
+) -> tuple[float, float]:
+    area2 = 0.0
+    cy = 0.0
+    cz = 0.0
+    count = len(points)
+    for index in range(count):
+        y0, z0 = points[index]
+        y1, z1 = points[(index + 1) % count]
+        cross = y0 * z1 - y1 * z0
+        area2 += cross
+        cy += (y0 + y1) * cross
+        cz += (z0 + z1) * cross
+    if area2 == 0.0:
+        raise ValueError("trapezoid profile has zero area")
+    return (cy / (3.0 * area2), cz / (3.0 * area2))
+
+
 def _tetra_plan(
     construction: TetrahedronConstruction,
     faces: tuple[tuple[int, ...], ...],
@@ -164,6 +222,10 @@ def _expected_com_m(recipe: NativeSolidRecipe) -> tuple[float, float, float]:
         ys = [p[0] for p in prism.profile_yz_m]
         zs = [p[1] for p in prism.profile_yz_m]
         return (0.0, sum(ys) / 3.0, sum(zs) / 3.0)
+    if isinstance(recipe.construction, TrapezoidalPrismConstruction):
+        trap = _trapezoid_plan(recipe.construction)
+        cy, cz = _polygon_centroid_yz(trap.profile_yz_m)
+        return (0.0, cy, cz)
     if isinstance(recipe.construction, TetrahedronConstruction):
         verts = tuple(point_mm_to_metres(v) for v in recipe.construction.vertices_mm)
         return _mean_points(verts)
@@ -204,6 +266,11 @@ def plan_from_recipe(recipe: NativeSolidRecipe) -> ConstructionPlan:
         if isinstance(recipe.construction, PrismConstruction)
         else None
     )
+    trapezoid = (
+        _trapezoid_plan(recipe.construction)
+        if isinstance(recipe.construction, TrapezoidalPrismConstruction)
+        else None
+    )
     tetra = None
     box_minus = None
     if isinstance(recipe.construction, TetrahedronConstruction):
@@ -222,6 +289,7 @@ def plan_from_recipe(recipe: NativeSolidRecipe) -> ConstructionPlan:
         faces=recipe.faces,
         box=box,
         prism=prism,
+        trapezoidal_prism=trapezoid,
         tetrahedron=tetra,
         box_minus_tetrahedron=box_minus,
         expected=ExpectedSolid(

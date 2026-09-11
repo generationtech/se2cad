@@ -68,7 +68,6 @@ class FixtureConversionRegressionTests(unittest.TestCase):
             )
             entry = catalog.lookup(block.subtype_id)
             self.assertEqual(leftover_set.coverage_claim, "not_universal_vanilla")
-            self.assertTrue(leftover_set.leftovers)
             self.assertTrue(conversion_may_report_supported(entry, leftover_set))
 
     def test_unknown_subtype_still_fails_closed(self) -> None:

@@ -80,16 +80,10 @@ class PackagedLeftoverTests(unittest.TestCase):
             if entry.subtype_id != "LargeBlockSmallHydrogenThrust"
         ]
         self.assertEqual(completed, automatable)
-        self.assertEqual(len(completed), 8)
+        self.assertEqual(len(completed), 12)
         self.assertIn("LargeBlockSmallHydrogenThrust", [entry.subtype_id for entry in catalog.entries])
-        self.assertEqual(len(leftover_set.leftovers), 1)
-        leftover = leftover_set.leftovers[0]
-        self.assertEqual(leftover.kind, LeftoverKind.MISSING_CONSTRUCTION)
-        self.assertEqual(leftover.cube_topology, "Slope2Base")
-        self.assertIn(leftover.cube_topology, EVIDENCED_RESIDUAL_TOPOLOGIES)
-        self.assertFalse(leftover.reported_as_supported)
-        self.assertEqual(leftover.subtype_id, "")
-        self.assertEqual(leftover.geometry_id, "")
+        self.assertEqual(leftover_set.leftovers, ())
+        self.assertEqual(EVIDENCED_RESIDUAL_TOPOLOGIES, frozenset())
 
     def test_packaged_supported_entries_may_report_supported_conversion(self) -> None:
         leftover_set = assert_packaged_leftover_matches_catalog()
@@ -193,7 +187,7 @@ class ExceptionHonestyTests(unittest.TestCase):
                 _entry(
                     "SyntheticSlope2",
                     "synthetic_slope2",
-                    _observed(cube_topology="Slope2Base"),
+                    _observed(cube_topology="RoundSlope"),
                     recipe_kind=RecipeKind.NATIVE_PROCEDURAL,
                 ),
             )

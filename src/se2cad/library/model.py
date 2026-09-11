@@ -20,6 +20,7 @@ class SolidKind(str, Enum):
 
     AXIS_ALIGNED_BOX = "axis_aligned_box"
     RIGHT_TRIANGULAR_PRISM = "right_triangular_prism"
+    TRAPEZOIDAL_PRISM = "trapezoidal_prism"
     TETRAHEDRON = "tetrahedron"
     BOX_MINUS_TETRAHEDRON = "box_minus_tetrahedron"
 
@@ -38,6 +39,22 @@ class PrismConstruction:
 
     profile_plane: str
     profile_yz_mm: tuple[tuple[int, int], tuple[int, int], tuple[int, int]]
+    extrusion_axis: str
+    extrusion_min_mm: int
+    extrusion_max_mm: int
+
+
+@dataclass(frozen=True)
+class TrapezoidalPrismConstruction:
+    """Convex YZ trapezoid extruded along local +X."""
+
+    profile_plane: str
+    profile_yz_mm: tuple[
+        tuple[int, int],
+        tuple[int, int],
+        tuple[int, int],
+        tuple[int, int],
+    ]
     extrusion_axis: str
     extrusion_min_mm: int
     extrusion_max_mm: int
@@ -66,6 +83,7 @@ class BoxMinusTetrahedronConstruction:
 Construction = Union[
     BoxConstruction,
     PrismConstruction,
+    TrapezoidalPrismConstruction,
     TetrahedronConstruction,
     BoxMinusTetrahedronConstruction,
 ]

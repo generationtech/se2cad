@@ -411,7 +411,7 @@ class FailClosedTests(unittest.TestCase):
 class NoScopeExpansionTests(unittest.TestCase):
     def test_packaged_catalog_is_unchanged(self) -> None:
         catalog = load_default_catalog()
-        self.assertEqual(len(catalog.entries), 9)
+        self.assertEqual(len(catalog.entries), 13)
         self.assertEqual(
             [entry.subtype_id for entry in catalog.entries],
             [
@@ -424,6 +424,10 @@ class NoScopeExpansionTests(unittest.TestCase):
                 "LargeHeavyBlockArmorCorner",
                 "LargeHeavyBlockArmorCornerInv",
                 "LargeBlockSmallHydrogenThrust",
+                "LargeBlockArmorSlope2Base",
+                "LargeBlockArmorSlope2Tip",
+                "LargeHalfArmorBlock",
+                "LargeHeavyHalfArmorBlock",
             ],
         )
         self.assertTrue(
@@ -432,7 +436,7 @@ class NoScopeExpansionTests(unittest.TestCase):
 
     def test_no_new_geometry_recipes(self) -> None:
         records = all_library_records()
-        self.assertEqual(len(records), 8)
+        self.assertEqual(len(records), 12)
         lookup_recipe("large_armor_block")
         lookup_recipe(FILLER_GEOMETRY_ID)
         recipe = lookup_recipe("large_block_small_hydrogen_thrust")

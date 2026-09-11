@@ -179,6 +179,33 @@ def _construct_prism(session: Any, model: Any, plan: ConstructionPlan) -> None:
     )
 
 
+def _construct_trapezoidal_prism(
+    session: Any, model: Any, plan: ConstructionPlan
+) -> None:
+    """YZ trapezoid: 2D sketch on Right plane, mid-plane extrude on X."""
+    trap = plan.trapezoidal_prism
+    if trap is None:
+        raise SolidWorksComError("trapezoidal prism plan missing")
+    _clear_selection(model)
+    _select_feature(_nth_ref_plane(model, 2))
+    sketch = model.SketchManager
+    try:
+        sketch.InsertSketch(True)
+        points = tuple(
+            _yz_profile_to_right_plane_sketch(y, z) for y, z in trap.profile_yz_m
+        )
+        for i in range(4):
+            a = points[i]
+            b = points[(i + 1) % 4]
+            sketch.CreateLine(a[0], a[1], a[2], b[0], b[1], b[2])
+        sketch.InsertSketch(True)
+    except Exception as exc:
+        raise _com_fail(exc, "slope2 Right-plane sketch failed") from exc
+    _feature_extrusion_midplane(
+        session=session, model=model, depth_m=trap.midplane_depth_m
+    )
+
+
 def _cross(
     a: tuple[float, float, float], b: tuple[float, float, float]
 ) -> tuple[float, float, float]:
@@ -440,6 +467,9 @@ def construct_plan(session: Any, model: Any, plan: ConstructionPlan) -> None:
         if plan.prism is None:
             raise SolidWorksComError("prism plan missing")
         _construct_prism(session, model, plan)
+        return
+    if plan.solid_kind is SolidKind.TRAPEZOIDAL_PRISM:
+        _construct_trapezoidal_prism(session, model, plan)
         return
     if plan.solid_kind is SolidKind.TETRAHEDRON:
         if plan.tetrahedron is None:

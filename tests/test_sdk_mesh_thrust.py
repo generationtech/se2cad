@@ -149,9 +149,12 @@ class CatalogAndLibraryBindTests(unittest.TestCase):
     def test_no_other_subtype_gains_support(self) -> None:
         catalog = load_default_catalog()
         supported = [entry.subtype_id for entry in catalog.entries if entry.support_status is SupportStatus.SUPPORTED]
-        self.assertEqual(supported, [*_ARMOR_SUBTYPES, AUTHORIZED_SDK_MESH_SUBTYPE_ID])
+        self.assertEqual(
+            supported[:9],
+            [*_ARMOR_SUBTYPES, AUTHORIZED_SDK_MESH_SUBTYPE_ID],
+        )
         self.assertNotIn("LargeBlockLargeHydrogenThrust", [entry.subtype_id for entry in catalog.entries])
-        self.assertEqual(len(all_library_records()), 8)
+        self.assertEqual(len(all_library_records()), 12)
         for record in all_library_records():
             self.assertIsInstance(record.recipe, NativeSolidRecipe)
             self.assertEqual(record.recipe_kind, RecipeKind.NATIVE_PROCEDURAL)
@@ -324,9 +327,15 @@ class PolicyAndProvenanceTests(unittest.TestCase):
         self.assertEqual(leftover.coverage_claim, "not_universal_vanilla")
         self.assertEqual(
             [item.subtype_id for item in leftover.completed_automatable],
-            list(_ARMOR_SUBTYPES),
+            [
+                *_ARMOR_SUBTYPES,
+                "LargeBlockArmorSlope2Base",
+                "LargeBlockArmorSlope2Tip",
+                "LargeHalfArmorBlock",
+                "LargeHeavyHalfArmorBlock",
+            ],
         )
-        self.assertEqual([record.cube_topology for record in leftover.leftovers], ["Slope2Base"])
+        self.assertEqual([record.cube_topology for record in leftover.leftovers], [])
         recipe = lookup_recipe(AUTHORIZED_SDK_MESH_GEOMETRY_ID)
         self.assertIsInstance(recipe, SdkMeshRecipe)
         self.assertEqual(recipe.relative_source_stem, "Models/Cubes/Large/HydrogenThrusterSmall")

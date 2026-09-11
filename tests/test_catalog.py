@@ -98,7 +98,16 @@ class DefaultCatalogTests(unittest.TestCase):
         self.assertEqual(ids[:4], list(EXPECTED_SUPPORTED))
         self.assertGreater(len(ids), 4)
         self.assertEqual(ids[4:8], list(EXPECTED_EXPANDED))
-        self.assertEqual(ids[8:], ["LargeBlockSmallHydrogenThrust"])
+        self.assertEqual(ids[8], "LargeBlockSmallHydrogenThrust")
+        self.assertEqual(
+            ids[9:],
+            [
+                "LargeBlockArmorSlope2Base",
+                "LargeBlockArmorSlope2Tip",
+                "LargeHalfArmorBlock",
+                "LargeHeavyHalfArmorBlock",
+            ],
+        )
 
     def test_observed_definition_facts(self) -> None:
         for subtype_id, expected in {**EXPECTED_SUPPORTED, **EXPECTED_EXPANDED}.items():

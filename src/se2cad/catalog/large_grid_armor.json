@@ -134,6 +134,66 @@
         "recipe_kind": "sdk_mesh_direct",
         "support_status": "supported"
       }
+    },
+    {
+      "subtype_id": "LargeBlockArmorSlope2Base",
+      "observed": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": { "x": 1, "y": 1, "z": 1 },
+        "block_topology": "Cube",
+        "cube_topology": "Slope2Base"
+      },
+      "se2cad": {
+        "geometry_id": "large_block_armor_slope2_base",
+        "recipe_kind": "native_procedural",
+        "support_status": "supported"
+      }
+    },
+    {
+      "subtype_id": "LargeBlockArmorSlope2Tip",
+      "observed": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": { "x": 1, "y": 1, "z": 1 },
+        "block_topology": "Cube",
+        "cube_topology": "Slope2Tip"
+      },
+      "se2cad": {
+        "geometry_id": "large_block_armor_slope2_tip",
+        "recipe_kind": "native_procedural",
+        "support_status": "supported"
+      }
+    },
+    {
+      "subtype_id": "LargeHalfArmorBlock",
+      "observed": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": { "x": 1, "y": 1, "z": 1 },
+        "block_topology": "Cube",
+        "cube_topology": "HalfBox"
+      },
+      "se2cad": {
+        "geometry_id": "large_half_armor_block",
+        "recipe_kind": "native_procedural",
+        "support_status": "supported"
+      }
+    },
+    {
+      "subtype_id": "LargeHeavyHalfArmorBlock",
+      "observed": {
+        "type_id": "CubeBlock",
+        "cube_size": "Large",
+        "size": { "x": 1, "y": 1, "z": 1 },
+        "block_topology": "Cube",
+        "cube_topology": "HalfBox"
+      },
+      "se2cad": {
+        "geometry_id": "large_heavy_half_armor_block",
+        "recipe_kind": "native_procedural",
+        "support_status": "supported"
+      }
     }
   ]
 }

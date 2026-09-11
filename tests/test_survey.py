@@ -458,15 +458,15 @@ class SurveyComputeTests(unittest.TestCase):
                 game,
                 "CubeBlocks_Armor.sbc",
                 _definition_xml(
-                    "LargeBlockArmorSlope2Base",
+                    "LargeBlockArmorRoundSlope",
                     topology="Cube",
                     model=None,
                     extra=extra,
                 ),
             )
-            path = Path(tmp) / "slope2.sbc"
+            path = Path(tmp) / "round_slope.sbc"
             path.write_text(
-                _ship_document(_block("LargeBlockArmorSlope2Base")),
+                _ship_document(_block("LargeBlockArmorRoundSlope")),
                 encoding="utf-8",
             )
             env = {
@@ -475,7 +475,7 @@ class SurveyComputeTests(unittest.TestCase):
             }
             with patch.dict("os.environ", env, clear=False):
                 resolved = resolve_vanilla_geometry(
-                    "LargeBlockArmorSlope2Base", self.catalog
+                    "LargeBlockArmorRoundSlope", self.catalog
                 )
                 survey = compute_compatibility_survey_from_path(path, self.catalog)
             self.assertEqual(resolved.kind, VanillaResolveKind.UNRESOLVED)

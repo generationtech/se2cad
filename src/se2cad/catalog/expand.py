@@ -23,6 +23,8 @@ _PRESERVED_GEOMETRY_IDS = {
     "LargeBlockArmorSlope": "large_armor_slope",
     "LargeBlockArmorCorner": "large_armor_corner",
     "LargeBlockArmorCornerInv": "large_armor_corner_inv",
+    "LargeBlockArmorSlope2Base": "large_block_armor_slope2_base",
+    "LargeBlockArmorSlope2Tip": "large_block_armor_slope2_tip",
 }
 
 

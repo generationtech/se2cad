@@ -51,11 +51,12 @@ _REPRESENTATIVE = (
     "large_heavy_block_armor_corner_inv",
 )
 _TOPOLOGIES = ("Box", "Slope", "Corner", "InvCorner")
+_KNOWN_TOPOLOGIES = _TOPOLOGIES + ("Slope2Base", "Slope2Tip", "HalfBox")
 
 
 class TopologyRecipeTests(unittest.TestCase):
     def test_known_topologies_stamp_geometry_id_and_reuse_construction(self) -> None:
-        self.assertEqual(AUTOMATABLE_CUBE_TOPOLOGIES, frozenset(_TOPOLOGIES))
+        self.assertEqual(AUTOMATABLE_CUBE_TOPOLOGIES, frozenset(_KNOWN_TOPOLOGIES))
         for geometry_id, cube_topology in zip(_ORIGINAL, _TOPOLOGIES, strict=True):
             original = lookup_recipe(geometry_id)
             stamped = recipe_for_topology("synthetic_" + geometry_id, cube_topology)
@@ -74,8 +75,8 @@ class TopologyRecipeTests(unittest.TestCase):
 
     def test_unknown_automatable_topology_fails_closed(self) -> None:
         with self.assertRaises(UnsupportedTopologyError) as ctx:
-            recipe_for_topology("synthetic_slope2", "Slope2Base")
-        self.assertIn("Slope2Base", str(ctx.exception))
+            recipe_for_topology("synthetic_round_slope", "RoundSlope")
+        self.assertIn("RoundSlope", str(ctx.exception))
         self.assertIn("no native construction", str(ctx.exception))
 
     def test_invalid_geometry_id_fails_closed(self) -> None:

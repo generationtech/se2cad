@@ -53,7 +53,7 @@ Malformed and unsupported document shapes fail at the parser, with the same erro
 
 ## Compatibility survey
 
-When STATE records S2C-11.12.1, `se2cad.survey` is a CAD-neutral classification report. It consumes existing parse, catalog, and vanilla-resolution outcomes and does not grant support. Official Prefab XML may be wrapped or extracted for survey intake only; production parse remains ShipBlueprint. Public entrypoints: `se2cad.survey.compute_compatibility_survey_from_path` and `python -m se2cad.survey <blueprint-or-prefab.sbc>`. Durable evidence: [S2C-11.12.1_REAL_BLUEPRINT_COMPATIBILITY.md](../surveys/S2C-11.12.1_REAL_BLUEPRINT_COMPATIBILITY.md).
+When STATE records S2C-11.12.1, `se2cad.survey` is a CAD-neutral classification report. It consumes existing parse, catalog, and vanilla-resolution outcomes and does not grant support. Official Prefab XML may be wrapped or extracted for survey intake only; production parse remains ShipBlueprint. Public entrypoints: `se2cad.survey.compute_compatibility_survey_from_path` and `python -m se2cad.survey <blueprint-or-prefab.sbc>`. Durable evidence: [S2C-11.12.1_REAL_BLUEPRINT_COMPATIBILITY.md](../surveys/S2C-11.12.1_REAL_BLUEPRINT_COMPATIBILITY.md). When STATE records S2C-11.13.1, a qualified subset of Large Grid planar CubeTopology identities is supported through native procedural constructions. That is not CubeTopology support. Curved RoundSlope/RoundCorner, omitted BlockTopology, Small Grid counterparts, and other unmapped planar tokens remain unresolved. Placement mathematics are unchanged.
 
 ## Conversion policy
 

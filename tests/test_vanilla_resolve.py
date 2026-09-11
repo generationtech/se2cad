@@ -234,7 +234,7 @@ class VanillaResolveTests(unittest.TestCase):
         self.assertEqual(first.runtime.sdk_source_relative, "Models/Cubes/Large/Light.FBX")
         self.assertFalse(first.runtime.library_record.chamfer_capable)
         self.assertEqual(first.runtime.catalog_entry.support_status, SupportStatus.SUPPORTED)
-        self.assertEqual(len(all_library_records()), 8)
+        self.assertEqual(len(all_library_records()), 12)
 
     def test_runtime_record_is_not_persisted_into_packaged_catalog(self) -> None:
         path = default_catalog_path()

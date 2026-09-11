@@ -30,6 +30,7 @@ from se2cad.library.model import (
     SolidKind,
     TetrahedronConstruction,
     TopologyOrientation,
+    TrapezoidalPrismConstruction,
     ValidationProperties,
 )
 
@@ -106,6 +107,62 @@ _INV_CORNER_FACES: tuple[tuple[int, ...], ...] = (
     (1, 6, 3),  # Right triangle
     (0, 3, 4),  # Down triangle
     (1, 3, 0),  # hypotenuse (opposite Corner winding)
+)
+
+# Slope2Base: cell box cut by 2Y + Z = +1, keeping 2Y + Z <= +1.
+# Keen GetTopologyInfo tiles: slope normal Normalize(0, 2, 1); full
+# Forward and Down. Complements Slope2Tip to one cell.
+_SLOPE2_BASE_SIGNS: tuple[tuple[int, int, int], ...] = (
+    (-1, -1, -1),
+    (1, -1, -1),
+    (-1, 1, -1),
+    (1, 1, -1),
+    (-1, -1, 1),
+    (1, -1, 1),
+    (-1, 0, 1),
+    (1, 0, 1),
+)
+
+_SLOPE2_BASE_FACES: tuple[tuple[int, ...], ...] = (
+    (0, 2, 3, 1),  # Forward
+    (0, 1, 5, 4),  # Down
+    (5, 7, 6, 4),  # Backward half-height
+    (2, 6, 7, 3),  # slope 2Y + Z = +1
+    (4, 6, 2, 0),  # Left
+    (1, 3, 7, 5),  # Right
+)
+
+# Slope2Tip: 2Y + Z <= -1. Keen tiles: same slope normal; Down full;
+# Forward not full. YZ triangle extruded along X.
+_SLOPE2_TIP_SIGNS: tuple[tuple[int, int, int], ...] = (
+    (-1, -1, -1),
+    (1, -1, -1),
+    (-1, 0, -1),
+    (1, 0, -1),
+    (-1, -1, 1),
+    (1, -1, 1),
+)
+
+_SLOPE2_TIP_FACES: tuple[tuple[int, ...], ...] = (
+    (0, 2, 3, 1),  # Forward half-height
+    (0, 1, 5, 4),  # Down
+    (2, 4, 5, 3),  # slope 2Y + Z = -1
+    (0, 4, 2),  # Left
+    (1, 3, 5),  # Right
+)
+
+# HalfBox: lower half-cell Y in [-1, 0]. Sides order Right/Top/Forward/
+# Left/Bottom/Back uses four Slope2BaseFront half-height plates plus
+# SquarePlate (Down) and SquarePlateCenter (the Y=0 cut).
+_HALF_BOX_SIGNS: tuple[tuple[int, int, int], ...] = (
+    (-1, -1, -1),
+    (1, -1, -1),
+    (-1, 0, -1),
+    (1, 0, -1),
+    (-1, -1, 1),
+    (1, -1, 1),
+    (-1, 0, 1),
+    (1, 0, 1),
 )
 
 _IDENTITY_PLACEMENT = PlacementSemantics(
@@ -187,9 +244,17 @@ def _validation(
 TETRAHEDRON_CUT_FACES: tuple[tuple[int, ...], ...] = _CORNER_FACES
 
 # CubeTopology tokens that have a native construction. Other automatable-class
-# tokens (for example Slope2Base) fail closed until a later construction exists.
+# tokens (for example RoundSlope) fail closed until a later construction exists.
 AUTOMATABLE_CUBE_TOPOLOGIES: frozenset[str] = frozenset(
-    {"Box", "Slope", "Corner", "InvCorner"}
+    {
+        "Box",
+        "Slope",
+        "Corner",
+        "InvCorner",
+        "Slope2Base",
+        "Slope2Tip",
+        "HalfBox",
+    }
 )
 
 # Initial-program identities. Default part generation still uses this set.
@@ -206,6 +271,15 @@ REPRESENTATIVE_AUTOMATABLE_BINDINGS: tuple[tuple[str, str], ...] = (
     ("large_heavy_block_armor_slope", "Slope"),
     ("large_heavy_block_armor_corner", "Corner"),
     ("large_heavy_block_armor_corner_inv", "InvCorner"),
+)
+
+# S2C-11.13.1 qualified Large Grid planar CubeTopology identities.
+# Distinct geometry_ids; heavy/light HalfBox share the HalfBox construction.
+PLANAR_CUBE_TOPOLOGY_BINDINGS: tuple[tuple[str, str], ...] = (
+    ("large_block_armor_slope2_base", "Slope2Base"),
+    ("large_block_armor_slope2_tip", "Slope2Tip"),
+    ("large_half_armor_block", "HalfBox"),
+    ("large_heavy_half_armor_block", "HalfBox"),
 )
 
 _GEOMETRY_ID_CHARS = frozenset("abcdefghijklmnopqrstuvwxyz0123456789_")
@@ -336,19 +410,118 @@ def _inv_corner_recipe(geometry_id: str) -> NativeSolidRecipe:
     )
 
 
+def _slope2_base_recipe(geometry_id: str) -> NativeSolidRecipe:
+    vertices = _scale(_SLOPE2_BASE_SIGNS)
+    faces = _SLOPE2_BASE_FACES
+    half = cell_half_extent_mm()
+    return NativeSolidRecipe(
+        geometry_id=geometry_id,
+        recipe_kind=RecipeKind.NATIVE_PROCEDURAL,
+        solid_kind=SolidKind.TRAPEZOIDAL_PRISM,
+        vertices_mm=vertices,
+        faces=faces,
+        construction=TrapezoidalPrismConstruction(
+            profile_plane="YZ",
+            profile_yz_mm=(
+                (-half, -half),
+                (half, -half),
+                (0, half),
+                (-half, half),
+            ),
+            extrusion_axis="X",
+            extrusion_min_mm=-half,
+            extrusion_max_mm=half,
+        ),
+        orientation=TopologyOrientation(
+            observed_cube_topology="Slope2Base",
+            full_faces=("Forward", "Down"),
+            cut_description=(
+                "identity solid is the cell box kept where 2Y + Z <= +half; "
+                "full faces on Forward and Down; sloped quad from the "
+                "Forward-Up edge to the Backward mid-height edge; complements "
+                "Slope2Tip"
+            ),
+            distinguishing_cube_corner_signs=_RIGHT_DOWN_FORWARD_SIGNS,
+        ),
+        validation=_validation(vertices, faces),
+    )
+
+
+def _slope2_tip_recipe(geometry_id: str) -> NativeSolidRecipe:
+    vertices = _scale(_SLOPE2_TIP_SIGNS)
+    faces = _SLOPE2_TIP_FACES
+    half = cell_half_extent_mm()
+    return NativeSolidRecipe(
+        geometry_id=geometry_id,
+        recipe_kind=RecipeKind.NATIVE_PROCEDURAL,
+        solid_kind=SolidKind.RIGHT_TRIANGULAR_PRISM,
+        vertices_mm=vertices,
+        faces=faces,
+        construction=PrismConstruction(
+            profile_plane="YZ",
+            profile_yz_mm=((-half, -half), (0, -half), (-half, half)),
+            extrusion_axis="X",
+            extrusion_min_mm=-half,
+            extrusion_max_mm=half,
+        ),
+        orientation=TopologyOrientation(
+            observed_cube_topology="Slope2Tip",
+            full_faces=("Down",),
+            cut_description=(
+                "identity solid is the half-space 2Y + Z <= -half inside the "
+                "cell; full face on Down; complements Slope2Base"
+            ),
+            distinguishing_cube_corner_signs=_RIGHT_DOWN_FORWARD_SIGNS,
+        ),
+        validation=_validation(vertices, faces),
+    )
+
+
+def _half_box_recipe(geometry_id: str) -> NativeSolidRecipe:
+    vertices = _scale(_HALF_BOX_SIGNS)
+    faces = _CUBE_FACES
+    half = cell_half_extent_mm()
+    return NativeSolidRecipe(
+        geometry_id=geometry_id,
+        recipe_kind=RecipeKind.NATIVE_PROCEDURAL,
+        solid_kind=SolidKind.AXIS_ALIGNED_BOX,
+        vertices_mm=vertices,
+        faces=faces,
+        construction=BoxConstruction(
+            min_mm=(-half, -half, -half),
+            max_mm=(half, 0, half),
+        ),
+        orientation=TopologyOrientation(
+            observed_cube_topology="HalfBox",
+            full_faces=("Down",),
+            cut_description=(
+                "identity solid occupies the lower half-cell Y <= 0; full "
+                "face on Down; the Y = 0 cut is the Top face; vertical faces "
+                "are half-height"
+            ),
+            distinguishing_cube_corner_signs=_RIGHT_DOWN_FORWARD_SIGNS,
+        ),
+        validation=_validation(vertices, faces),
+    )
+
+
 _TOPOLOGY_BUILDERS = {
     "Box": _block_recipe,
     "Slope": _slope_recipe,
     "Corner": _corner_recipe,
     "InvCorner": _inv_corner_recipe,
+    "Slope2Base": _slope2_base_recipe,
+    "Slope2Tip": _slope2_tip_recipe,
+    "HalfBox": _half_box_recipe,
 }
 
 
 def recipe_for_topology(geometry_id: str, cube_topology: str) -> NativeSolidRecipe:
     """Stamp a native recipe for one automatable CubeTopology.
 
-    Box, Slope, Corner, and InvCorner reuse the qualified constructions.
-    Other topologies fail closed; they are not forced through one technique.
+    Box, Slope, Corner, InvCorner, Slope2Base, Slope2Tip, and HalfBox
+    reuse the qualified constructions. Other topologies fail closed;
+    they are not forced through one technique.
     """
     checked = _checked_geometry_id(geometry_id)
     builder = _TOPOLOGY_BUILDERS.get(cube_topology)
@@ -378,7 +551,9 @@ LIBRARY_RECORDS: tuple[LibraryRecord, ...] = tuple(
         chamfer_capable=True,
     )
     for geometry_id, cube_topology in (
-        ORIGINAL_LIBRARY_BINDINGS + REPRESENTATIVE_AUTOMATABLE_BINDINGS
+        ORIGINAL_LIBRARY_BINDINGS
+        + REPRESENTATIVE_AUTOMATABLE_BINDINGS
+        + PLANAR_CUBE_TOPOLOGY_BINDINGS
     )
 )
 

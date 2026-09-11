@@ -41,16 +41,27 @@
       "subtype_id": "LargeHeavyBlockArmorCornerInv",
       "geometry_id": "large_heavy_block_armor_corner_inv",
       "cube_topology": "InvCorner"
+    },
+    {
+      "subtype_id": "LargeBlockArmorSlope2Base",
+      "geometry_id": "large_block_armor_slope2_base",
+      "cube_topology": "Slope2Base"
+    },
+    {
+      "subtype_id": "LargeBlockArmorSlope2Tip",
+      "geometry_id": "large_block_armor_slope2_tip",
+      "cube_topology": "Slope2Tip"
+    },
+    {
+      "subtype_id": "LargeHalfArmorBlock",
+      "geometry_id": "large_half_armor_block",
+      "cube_topology": "HalfBox"
+    },
+    {
+      "subtype_id": "LargeHeavyHalfArmorBlock",
+      "geometry_id": "large_heavy_half_armor_block",
+      "cube_topology": "HalfBox"
     }
   ],
-  "leftovers": [
-    {
-      "kind": "missing_construction",
-      "subtype_id": "",
-      "geometry_id": "",
-      "cube_topology": "Slope2Base",
-      "detail": "CubeTopology is automatable-class but has no native construction",
-      "reported_as_supported": false
-    }
-  ]
+  "leftovers": []
 }

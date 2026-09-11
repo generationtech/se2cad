@@ -331,9 +331,12 @@ one technique. The representative generated subset beyond the original
 four is the four Large Grid heavy-armor counterparts. Those identities
 are supported and live SolidWorks 2026 has generated their canonical
 `.SLDPRT` files. The original four armor entries remain supported.
-Default part generation still writes the original four. Residual
-automatable CubeTopology tokens without a construction, and long-tail
-exceptions, are recorded in repository leftover metadata. Failed
+A qualified subset of Large Grid planar CubeTopology identities
+(`Slope2Base`, `Slope2Tip`, and light/heavy `HalfBox`) is also
+supported through native procedural constructions. That is not
+CubeTopology support. Default part generation still writes the original
+four. Remaining CubeTopology tokens without a construction, and
+long-tail exceptions, are recorded in repository leftover metadata. Failed
 generation, unclassified blocks, and unsupported recipe kinds cannot
 be reported as successful supported conversion. SE2CAD does not claim
 100% vanilla coverage. Parse, catalog load, IR, preflight, and policy
@@ -363,8 +366,9 @@ SDK meshes remain `chamfer_capable=false`. That is not general FBX,
 CubeTopology, Small Grid, OBJ, or universal vanilla support. Runtime
 resolution remains demand-driven and transient. The packaged catalog
 stays intentionally small. S2C-11.12.1 surveyed a harder official
-vanilla Large Grid ship without activating CubeTopology, Small Grid,
-OBJ, or additional packaged identities.
+vanilla Large Grid ship. S2C-11.13.1 then qualified a small planar
+CubeTopology construction set from that survey; it did not activate
+curved CubeTopology, Small Grid, OBJ, or a bulk catalog expansion.
 
 CAD-neutral **conversion policy** then applies an explicit strict or
 permissive decision. Strict is the default: unknown or unsupported
@@ -387,9 +391,9 @@ first program deliberately proved the architecture with four armor
 shapes. Eligible Large Grid vanilla TriangleMesh identities can resolve
 on demand to real reusable parts when official SDK FBX is available;
 other functional blocks still reach strict refusal or permissive filler.
-Broader armor families beyond the packaged eight, subgrids, rotors,
+Broader armor families beyond the packaged native identities, subgrids, rotors,
 pistons, hinges, connector relationships, arbitrary mod blocks, Small
-Grid, CubeTopology expansion, OBJ export, and general game-asset
+Grid, remaining CubeTopology tokens, OBJ export, and general game-asset
 geometry are not implied to work.
 
 That narrow start is intentional. The hard architectural question ---

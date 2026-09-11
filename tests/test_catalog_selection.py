@@ -133,6 +133,12 @@ class SelectCatalogRecipesTests(unittest.TestCase):
             "LargeHeavyBlockArmorCorner",
             "LargeHeavyBlockArmorCornerInv",
         }
+        planar = {
+            "LargeBlockArmorSlope2Base",
+            "LargeBlockArmorSlope2Tip",
+            "LargeHalfArmorBlock",
+            "LargeHeavyHalfArmorBlock",
+        }
         for entry, record in zip(report.catalog.entries, report.provenance):
             self.assertIsNotNone(entry.recipe_kind)
             self.assertIsNotNone(entry.support_status)
@@ -145,7 +151,7 @@ class SelectCatalogRecipesTests(unittest.TestCase):
             self.assertEqual(record.geometry_class, GeometryClass.AUTOMATABLE)
             self.assertEqual(record.recipe_kind, RecipeKind.NATIVE_PROCEDURAL)
             self.assertIsNone(record.exception_reason)
-            if entry.subtype_id in original or entry.subtype_id in expanded:
+            if entry.subtype_id in original or entry.subtype_id in expanded or entry.subtype_id in planar:
                 self.assertEqual(entry.support_status, SupportStatus.SUPPORTED)
             else:
                 self.fail(f"unexpected packaged subtype {entry.subtype_id!r}")

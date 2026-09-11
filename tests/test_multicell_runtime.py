@@ -520,7 +520,7 @@ class MultiCellRuntimeResolveTests(unittest.TestCase):
         self.assertNotIn(VANILLA_RUNTIME_MULTICELL_PREFIX, after)
         reloaded = load_default_catalog()
         self.assertEqual(len(reloaded.entries), len(self.catalog.entries))
-        self.assertEqual(len(reloaded.entries), 9)
+        self.assertEqual(len(reloaded.entries), 13)
 
     def test_no_whole_install_materialization_in_runtime_modules(self) -> None:
         forbidden = (

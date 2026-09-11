@@ -636,7 +636,36 @@ This milestone is expected to need more units than the others. It does not requi
 
 **External validation.** Operator-local real vanilla blueprint/prefab classification. Live SolidWorks assembly is optional and is not required for QUALIFIED.
 
-**Completion criteria.** The survey/classification is complete and reproducible. No compatibility category was newly activated. QUALIFIED when the durable report and STATE record the evidence. After qualification, next executable unit is none.
+**Completion criteria.** The survey/classification is complete and reproducible. No compatibility category was newly activated. QUALIFIED when the durable report and STATE record the evidence. After qualification, next executable unit was none until the human later authorized S2C-11.13.1.
+
+### S2C-11.13.1 — Planar CubeTopology native construction expansion
+
+**Objective.** Extend the existing native procedural block-library architecture to support the high-value planar/slab CubeTopology families identified by the qualified S2C-11.12.1 Salvador survey. Bind only identities whose geometry is proven. Do not claim that CubeTopology is supported.
+
+**Rationale.** Salvador’s dominant unresolved cause was `CUBETOPOLOGY_NOT_SUPPORTED` (493 / 19). The planar/slab family was 417 instances; the curved family (RoundSlope 44, RoundCorner 32) is a different construction class. Slope2Base is a Large Grid 1×1×1 Cube/Sides-driven definition with no primary Model and was leftover residual automatable work. Native procedural construction is the evidence-supported direction.
+
+**Prerequisites.** S2C-11.12.1. This unit was inserted by a human-authorized implementation after S2C-11.12.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M11 history, does not start S2C-13.1.1, and does not invent a later curved, parser-gap, or Small Grid unit.
+
+**Affected systems / expected areas.** Library constructions and records; packaged catalog and leftover metadata; SolidWorks trapezoidal-prism plan/construct; ordinary and live tests; architecture/README/STATE. Prefer existing catalog/library/demand-driven materialization. Do not create a second CubeTopology registry.
+
+**Implementation requirements.**
+
+- Inspect actual vanilla definitions. Derive families from definition evidence, not subtype names.
+- Implement reusable constructions generically. Heavy/light share a construction only when geometry is identical; catalog `geometry_id` values stay distinct.
+- Do not introduce determinant −1 component transforms. Do not change occupancy-center placement. Do not use Definition Center as translation.
+- Sides/CubeTopology tokens are investigated as mount/connectivity metadata unless they supply a complete solid grammar. Do not invent a generalized CubeTopology interpreter.
+- Demand-driven materialization only. Builder failure fails closed; no silent filler.
+- `chamfer_capable=true` only when the existing treatment is valid for the new convex solids.
+
+**Explicit boundaries / out of scope.** Small Grid; RoundSlope / RoundCorner; arcs, cylinders, lofts, mesh fallback; OBJ; generic subpart/animation/mechanical support; bulk catalog expansion; subtype-specific Salvador hacks; SDK FBX / MWM / filler substitution for these identities; inventing a later unit.
+
+**Development validation.** Ordinary tests prove definition facts, fail-closed RoundSlope/RoundCorner/Small Grid/unknown tokens/omitted BlockTopology, CAD-neutral envelopes/volumes, geometry_id stability, and no full-box accident. Live SolidWorks generates each new family, save/close/reopen, and a targeted multi-orientation fixture before Salvador. Salvador survey/preflight is re-run. Big Red remains 136/136/0/0/0.
+
+**Quality/security assessment focus.** Subtype-name special casing; accidental all-CubeTopology or omitted-BlockTopology support; Round* or Small Grid activation; geometry_id collision; heavy/light false equivalence; determinant −1; Center-as-translation; occupancy-center change; silent filler; stale SLDPRT cache; Keen/generated CAD entering git; catalog bulk expansion.
+
+**External validation.** Operator-local vanilla definitions and live SolidWorks 2026 part/fixture generation. Full Salvador assembly is optional if preflight gain is substantial and runtime is reasonable.
+
+**Completion criteria.** A small reusable construction vocabulary plus evidence-backed identity mappings plus a measurable Salvador coverage gain. QUALIFIED when STATE records the evidence. After qualification, next executable unit is none.
 
 ---
 

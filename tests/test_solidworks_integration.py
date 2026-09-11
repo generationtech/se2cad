@@ -1049,6 +1049,212 @@ class SolidWorksIntegrationTests(unittest.TestCase):
             assembled.after_reopen[0].part_path.name, "large_armor_block.SLDPRT"
         )
 
+    def test_planar_cube_topology_parts_generate_validate_save_and_reopen(self) -> None:
+        import shutil
+
+        from se2cad.library import (
+            lookup_recipe,
+            planar_cube_topology_geometry_ids,
+        )
+        from se2cad.solidworks.com_session import (
+            SolidWorksSession,
+            session_environment_report,
+        )
+        from se2cad.solidworks.config import SolidWorksBackendConfig
+        from se2cad.solidworks.generate import generate_canonical_parts
+        from se2cad.solidworks.recipe_plan import plan_from_recipe
+
+        probe_root = self.config.generated_root / "s2c-11.13.1-parts"
+        if probe_root.exists():
+            shutil.rmtree(probe_root)
+        probe_root.mkdir(parents=True)
+        probe_config = SolidWorksBackendConfig(
+            generated_root=probe_root.resolve(),
+            part_template=self.config.part_template,
+            visible=self.config.visible,
+            source="s2c-11.13.1-parts",
+        )
+        geometry_ids = planar_cube_topology_geometry_ids()
+        with SolidWorksSession(probe_config) as session:
+            start_documents = int(session.app.GetDocumentCount)
+            report = session_environment_report(session)
+            self.assertTrue(report["solidworks_revision"])
+        results = generate_canonical_parts(probe_config, geometry_ids=geometry_ids)
+        self.assertEqual(len(results), 4)
+        for result in results:
+            plan = plan_from_recipe(lookup_recipe(result.locator.identity.geometry_id))
+            self.assertTrue(result.locator.path.is_file())
+            self.assertTrue(result.locator.path.is_relative_to(probe_root.resolve()))
+            self.assertEqual(result.after_save.solid_body_count, 1)
+            self.assertEqual(result.after_reopen.solid_body_count, 1)
+            self.assertEqual(result.after_reopen.sheet_body_count, 0)
+            self.assertAlmostEqual(
+                result.after_reopen.volume_m3, plan.expected.volume_m3, places=5
+            )
+        from se2cad.solidworks.materialize import ensure_untreated_canonical_parts
+
+        reuse = ensure_untreated_canonical_parts(probe_config, geometry_ids)
+        self.assertEqual(reuse.generated, ())
+        self.assertEqual(set(reuse.reused), set(geometry_ids))
+        with SolidWorksSession(probe_config) as session:
+            self.assertEqual(int(session.app.GetDocumentCount), start_documents)
+
+    def test_planar_cube_topology_targeted_fixture_assembles_and_reuses(self) -> None:
+        import shutil
+        from collections import Counter
+
+        from se2cad.catalog import load_default_catalog
+        from se2cad.ir import component_name_from_block
+        from se2cad.parser import Direction, parse_blueprint_xml
+        from se2cad.policy import ConversionPolicy, convert_blueprint
+        from se2cad.solidworks.assemble import generate_assembly_from_ir
+        from se2cad.solidworks.com_session import (
+            SolidWorksSession,
+            session_environment_report,
+        )
+        from se2cad.solidworks.appearance import color_mask_hsv_to_rgb, rgb_close
+        from se2cad.solidworks.config import SolidWorksBackendConfig
+        from se2cad.solidworks.transform_pack import (
+            arraydata_axes,
+            arraydata_translation_m,
+        )
+        from se2cad.transform import IDENTITY_ROTATION, rotation_from_forward_up
+
+        xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-planar-probe" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorSlope2Base</SubtypeName>
+              <ColorMaskHSV x="0.0" y="0.0" z="0.0" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorSlope2Base</SubtypeName>
+              <Min x="1" y="0" z="0" />
+              <BlockOrientation Forward="Right" Up="Up" />
+              <ColorMaskHSV x="0.2" y="0.0" z="0.0" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorSlope2Tip</SubtypeName>
+              <Min x="-2" y="0" z="3" />
+              <ColorMaskHSV x="0.0" y="0.5" z="0.0" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockArmorSlope2Tip</SubtypeName>
+              <Min x="-2" y="1" z="3" />
+              <BlockOrientation Forward="Down" Up="Forward" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeHalfArmorBlock</SubtypeName>
+              <Min x="0" y="-1" z="0" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeHeavyHalfArmorBlock</SubtypeName>
+              <Min x="0" y="-1" z="1" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        probe_root = self.config.generated_root / "s2c-11.13.1-fixture"
+        if probe_root.exists():
+            shutil.rmtree(probe_root)
+        probe_root.mkdir(parents=True)
+        probe_config = SolidWorksBackendConfig(
+            generated_root=probe_root.resolve(),
+            part_template=self.config.part_template,
+            visible=self.config.visible,
+            source="s2c-11.13.1-fixture",
+        )
+        parsed = parse_blueprint_xml(xml, source="planar-probe")
+        result = convert_blueprint(
+            parsed, load_default_catalog(), ConversionPolicy.STRICT
+        )
+        self.assertEqual(len(result.ir.grid.blocks), 6)
+        self.assertEqual(result.filler_count, 0)
+        with SolidWorksSession(probe_config) as session:
+            start_documents = int(session.app.GetDocumentCount)
+            session_environment_report(session)
+        assembled = generate_assembly_from_ir(result.ir, probe_config)
+        self.assertEqual(len(assembled.after_reopen), 6)
+        self.assertEqual(
+            Counter(assembled.materialization_report.untreated.generated),
+            Counter(
+                {
+                    "large_block_armor_slope2_base": 1,
+                    "large_block_armor_slope2_tip": 1,
+                    "large_half_armor_block": 1,
+                    "large_heavy_half_armor_block": 1,
+                }
+            ),
+        )
+        names = [component_name_from_block(block) for block in result.ir.grid.blocks]
+        self.assertEqual(len(set(names)), 6)
+        tip = result.ir.grid.blocks[2]
+        self.assertEqual(tip.position_mm.as_tuple(), (-5000, 0, 7500))
+        by_min = {item.placement.grid_min: item for item in assembled.after_reopen}
+        self.assertEqual(len(by_min), 6)
+        reopen_tip = by_min[(-2, 0, 3)]
+        self.assertEqual(reopen_tip.placement.geometry_id, "large_block_armor_slope2_tip")
+        self.assertEqual(
+            arraydata_translation_m(reopen_tip.arraydata),
+            (-5.0, 0.0, 7.5),
+        )
+        self.assertEqual(arraydata_axes(reopen_tip.arraydata), IDENTITY_ROTATION.columns)
+        self.assertEqual(IDENTITY_ROTATION.determinant(), 1)
+        rotated_base = by_min[(1, 0, 0)]
+        expected_right_up = rotation_from_forward_up(Direction.RIGHT, Direction.UP)
+        self.assertEqual(expected_right_up.determinant(), 1)
+        self.assertEqual(
+            arraydata_translation_m(rotated_base.arraydata),
+            (2.5, 0.0, 0.0),
+        )
+        self.assertEqual(arraydata_axes(rotated_base.arraydata), expected_right_up.columns)
+        rotated_tip = by_min[(-2, 1, 3)]
+        expected_down_forward = rotation_from_forward_up(
+            Direction.DOWN, Direction.FORWARD
+        )
+        self.assertEqual(expected_down_forward.determinant(), 1)
+        self.assertEqual(
+            arraydata_translation_m(rotated_tip.arraydata),
+            (-5.0, 2.5, 7.5),
+        )
+        self.assertEqual(
+            arraydata_axes(rotated_tip.arraydata), expected_down_forward.columns
+        )
+        self.assertEqual(
+            by_min[(0, -1, 0)].placement.geometry_id, "large_half_armor_block"
+        )
+        self.assertEqual(
+            by_min[(0, -1, 1)].placement.geometry_id,
+            "large_heavy_half_armor_block",
+        )
+        for item in assembled.after_reopen:
+            self.assertEqual(item.placement.rotation.determinant(), 1)
+            self.assertEqual(item.component_name, item.placement.component_name)
+            self.assertNotIn("trapezoidal", item.component_name)
+            self.assertNotIn("HalfBox", item.component_name)
+            self.assertTrue(item.appearance_applied)
+        self.assertTrue(
+            rgb_close(
+                by_min[(1, 0, 0)].appearance_rgb,
+                color_mask_hsv_to_rgb(result.ir.grid.blocks[1].color_mask_hsv),
+            )
+        )
+        reused = generate_assembly_from_ir(result.ir, probe_config)
+        self.assertEqual(reused.materialization_report.untreated.generated, ())
+        self.assertEqual(len(reused.materialization_report.untreated.reused), 4)
+        with SolidWorksSession(probe_config) as session:
+            self.assertEqual(int(session.app.GetDocumentCount), start_documents)
+
 
 if __name__ == "__main__":
     unittest.main()

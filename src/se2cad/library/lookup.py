@@ -10,6 +10,7 @@ from se2cad.library.recipes import (
     FILLER_LIBRARY_RECORD,
     LIBRARY_RECORDS,
     ORIGINAL_LIBRARY_BINDINGS,
+    PLANAR_CUBE_TOPOLOGY_BINDINGS,
     REPRESENTATIVE_AUTOMATABLE_BINDINGS,
 )
 from se2cad.library.sdk_bind import LARGE_BLOCK_SMALL_HYDROGEN_THRUST_RECORD
@@ -53,6 +54,13 @@ def representative_automatable_geometry_ids() -> tuple[str, ...]:
     """Return the S2C-11.4.1 representative automatable subset."""
     return tuple(
         geometry_id for geometry_id, _topology in REPRESENTATIVE_AUTOMATABLE_BINDINGS
+    )
+
+
+def planar_cube_topology_geometry_ids() -> tuple[str, ...]:
+    """Return the S2C-11.13.1 qualified planar CubeTopology identities."""
+    return tuple(
+        geometry_id for geometry_id, _topology in PLANAR_CUBE_TOPOLOGY_BINDINGS
     )
 
 

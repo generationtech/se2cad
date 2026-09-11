@@ -60,7 +60,9 @@ _REQUIRED_LEFTOVER = frozenset(
 _SMUGGLED_ASSET_MARKERS = (".mwm", ".fbx", ".dds", ".hkt")
 
 # Evidenced residual automatable CubeTopology. Not a vanilla inventory.
-EVIDENCED_RESIDUAL_TOPOLOGIES: frozenset[str] = frozenset({"Slope2Base"})
+# S2C-11.13.1 qualified Slope2Base, Slope2Tip, and HalfBox. Remaining
+# planar and curved tokens are not individually inventoried here.
+EVIDENCED_RESIDUAL_TOPOLOGIES: frozenset[str] = frozenset()
 
 
 class LeftoverKind(str, Enum):

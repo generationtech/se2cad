@@ -56,18 +56,19 @@ class CatalogResolutionTests(unittest.TestCase):
             if entry.support_status.value == "supported"
         ]
         self.assertEqual(supported_ids[:4], list(_CATALOG_GEOMETRY_IDS))
-        self.assertEqual(len(supported_ids), 9)
-        self.assertEqual(supported_ids[-1], "large_block_small_hydrogen_thrust")
+        self.assertEqual(len(supported_ids), 13)
+        self.assertEqual(supported_ids[8], "large_block_small_hydrogen_thrust")
         records = all_library_records()
-        self.assertEqual(len(records), 8)
-        self.assertEqual([record.geometry_id for record in records], supported_ids[:8])
+        self.assertEqual(len(records), 12)
+        native_ids = [gid for gid in supported_ids if gid != "large_block_small_hydrogen_thrust"]
+        self.assertEqual([record.geometry_id for record in records], native_ids)
         seen: set[str] = set()
         for geometry_id in supported_ids:
             recipe = lookup_recipe(geometry_id)
             self.assertEqual(recipe.geometry_id, geometry_id)
             self.assertNotIn(geometry_id, seen)
             seen.add(geometry_id)
-        self.assertEqual(len(seen), 9)
+        self.assertEqual(len(seen), 13)
         unsupported_ids = [
             entry.geometry_id
             for entry in catalog.entries
@@ -140,7 +141,10 @@ class CanonicalFrameTests(unittest.TestCase):
             self.assertEqual(record.recipe_kind, RecipeKind.NATIVE_PROCEDURAL)
             box = record.recipe.validation.bounding_box
             self.assertEqual(box.min_mm, (-half, -half, -half))
-            self.assertEqual(box.max_mm, (half, half, half))
+            if record.observed_cube_topology in {"HalfBox", "Slope2Tip"}:
+                self.assertEqual(box.max_mm, (half, 0, half))
+            else:
+                self.assertEqual(box.max_mm, (half, half, half))
 
 
 class EnvelopeAndBoundingBoxTests(unittest.TestCase):

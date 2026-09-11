@@ -101,7 +101,18 @@ Recipes are SE2CAD constructive solids. Vertex signs are the cell-local ±1 cube
 | `large_armor_corner` | `Corner` | tetrahedron | Right-Down-Forward cube corner; orthogonal triangles on Right, Down, Forward |
 | `large_armor_corner_inv` | `InvCorner` | cell box minus that same tetrahedron | full faces on Up, Left, Backward; missing cube corner is Right-Down-Forward |
 
-All four solids have the same expected bounding box as the cell envelope. That does not make them the same solid: vertex sets, face counts, volumes, and construction kinds remain distinct.
+When STATE records S2C-11.13.1, three additional Large Grid planar constructions are native-procedural library records. Sides data on these vanilla definitions is mount/texture-panel metadata, not a universal solid grammar. Bindings are explicit identity mappings, not a CubeTopology interpreter. CubeTopology as a class remains unsupported.
+
+| geometry_id | Observed `CubeTopology` | Solid kind | Identity convention |
+| --- | --- | --- | --- |
+| `large_block_armor_slope2_base` | `Slope2Base` | trapezoidal YZ prism extruded along X | keep `2Y + Z <= +h`; full faces on Forward and Down; complements Slope2Tip |
+| `large_block_armor_slope2_tip` | `Slope2Tip` | right triangular YZ prism extruded along X | keep `2Y + Z <= -h`; full face on Down; AABB max Y = 0 |
+| `large_half_armor_block` | `HalfBox` | axis-aligned box | lower half-cell `Y ∈ [-h, 0]`; light armor |
+| `large_heavy_half_armor_block` | `HalfBox` | same HalfBox construction | geometrically identical to the light half-box; distinct `geometry_id` |
+
+`h` is `LARGE_GRID_CELL_PITCH_MM // 2`. Slope2Base occupies the full cell AABB; Slope2Tip and HalfBox have AABB max Y = 0. Volumes (`volume_times_6_mm3`) are `36 h³`, `12 h³`, and `24 h³`; Base + Tip reconstruct the Box `48 h³`. Slope2Tip is distinguished from HalfBox by vertex set, volume, and solid kind.
+
+The original four solids have the same expected bounding box as the cell envelope. That does not make them the same solid: vertex sets, face counts, volumes, and construction kinds remain distinct.
 
 Deterministic validation properties stored on each recipe: vertex count, face count, outward-wound `volume_times_6_mm3`, and the exact integer bounding box. Faces are sufficient for later solid construction together with the construction kind.
 
@@ -148,7 +159,7 @@ When STATE records S2C-11.3.1, recipe selection is library-build authoring on th
 
 When STATE records S2C-11.4.1, native recipes can be stamped from known CubeTopology tokens. Public entrypoints: `se2cad.library.recipe_for_topology`, `representative_automatable_geometry_ids`, `se2cad.solidworks.generate_representative_automatable_parts`. Box, Slope, Corner, and InvCorner reuse the qualified constructions. Other topologies fail closed; they are not forced through one technique. The representative automatable subset beyond the original four is the four Large Grid heavy-armor counterparts. Those identities keep distinct `geometry_id` values and become `supported` when a recipe and generation path exist. Default `generate_canonical_parts()` still materializes the original four. Generated `.SLDPRT` files stay local cache.
 
-When STATE records S2C-11.5.1, leftover and long-tail records live in repository-owned leftover metadata (`leftover_set.json`). Public entrypoints: `se2cad.catalog.evaluate_leftover_set`, `load_default_leftover_set`, `conversion_may_report_supported`, `stamp_automatable_remainder`. Failed generation, unclassified identities, and unsupported recipe kinds cannot be reported as successful supported conversion. Residual automatable CubeTopology tokens without a construction stay listed. Coverage is not universal vanilla. Leftover evaluation is not converter preflight. When STATE records S2C-12.1.1, converter preflight is `se2cad.preflight`.
+When STATE records S2C-11.5.1, leftover and long-tail records live in repository-owned leftover metadata (`leftover_set.json`). Public entrypoints: `se2cad.catalog.evaluate_leftover_set`, `load_default_leftover_set`, `conversion_may_report_supported`, `stamp_automatable_remainder`. Failed generation, unclassified identities, and unsupported recipe kinds cannot be reported as successful supported conversion. Residual automatable CubeTopology tokens without a construction stay listed. Coverage is not universal vanilla. Leftover evaluation is not converter preflight. When STATE records S2C-12.1.1, converter preflight is `se2cad.preflight`. When STATE records S2C-11.13.1, Slope2Base, Slope2Tip, and HalfBox are completed automatable constructions; `EVIDENCED_RESIDUAL_TOPOLOGIES` is empty. That is not a grant of remaining CubeTopology tokens. Default `generate_canonical_parts()` still materializes the original four. The four planar identities generate only when demanded. `chamfer_capable` is true for those convex solids. RoundSlope, RoundCorner, omitted BlockTopology, Small Grid counterparts, and other planar tokens without a construction remain unresolved.
 
 When STATE records S2C-11.6.1, assembly materializes already-qualified untreated `{geometry_id}.SLDPRT` files on demand. Public entrypoints: `se2cad.solidworks.has_qualified_untreated_builder`, `ensure_untreated_canonical_parts`, `materialize_required_parts`. Existing artifacts are reused. Missing identities are generated only when a library record already has a qualified native construction. Assembly does not stamp automatable remainder, does not bind hidden `LargeRoundArmor_*` aliases, and does not scan a game or SDK install. Explicit `python -m se2cad.solidworks` still generates the original four by default. This is not universal vanilla support.
 
