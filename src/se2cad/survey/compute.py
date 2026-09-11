@@ -10,7 +10,7 @@ from se2cad.catalog import DefinitionCatalog, load_default_catalog
 from se2cad.parser.model import ParsedBlueprint
 from se2cad.statistics.compute import compute_blueprint_statistics
 from se2cad.survey.classify import classify_root_cause, outcome_from_resolve
-from se2cad.survey.evidence import collect_identity_evidence, empty_identity_evidence
+from se2cad.survey.evidence import collect_identity_evidence
 from se2cad.parser.model import GridSize
 from se2cad.survey.intake import extract_survey_blocks, load_survey_blueprint
 from se2cad.survey.model import (
@@ -81,18 +81,23 @@ def compute_compatibility_survey(
             )
         return _unparsed_survey(structural, parser_warnings)
 
-    counts: Counter[str] = Counter(
-        block.subtype_id for block in parsed.grid.blocks
-    )
+    counts: Counter[str] = Counter()
+    builders: dict[str, str] = {}
+    for block in parsed.grid.blocks:
+        key = _identity_key(block)
+        counts[key] += 1
+        builders[key] = block.object_builder_type
     identities = [
         _classified_identity(
-            subtype_id,
-            counts[subtype_id],
+            key if not key.startswith("(empty SubtypeName)/") else "",
+            counts[key],
             catalog,
             game_root,
             sdk_root,
+            object_builder_type=builders[key],
+            report_subtype_id=key,
         )
-        for subtype_id in sorted(counts)
+        for key in sorted(counts)
     ]
 
     stats = compute_blueprint_statistics(parsed, catalog)
@@ -148,10 +153,14 @@ def _survey_from_extracted(
     for key in sorted(counts):
         if key in empty_builders:
             identities.append(
-                _empty_subtype_identity(
-                    key,
+                _classified_identity(
+                    "",
                     counts[key],
-                    empty_builders[key],
+                    catalog,
+                    game_root,
+                    sdk_root,
+                    object_builder_type=empty_builders[key],
+                    report_subtype_id=key,
                 )
             )
             continue
@@ -182,36 +191,11 @@ def _survey_from_extracted(
     )
 
 
-def _identity_key(block: ExtractedSurveyBlock) -> str:
-    if block.subtype_id:
-        return block.subtype_id
-    return f"(empty SubtypeName)/{block.object_builder_type}"
-
-
-def _empty_subtype_identity(
-    key: str,
-    instance_count: int,
-    object_builder_type: str,
-) -> IdentityClassification:
-    reason = (
-        "empty SubtypeName uses object-builder default "
-        f"{object_builder_type}; production parser fails closed"
-    )
-    evidence = empty_identity_evidence(
-        key,
-        instance_count,
-        eligibility=reason,
-        cause=RootCause.EMPTY_SUBTYPE_OBJECT_BUILDER_DEFAULT,
-    )
-    return IdentityClassification(
-        subtype_id=key,
-        instance_count=instance_count,
-        outcome=CompatibilityOutcome.UNKNOWN_UNRESOLVED,
-        geometry_id=None,
-        root_cause=RootCause.EMPTY_SUBTYPE_OBJECT_BUILDER_DEFAULT,
-        unresolved_reason=reason,
-        evidence=evidence,
-    )
+def _identity_key(block: ExtractedSurveyBlock | object) -> str:
+    subtype_id = getattr(block, "subtype_id", "")
+    if subtype_id:
+        return subtype_id
+    return f"(empty SubtypeName)/{getattr(block, 'object_builder_type')}"
 
 
 def _classified_identity(
@@ -220,8 +204,14 @@ def _classified_identity(
     catalog: DefinitionCatalog,
     game_root,
     sdk_root,
+    object_builder_type: str | None = None,
+    report_subtype_id: str | None = None,
 ) -> IdentityClassification:
-    resolved = resolve_vanilla_geometry(subtype_id, catalog)
+    resolved = resolve_vanilla_geometry(
+        subtype_id,
+        catalog,
+        object_builder_type=object_builder_type,
+    )
     outcome = outcome_from_resolve(resolved)
     reason = resolved.unresolved_reason
     preliminary = collect_identity_evidence(
@@ -231,6 +221,7 @@ def _classified_identity(
         sdk_root=sdk_root,
         eligibility=reason,
         cause=None,
+        object_builder_type=object_builder_type,
     )
     cause = classify_root_cause(
         outcome=outcome,
@@ -244,6 +235,7 @@ def _classified_identity(
         sdk_root=sdk_root,
         eligibility=reason,
         cause=cause,
+        object_builder_type=object_builder_type,
     )
     geometry_id = None
     if resolved.kind is VanillaResolveKind.PACKAGED:
@@ -253,7 +245,7 @@ def _classified_identity(
         assert resolved.runtime is not None
         geometry_id = resolved.runtime.geometry_id
     return IdentityClassification(
-        subtype_id=subtype_id,
+        subtype_id=report_subtype_id if report_subtype_id is not None else subtype_id,
         instance_count=instance_count,
         outcome=outcome,
         geometry_id=geometry_id,

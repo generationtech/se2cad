@@ -68,6 +68,14 @@ def classify_root_cause(
         return RootCause.MULTIPLE_OR_AMBIGUOUS_PRIMARY_MODEL
     if reason.startswith("empty SubtypeName uses object-builder default"):
         return RootCause.EMPTY_SUBTYPE_OBJECT_BUILDER_DEFAULT
+    if reason.startswith("empty SubtypeName is missing an object-builder type"):
+        return RootCause.EMPTY_SUBTYPE_OBJECT_BUILDER_DEFAULT
+    if reason.startswith("empty SubtypeName has no unique vanilla definition"):
+        return RootCause.EMPTY_SUBTYPE_OBJECT_BUILDER_DEFAULT
+    if "duplicate empty-subtypeid" in lowered:
+        return RootCause.EMPTY_SUBTYPE_OBJECT_BUILDER_DEFAULT
+    if "object_builder_type" in lowered and "myobjectbuilder" in lowered:
+        return RootCause.EMPTY_SUBTYPE_OBJECT_BUILDER_DEFAULT
     if "vanilla definition not found" in lowered:
         return RootCause.MODDED_OR_NONVANILLA
     if evidence.cube_topology is not None and (

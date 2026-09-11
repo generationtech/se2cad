@@ -3,7 +3,9 @@
 ``ParsedBlock.object_builder_type`` is the serialized Keen ``xsi:type``
 (or the implied ``MyObjectBuilder_CubeBlock`` when omitted). It is not a
 catalog key and is not a ``geometry_id``. ``subtype_id`` remains the
-primary runtime identity.
+primary runtime identity. An empty ``subtype_id`` is stored only when a
+specific object-builder type is present; it is not rewritten into a
+synthetic SubtypeId.
 """
 
 from __future__ import annotations

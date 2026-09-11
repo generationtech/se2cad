@@ -369,6 +369,13 @@ stays intentionally small. S2C-11.12.1 surveyed a harder official
 vanilla Large Grid ship. S2C-11.13.1 then qualified a small planar
 CubeTopology construction set from that survey; it did not activate
 curved CubeTopology, Small Grid, OBJ, or a bulk catalog expansion.
+S2C-11.15.1 accepts the evidenced child X/Y/Z form of Size and
+ModelOffset and may coalesce identical duplicate `BlockTopology`
+scalars in the targeted lookup path; conflicting duplicates fail
+closed. A bounded vanilla empty-subtype resolution rule is supported
+when the object-builder type and grid context uniquely identify an
+exact empty-subtype vanilla definition. That is not general empty-
+subtype support.
 
 CAD-neutral **conversion policy** then applies an explicit strict or
 permissive decision. Strict is the default: unknown or unsupported

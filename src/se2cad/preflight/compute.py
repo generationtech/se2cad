@@ -9,7 +9,7 @@ from typing import Optional
 from se2cad.catalog import DefinitionCatalog, load_default_catalog
 from se2cad.catalog.model import SupportStatus
 from se2cad.parser import parse_blueprint, parse_blueprint_xml
-from se2cad.parser.model import ParsedBlueprint
+from se2cad.parser.model import ParsedBlock, ParsedBlueprint
 from se2cad.preflight.model import (
     BlockPreflight,
     CatalogOutcome,
@@ -32,10 +32,14 @@ def compute_conversion_preflight(
     unsupported_counter: Counter[str] = Counter()
 
     for parsed_block in parsed.grid.blocks:
-        resolved = resolve_vanilla_geometry(parsed_block.subtype_id, catalog)
+        resolved = resolve_vanilla_geometry(
+            parsed_block.subtype_id,
+            catalog,
+            object_builder_type=parsed_block.object_builder_type,
+        )
         if resolved.kind is VanillaResolveKind.UNRESOLVED:
             unknown_count += 1
-            unknown_counter[parsed_block.subtype_id] += 1
+            unknown_counter[_preflight_identity_name(parsed_block)] += 1
             blocks.append(
                 BlockPreflight(
                     source_index=parsed_block.source_index,
@@ -62,7 +66,7 @@ def compute_conversion_preflight(
         else:
             outcome = CatalogOutcome.UNSUPPORTED
             unsupported_count += 1
-            unsupported_counter[parsed_block.subtype_id] += 1
+            unsupported_counter[_preflight_identity_name(parsed_block)] += 1
 
         blocks.append(
             BlockPreflight(
@@ -111,6 +115,12 @@ def compute_conversion_preflight_from_xml(
     """Parse already-loaded XML and compute preflight."""
     parsed = parse_blueprint_xml(xml_text, source=source)
     return compute_conversion_preflight(parsed, catalog or load_default_catalog())
+
+
+def _preflight_identity_name(block: ParsedBlock) -> str:
+    if block.subtype_id:
+        return block.subtype_id
+    return f"(empty SubtypeName)/{block.object_builder_type}"
 
 
 def _named_counts(counter: Counter[str]) -> tuple[NamedCount, ...]:

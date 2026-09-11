@@ -44,6 +44,15 @@ _FALLBACK_CONSTANTS = {
     "swFeatureChamferFlipDirection": 1,
     "swFeatureChamferKeepFeature": 2,
     "swFeatureChamferTangentPropagation": 4,
+    # Published STL/VRML import preferences. Graphics + mm avoids the
+    # solid-heal / Import Diagnostics modal that can hang LoadFile2 when
+    # Visible is false. Values from swUserPreferenceIntegerValue_e /
+    # swImportStlVrmlModelType_e / swLengthUnit_e / swUserPreferenceToggle_e.
+    "swImportStlVrmlModelType": 208,
+    "swImportStlVrmlUnits": 210,
+    "swImportStlVrmlModelType_Graphics": 0,
+    "swMM": 0,
+    "swImportAutoRunImportDiagnostics": 291,
 }
 
 
@@ -111,6 +120,7 @@ class SolidWorksSession:
     started_application: bool = False
     _open_titles: list[str] = field(default_factory=list)
     _com_initialized: bool = False
+    _stl_import_previous: tuple[int, int, bool] | None = None
 
     def __enter__(self) -> SolidWorksSession:
         require_solidworks_backend()
@@ -273,7 +283,21 @@ class SolidWorksSession:
             self._open_titles.remove(title)
 
     def open_imported_mesh(self, path: Path) -> Any:
-        """Open an intermediate mesh file as a SolidWorks part document."""
+        """Open an intermediate mesh file as a SolidWorks part document.
+
+        Imported SDK meshes are graphics bodies. Solid knit and automatic
+        Import Diagnostics stay disabled for the whole session so a later
+        identity cannot restore a hanging solid-heal preference mid-batch.
+        """
+        self._ensure_graphics_stl_import()
+        return self._open_imported_mesh(path)
+
+    def _ensure_graphics_stl_import(self) -> None:
+        if self._stl_import_previous is not None:
+            return
+        self._stl_import_previous = self._prepare_graphics_stl_import()
+
+    def _open_imported_mesh(self, path: Path) -> Any:
         last_error: Exception | None = None
         for name, args in (
             ("LoadFile2", (str(path), "")),
@@ -311,6 +335,56 @@ class SolidWorksSession:
             last_error or SolidWorksComError("no importer"),
             f"could not import mesh {path}",
         )
+
+    def _prepare_graphics_stl_import(self) -> tuple[int, int, bool]:
+        model_pref = int(self.constants.swImportStlVrmlModelType)
+        units_pref = int(self.constants.swImportStlVrmlUnits)
+        diag_pref = int(self.constants.swImportAutoRunImportDiagnostics)
+        try:
+            previous_model = int(
+                com_get(self.app, "GetUserPreferenceIntegerValue", model_pref)
+            )
+            previous_units = int(
+                com_get(self.app, "GetUserPreferenceIntegerValue", units_pref)
+            )
+            previous_diag = bool(
+                com_get(self.app, "GetUserPreferenceToggle", diag_pref)
+            )
+        except Exception as exc:
+            raise _wrap_com(exc, "failed to read STL import preferences") from exc
+        try:
+            self.app.SetUserPreferenceIntegerValue(
+                model_pref,
+                int(self.constants.swImportStlVrmlModelType_Graphics),
+            )
+            self.app.SetUserPreferenceIntegerValue(
+                units_pref,
+                int(self.constants.swMM),
+            )
+            self.app.SetUserPreferenceToggle(diag_pref, False)
+        except Exception as exc:
+            raise _wrap_com(exc, "failed to set graphics STL import preferences") from exc
+        return previous_model, previous_units, previous_diag
+
+    def _restore_stl_import_preferences(
+        self, previous: tuple[int, int, bool]
+    ) -> None:
+        previous_model, previous_units, previous_diag = previous
+        try:
+            self.app.SetUserPreferenceIntegerValue(
+                int(self.constants.swImportStlVrmlModelType),
+                previous_model,
+            )
+            self.app.SetUserPreferenceIntegerValue(
+                int(self.constants.swImportStlVrmlUnits),
+                previous_units,
+            )
+            self.app.SetUserPreferenceToggle(
+                int(self.constants.swImportAutoRunImportDiagnostics),
+                previous_diag,
+            )
+        except Exception as exc:
+            raise _wrap_com(exc, "failed to restore STL import preferences") from exc
 
     def open_part(self, path: Path) -> Any:
         try:
@@ -383,6 +457,12 @@ class SolidWorksSession:
                 pass
             if title in self._open_titles:
                 self._open_titles.remove(title)
+        if self._stl_import_previous is not None and self.app is not None:
+            try:
+                self._restore_stl_import_preferences(self._stl_import_previous)
+            except Exception:
+                pass
+            self._stl_import_previous = None
         self._co_uninitialize()
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:

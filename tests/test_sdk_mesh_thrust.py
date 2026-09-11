@@ -450,6 +450,17 @@ class EnvelopeContractTests(unittest.TestCase):
             assert_imported_mesh_envelope(tiny)
         self.assertIn("not a coherent Large Grid cell", str(ctx.exception))
 
+    def test_graphics_body_envelope_is_usable(self) -> None:
+        graphics = PartValidation(
+            solid_body_count=0,
+            sheet_body_count=0,
+            bounding_box_min_m=(-1.27, -1.25, -2.39),
+            bounding_box_max_m=(2.09, 1.25, 1.25),
+            volume_m3=0.0,
+            center_of_mass_m=(0.41, 0.0, -0.57),
+        )
+        assert_imported_mesh_envelope(graphics)
+
 
 class ScanBoundaryTests(unittest.TestCase):
     def test_runtime_modules_do_not_scan_an_install(self) -> None:

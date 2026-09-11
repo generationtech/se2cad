@@ -24,6 +24,7 @@ from se2cad.library.frame import CANONICAL_LOCAL_FRAME
 from se2cad.library.lookup import register_runtime_library_record
 from se2cad.library.model import LibraryRecord, PlacementSemantics, SdkMeshRecipe
 from se2cad.transform.placement import BlockPlacementDefinition
+from se2cad.vanilla.identity import empty_subtype_placement_key
 from se2cad.vanilla.lookup import TargetedDefinition
 
 
@@ -108,10 +109,20 @@ def runtime_sdk_mesh_record(
     )
 
 
-def register_runtime_vanilla_record(runtime: RuntimeVanillaRecord) -> None:
+def register_runtime_vanilla_record(
+    runtime: RuntimeVanillaRecord,
+    *,
+    placement_key: str | None = None,
+) -> None:
     """Register the transient library bind and subtype placement overlay."""
     register_runtime_library_record(runtime.library_record)
-    register_runtime_placement(runtime.subtype_id, runtime.placement)
+    key = placement_key
+    if key is None:
+        if runtime.subtype_id == "":
+            key = empty_subtype_placement_key(runtime.catalog_entry.observed.type_id)
+        else:
+            key = runtime.subtype_id
+    register_runtime_placement(key, runtime.placement)
 
 
 __all__ = [

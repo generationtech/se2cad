@@ -15,7 +15,14 @@ from se2cad.survey.classify import blocker_kind_for
 from se2cad.survey.model import BlockerKind, IdentityEvidence, RootCause
 from se2cad.transform.placement import ModelOffset
 from se2cad.vanilla.errors import VanillaLookupError
-from se2cad.vanilla.lookup import TargetedDefinition, TargetedHit, lookup_exact_subtype
+from se2cad.catalog.constants import CATALOG_CUBE_SIZE_LARGE
+from se2cad.vanilla.lookup import (
+    TargetedDefinition,
+    TargetedHit,
+    lookup_exact_subtype,
+    lookup_unique_empty_subtype,
+    type_id_from_object_builder,
+)
 from se2cad.vanilla.mapping import contained_game_model_path, sdk_stem_from_vanilla_model
 from se2cad.vanilla.resolve import eligibility_reason
 
@@ -41,12 +48,22 @@ def collect_identity_evidence(
     sdk_root: Path | None,
     eligibility: Optional[str],
     cause: RootCause | None,
+    object_builder_type: str | None = None,
 ) -> IdentityEvidence:
     """Collect definition/source facts for one SubtypeId."""
     hit: TargetedHit | None = None
     if game_root is not None:
         try:
-            hit = lookup_exact_subtype(subtype_id, game_root)
+            if subtype_id == "":
+                if object_builder_type:
+                    type_id = type_id_from_object_builder(object_builder_type)
+                    hit = lookup_unique_empty_subtype(
+                        type_id,
+                        cube_size=CATALOG_CUBE_SIZE_LARGE,
+                        game_root=game_root,
+                    )
+            else:
+                hit = lookup_exact_subtype(subtype_id, game_root)
         except VanillaLookupError as exc:
             return _empty_evidence(
                 subtype_id,

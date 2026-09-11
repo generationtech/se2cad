@@ -367,6 +367,11 @@ class SessionAttachTests(unittest.TestCase):
         self.assertEqual(constants.swEndCondThroughAll, 1)
         self.assertEqual(constants.swStartSketchPlane, 0)
         self.assertEqual(constants.swRefPlaneReferenceConstraint_Coincident, 4)
+        self.assertEqual(constants.swImportStlVrmlModelType, 208)
+        self.assertEqual(constants.swImportStlVrmlUnits, 210)
+        self.assertEqual(constants.swImportStlVrmlModelType_Graphics, 0)
+        self.assertEqual(constants.swMM, 0)
+        self.assertEqual(constants.swImportAutoRunImportDiagnostics, 291)
         with self.assertRaises(AttributeError):
             getattr(constants, "swNotARealEnum")
 

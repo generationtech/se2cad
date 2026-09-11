@@ -4,6 +4,10 @@ Walks operator-local CubeBlocks ``.sbc`` files once per game-content
 root. Sibling definitions that cannot be interpreted are skipped.
 A malformed *target* definition is recorded as unusable, not as
 absence. Duplicate exact SubtypeId hits fail closed.
+
+S2C-11.15.1 also indexes empty-SubtypeId definitions by TypeId so a
+blueprint empty ``SubtypeName`` can resolve only when that TypeId and
+grid class identify exactly one vanilla definition.
 """
 
 from __future__ import annotations
@@ -58,6 +62,8 @@ class TargetedHit:
     source_relative: str
     definition: Optional[TargetedDefinition]
     unusable_reason: Optional[str]
+    type_id: str = ""
+    cube_size: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -66,6 +72,7 @@ class CubeBlockIndex:
 
     game_root: Path
     hits_by_subtype: dict[str, tuple[TargetedHit, ...]]
+    hits_by_empty_type: dict[str, tuple[TargetedHit, ...]]
     files_read: tuple[str, ...]
     skipped_files: tuple[str, ...]
 
@@ -115,9 +122,65 @@ def lookup_exact_subtype(
     return hits[0]
 
 
+def lookup_unique_empty_subtype(
+    type_id: str,
+    *,
+    cube_size: str,
+    game_root: Path,
+) -> TargetedHit | None:
+    """Return the unique empty-SubtypeId hit for one TypeId and grid class.
+
+    Missing identities return None. Two or more empty-SubtypeId hits for
+    the same TypeId and CubeSize fail closed. Non-empty SubtypeId
+    variants of the same TypeId do not participate. Small and Large
+    definitions are never collapsed.
+    """
+    if not isinstance(type_id, str) or type_id == "":
+        raise VanillaLookupError("type_id must be a non-empty string")
+    if not isinstance(cube_size, str) or cube_size == "":
+        raise VanillaLookupError("cube_size must be a non-empty string")
+    normalized = _normalize_type_id(type_id)
+    index = cube_block_index(game_root)
+    hits = index.hits_by_empty_type.get(normalized, ())
+    matching = [hit for hit in hits if hit.cube_size == cube_size]
+    if not matching:
+        unknown_size = [hit for hit in hits if hit.cube_size is None]
+        if unknown_size:
+            sources = ", ".join(hit.source_relative for hit in unknown_size)
+            raise VanillaLookupError(
+                f"unusable empty-SubtypeId {normalized!r} in {sources}"
+            )
+        return None
+    if len(matching) > 1:
+        sources = ", ".join(hit.source_relative for hit in matching)
+        raise VanillaLookupError(
+            f"duplicate empty-SubtypeId {normalized!r} CubeSize {cube_size!r} "
+            f"in {sources}"
+        )
+    return matching[0]
+
+
+def type_id_from_object_builder(object_builder_type: str) -> str:
+    """Normalize a blueprint ``MyObjectBuilder_*`` token to a TypeId."""
+    if not isinstance(object_builder_type, str) or object_builder_type == "":
+        raise VanillaLookupError("object_builder_type must be a non-empty string")
+    if not object_builder_type.startswith(_MY_OBJECT_BUILDER_PREFIX):
+        raise VanillaLookupError(
+            f"object_builder_type {object_builder_type!r} is not a "
+            "MyObjectBuilder token"
+        )
+    normalized = _normalize_type_id(object_builder_type)
+    if normalized == "":
+        raise VanillaLookupError(
+            f"object_builder_type {object_builder_type!r} has an empty TypeId"
+        )
+    return normalized
+
+
 def _build_index(game_root: Path) -> CubeBlockIndex:
     directories = _definition_directories(game_root)
     by_subtype: dict[str, list[TargetedHit]] = {}
+    by_empty_type: dict[str, list[TargetedHit]] = {}
     files_read: list[str] = []
     skipped: list[str] = []
     for directory in directories:
@@ -138,13 +201,23 @@ def _build_index(game_root: Path) -> CubeBlockIndex:
                 continue
             files_read.append(relative)
             for hit in hits:
+                if hit.subtype_id == "":
+                    key = hit.type_id or ""
+                    if key == "":
+                        continue
+                    by_empty_type.setdefault(key, []).append(hit)
+                    continue
                 by_subtype.setdefault(hit.subtype_id, []).append(hit)
     frozen = {
         subtype: tuple(hits) for subtype, hits in by_subtype.items()
     }
+    frozen_empty = {
+        type_id: tuple(hits) for type_id, hits in by_empty_type.items()
+    }
     return CubeBlockIndex(
         game_root=game_root,
         hits_by_subtype=frozen,
+        hits_by_empty_type=frozen_empty,
         files_read=tuple(sorted(files_read)),
         skipped_files=tuple(skipped),
     )
@@ -206,9 +279,10 @@ def _extract_hits(xml_text: str, *, source_relative: str) -> tuple[TargetedHit, 
         if _local_name(child) != "Definition":
             continue
         loc = f"{source_relative}: CubeBlocks[{index}]"
-        subtype = _try_subtype_id(child)
-        if subtype is None:
+        identity = _try_definition_identity(child)
+        if identity is None:
             continue
+        type_id, subtype = identity
         try:
             definition = _parse_usable_definition(
                 child, subtype_id=subtype, source_relative=source_relative, loc=loc
@@ -220,6 +294,8 @@ def _extract_hits(xml_text: str, *, source_relative: str) -> tuple[TargetedHit, 
                     source_relative=source_relative,
                     definition=None,
                     unusable_reason=str(exc),
+                    type_id=type_id,
+                    cube_size=_safe_cube_size(child),
                 )
             )
             continue
@@ -229,19 +305,27 @@ def _extract_hits(xml_text: str, *, source_relative: str) -> tuple[TargetedHit, 
                 source_relative=source_relative,
                 definition=definition,
                 unusable_reason=None,
+                type_id=definition.type_id,
+                cube_size=definition.cube_size,
             )
         )
     return tuple(hits)
 
 
-def _try_subtype_id(el: ET.Element) -> Optional[str]:
+def _safe_cube_size(el: ET.Element) -> Optional[str]:
+    nodes = _children(el, "CubeSize")
+    if len(nodes) != 1:
+        return None
+    text = _text_of(nodes[0])
+    return text if text else None
+
+
+def _try_definition_identity(el: ET.Element) -> Optional[tuple[str, str]]:
     try:
-        _type_id, subtype_id = _parse_id(el, source="sibling")
+        type_id, subtype_id = _parse_id(el, source="sibling")
     except VanillaLookupError:
         return None
-    if subtype_id == "":
-        return None
-    return subtype_id
+    return type_id, subtype_id
 
 
 def _parse_usable_definition(
@@ -257,7 +341,11 @@ def _parse_usable_definition(
     cube_size = _required_text_child(el, "CubeSize", loc)
     size = _parse_size(el, loc)
     model_offset = _parse_model_offset(el, loc)
-    block_topology = _required_text_child(el, "BlockTopology", loc)
+    block_topology = coalesce_identical_scalar_texts(
+        _children(el, "BlockTopology"),
+        name="BlockTopology",
+        source=loc,
+    )
     cube_topology = _optional_cube_topology(el, loc)
     models = _direct_model_texts(el)
     subparts = _children(el, "Subparts")
@@ -300,11 +388,17 @@ def _parse_id(el: ET.Element, source: str) -> tuple[str, str]:
         raise VanillaLookupError(f"{source}: Definition must contain exactly one Id")
     ident = id_nodes[0]
     type_id = _optional_text_child(ident, "TypeId", source)
-    subtype_id = _optional_text_child(ident, "SubtypeId", source)
+    subtype_nodes = _children(ident, "SubtypeId")
+    subtype_id: Optional[str]
+    if subtype_nodes:
+        if len(subtype_nodes) > 1:
+            raise VanillaLookupError(f"{source}: multiple SubtypeId elements")
+        text = _text_of(subtype_nodes[0])
+        subtype_id = "" if text is None else text
+    else:
+        subtype_id = ident.get("Subtype")
     if type_id is None:
         type_id = ident.get("Type")
-    if subtype_id is None:
-        subtype_id = ident.get("Subtype")
     if type_id is None or type_id == "":
         raise VanillaLookupError(f"{source}: Id TypeId is missing")
     if subtype_id is None:
@@ -331,51 +425,10 @@ def _parse_model_offset(parent: ET.Element, source: str) -> ModelOffset:
         raise VanillaLookupError(
             f"{source}: Definition must contain at most one ModelOffset"
         )
-    el = nodes[0]
-    attrib_names = {name.lower() for name in el.attrib}
-    children = [child for child in list(el) if _local_name(child)]
-    if attrib_names and children:
-        raise VanillaLookupError(
-            f"{source}: ModelOffset must not mix attributes and children"
-        )
+    values = _read_xyz_strings(nodes[0], source=source, label="ModelOffset")
+    if values is None:
+        return ModelOffset.zero()
     try:
-        if attrib_names:
-            by_name = {name.lower(): value for name, value in el.attrib.items()}
-            missing = [name for name in ("x", "y", "z") if name not in by_name]
-            extra = sorted(set(by_name) - _REQUIRED_SIZE)
-            if missing:
-                raise VanillaLookupError(
-                    f"{source}: ModelOffset missing attribute(s): "
-                    f"{', '.join(missing)}"
-                )
-            if extra:
-                raise VanillaLookupError(
-                    f"{source}: ModelOffset has unexpected attribute(s): "
-                    f"{', '.join(extra)}"
-                )
-            return ModelOffset.from_metres(by_name["x"], by_name["y"], by_name["z"])
-        if not children:
-            return ModelOffset.zero()
-        values: dict[str, str] = {}
-        for child in children:
-            name = _local_name(child).lower()
-            if name not in {"x", "y", "z"}:
-                raise VanillaLookupError(
-                    f"{source}: ModelOffset has unexpected child {name!r}"
-                )
-            if name in values:
-                raise VanillaLookupError(
-                    f"{source}: ModelOffset has duplicate {name!r}"
-                )
-            text = _text_of(child)
-            if text is None or text == "":
-                raise VanillaLookupError(f"{source}: ModelOffset.{name} is empty")
-            values[name] = text
-        missing = [name for name in ("x", "y", "z") if name not in values]
-        if missing:
-            raise VanillaLookupError(
-                f"{source}: ModelOffset missing child(ren): {', '.join(missing)}"
-            )
         return ModelOffset.from_metres(values["x"], values["y"], values["z"])
     except InvalidModelOffsetError as exc:
         raise VanillaLookupError(f"{source}: {exc}") from exc
@@ -385,22 +438,105 @@ def _parse_size(parent: ET.Element, source: str) -> CellSize:
     nodes = _children(parent, "Size")
     if len(nodes) != 1:
         raise VanillaLookupError(f"{source}: Definition must contain exactly one Size")
-    el = nodes[0]
-    missing = [name for name in ("x", "y", "z") if name not in el.attrib]
-    if missing:
+    values = _read_xyz_strings(nodes[0], source=source, label="Size")
+    if values is None:
         raise VanillaLookupError(
-            f"{source}: Size missing attribute(s): {', '.join(missing)}"
-        )
-    extra = sorted(set(el.attrib) - _REQUIRED_SIZE)
-    if extra:
-        raise VanillaLookupError(
-            f"{source}: Size has unexpected attribute(s): {', '.join(extra)}"
+            f"{source}: Size missing attribute(s): x, y, z"
         )
     return CellSize(
-        x=_positive_int(el.attrib["x"], f"{source}: Size @x"),
-        y=_positive_int(el.attrib["y"], f"{source}: Size @y"),
-        z=_positive_int(el.attrib["z"], f"{source}: Size @z"),
+        x=_positive_int(values["x"], f"{source}: Size @x"),
+        y=_positive_int(values["y"], f"{source}: Size @y"),
+        z=_positive_int(values["z"], f"{source}: Size @z"),
     )
+
+
+def _read_xyz_strings(
+    el: ET.Element,
+    *,
+    source: str,
+    label: str,
+) -> dict[str, str] | None:
+    """Read one Size/ModelOffset as attributes or child X/Y/Z.
+
+    This is not a general child-collection vector parser. Mix, missing
+    axes, duplicate axes, unexpected names, and empty values fail closed.
+    """
+    attrib_names = {name.lower() for name in el.attrib}
+    axis_children = [child for child in list(el) if _local_name(child)]
+    if attrib_names and axis_children:
+        raise VanillaLookupError(
+            f"{source}: {label} must not mix attributes and children"
+        )
+    if attrib_names:
+        by_name = {name.lower(): value for name, value in el.attrib.items()}
+        missing = [name for name in ("x", "y", "z") if name not in by_name]
+        extra = sorted(set(by_name) - _REQUIRED_SIZE)
+        if missing:
+            raise VanillaLookupError(
+                f"{source}: {label} missing attribute(s): {', '.join(missing)}"
+            )
+        if extra:
+            raise VanillaLookupError(
+                f"{source}: {label} has unexpected attribute(s): "
+                f"{', '.join(extra)}"
+            )
+        return {
+            "x": by_name["x"],
+            "y": by_name["y"],
+            "z": by_name["z"],
+        }
+    if not axis_children:
+        return None
+    values: dict[str, str] = {}
+    for child in axis_children:
+        name = _local_name(child).lower()
+        if name not in {"x", "y", "z"}:
+            raise VanillaLookupError(
+                f"{source}: {label} has unexpected child {name!r}"
+            )
+        if name in values:
+            raise VanillaLookupError(
+                f"{source}: {label} has duplicate {name!r}"
+            )
+        text = _text_of(child)
+        if text is None or text == "":
+            raise VanillaLookupError(f"{source}: {label}.{name} is empty")
+        values[name] = text
+    missing = [name for name in ("x", "y", "z") if name not in values]
+    if missing:
+        raise VanillaLookupError(
+            f"{source}: {label} missing child(ren): {', '.join(missing)}"
+        )
+    return values
+
+
+def coalesce_identical_scalar_texts(
+    nodes: list[ET.Element],
+    *,
+    name: str,
+    source: str,
+) -> str:
+    """Coalesce identical scalar duplicates. Conflicting values fail closed.
+
+    One or more occurrences are accepted only when every normalized text
+    is non-empty and equal. Empty plus non-empty is a conflict.
+    """
+    if not nodes:
+        raise VanillaLookupError(
+            f"{source}: Definition must contain exactly one {name}"
+        )
+    values: list[str] = []
+    for node in nodes:
+        text = _text_of(node)
+        if text is None or text == "":
+            raise VanillaLookupError(f"{source}: {name} is empty")
+        values.append(text)
+    unique = set(values)
+    if len(unique) != 1:
+        raise VanillaLookupError(
+            f"{source}: conflicting {name} values {sorted(unique)}"
+        )
+    return values[0]
 
 
 def _optional_cube_topology(parent: ET.Element, source: str) -> Optional[str]:

@@ -363,10 +363,12 @@ class FailClosedTests(unittest.TestCase):
         with self.assertRaises(MissingRequiredFieldError):
             parse_blueprint_xml(xml, source="thrust-missing-subtype")
 
-    def test_empty_subtype_on_thrust_is_rejected(self) -> None:
+    def test_empty_subtype_on_thrust_is_accepted_without_inventing_id(self) -> None:
         xml = _document(_block("", xsi_type="MyObjectBuilder_Thrust"))
-        with self.assertRaises(MissingRequiredFieldError):
-            parse_blueprint_xml(xml, source="thrust-empty-subtype")
+        parsed = parse_blueprint_xml(xml, source="thrust-empty-subtype")
+        block = parsed.grid.blocks[0]
+        self.assertEqual(block.subtype_id, "")
+        self.assertEqual(block.object_builder_type, "MyObjectBuilder_Thrust")
 
     def test_non_block_element_is_rejected(self) -> None:
         xml = _document(

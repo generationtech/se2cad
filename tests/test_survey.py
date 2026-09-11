@@ -293,18 +293,22 @@ class SurveyIntakeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "empty-subtype.sbc"
             path.write_text(xml, encoding="utf-8")
-            survey = compute_compatibility_survey_from_path(path)
-            self.assertIsNotNone(survey.structural.parser_error)
-            self.assertIn("SubtypeName is required", survey.structural.parser_error or "")
+            with patch.dict(
+                "os.environ",
+                {"SE2CAD_GAME_ROOT": "", "SE2CAD_SDK_ROOT": ""},
+            ):
+                survey = compute_compatibility_survey_from_path(path)
+            self.assertIsNone(survey.structural.parser_error)
             self.assertEqual(survey.block_count, 2)
             self.assertEqual(survey.packaged_instance_count, 1)
             empty = [
                 item
                 for item in survey.identities
-                if item.root_cause is RootCause.EMPTY_SUBTYPE_OBJECT_BUILDER_DEFAULT
+                if item.subtype_id.startswith("(empty SubtypeName)/")
             ]
             self.assertEqual(len(empty), 1)
             self.assertIn("GravityGenerator", empty[0].subtype_id)
+            self.assertEqual(empty[0].outcome, CompatibilityOutcome.UNKNOWN_UNRESOLVED)
 
     def test_small_grid_prefab_is_recorded_not_wrapped_as_supported(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

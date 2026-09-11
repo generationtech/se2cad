@@ -2,6 +2,8 @@
 
 Names are a derived identifier, not a second catalog key and not a
 geometry_id. Source data is subtype, Min, Forward/Up, and source_index.
+When subtype is empty, the name token is the already-resolved
+``geometry_id`` so the IR does not invent a SubtypeId.
 SolidWorks COM types are not used here.
 
 The requested name is the FeatureManager short name (Name2 set). Live
@@ -36,7 +38,7 @@ def component_name(
     source_index: int,
 ) -> str:
     """Return a deterministic, human-readable, unique-per-index name."""
-    subtype = _require_subtype(subtype_id)
+    subtype = _require_name_token(subtype_id)
     x, y, z = _require_min(grid_min)
     fwd = _require_direction(forward, "forward")
     upward = _require_direction(up, "up")
@@ -56,8 +58,11 @@ def component_name(
 
 def component_name_from_block(block: CanonicalBlock) -> str:
     """Derive the component name from one canonical IR block."""
+    token = block.subtype_id
+    if token == "":
+        token = block.geometry_id
     return component_name(
-        block.subtype_id,
+        token,
         block.grid_min,
         block.forward,
         block.up,
@@ -73,12 +78,12 @@ def component_names_from_blocks(blocks: Iterable[CanonicalBlock]) -> tuple[str, 
     return names
 
 
-def _require_subtype(subtype_id: str) -> str:
-    if not isinstance(subtype_id, str) or not _SUBTYPE_RE.fullmatch(subtype_id):
+def _require_name_token(token: str) -> str:
+    if not isinstance(token, str) or not _SUBTYPE_RE.fullmatch(token):
         raise ComponentNameError(
-            f"subtype_id {subtype_id!r} is not a safe component-name token"
+            f"name token {token!r} is not a safe component-name token"
         )
-    return subtype_id
+    return token
 
 
 def _require_min(grid_min: GridCoordinate | tuple[int, int, int]) -> tuple[int, int, int]:

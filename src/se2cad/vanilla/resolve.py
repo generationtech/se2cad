@@ -17,8 +17,17 @@ from se2cad.catalog.constants import CATALOG_CUBE_SIZE_LARGE
 from se2cad.catalog.errors import UnknownSubtypeError
 from se2cad.catalog.model import CatalogEntry, DefinitionCatalog
 from se2cad.vanilla.errors import VanillaLookupError, VanillaRootError
-from se2cad.vanilla.identity import vanilla_runtime_geometry_id
-from se2cad.vanilla.lookup import TargetedDefinition, lookup_exact_subtype
+from se2cad.vanilla.identity import (
+    empty_subtype_placement_key,
+    vanilla_runtime_geometry_id,
+    vanilla_runtime_geometry_id_for_empty_type,
+)
+from se2cad.vanilla.lookup import (
+    TargetedDefinition,
+    lookup_exact_subtype,
+    lookup_unique_empty_subtype,
+    type_id_from_object_builder,
+)
 from se2cad.vanilla.mapping import contained_game_model_path, sdk_stem_from_vanilla_model
 from se2cad.vanilla.record import (
     RuntimeVanillaRecord,
@@ -49,7 +58,7 @@ class VanillaResolveResult:
 
 
 _RESULT_LOCK = threading.Lock()
-_RESULT_CACHE: dict[tuple[str, str, str], VanillaResolveResult] = {}
+_RESULT_CACHE: dict[tuple[str, str, str, str], VanillaResolveResult] = {}
 
 
 def clear_vanilla_resolution_cache() -> None:
@@ -62,6 +71,7 @@ def resolve_vanilla_geometry(
     subtype_id: str,
     catalog: DefinitionCatalog,
     *,
+    object_builder_type: str | None = None,
     game_root: Path | None = None,
     sdk_root: Path | None = None,
 ) -> VanillaResolveResult:
@@ -70,20 +80,30 @@ def resolve_vanilla_geometry(
     Duplicate exact SubtypeId definitions and unsafe SDK mapping fail
     closed. Missing configuration, missing definitions, and ineligible
     identities remain unresolved.
+
+    An empty ``subtype_id`` resolves only when ``object_builder_type``
+    and the Large Grid context identify exactly one empty-SubtypeId
+    vanilla definition. That is not a general empty-subtype grant.
     """
-    if not isinstance(subtype_id, str) or subtype_id == "":
-        raise VanillaLookupError("subtype_id must be a non-empty string")
-    try:
-        entry = catalog.lookup(subtype_id)
-    except UnknownSubtypeError:
-        entry = None
-    else:
-        return VanillaResolveResult(
-            kind=VanillaResolveKind.PACKAGED,
-            subtype_id=subtype_id,
-            catalog_entry=entry,
-            runtime=None,
-            unresolved_reason=None,
+    if not isinstance(subtype_id, str):
+        raise VanillaLookupError("subtype_id must be a string")
+    if subtype_id != "":
+        try:
+            entry = catalog.lookup(subtype_id)
+        except UnknownSubtypeError:
+            entry = None
+        else:
+            return VanillaResolveResult(
+                kind=VanillaResolveKind.PACKAGED,
+                subtype_id=subtype_id,
+                catalog_entry=entry,
+                runtime=None,
+                unresolved_reason=None,
+            )
+    elif object_builder_type is None or object_builder_type == "":
+        return _unresolved(
+            subtype_id,
+            "empty SubtypeName is missing an object-builder type",
         )
 
     resolved_game = _optional_resolved_root(game_root)
@@ -93,7 +113,9 @@ def resolve_vanilla_geometry(
         return _unresolved(subtype_id, "game-content root is not configured")
 
     resolved_sdk = _optional_resolved_root(sdk_root)
-    cache_key = _cache_key(subtype_id, resolved_game, resolved_sdk)
+    cache_key = _cache_key(
+        subtype_id, object_builder_type, resolved_game, resolved_sdk
+    )
     with _RESULT_LOCK:
         cached = _RESULT_CACHE.get(cache_key)
         if cached is not None:
@@ -102,11 +124,18 @@ def resolve_vanilla_geometry(
                 register_runtime_vanilla_record(cached.runtime)
             return cached
 
-    result = _resolve_unknown(
-        subtype_id,
-        game_root=resolved_game,
-        sdk_root=resolved_sdk,
-    )
+    if subtype_id == "":
+        result = _resolve_empty_subtype(
+            object_builder_type=object_builder_type,
+            game_root=resolved_game,
+            sdk_root=resolved_sdk,
+        )
+    else:
+        result = _resolve_unknown(
+            subtype_id,
+            game_root=resolved_game,
+            sdk_root=resolved_sdk,
+        )
     with _RESULT_LOCK:
         _RESULT_CACHE[cache_key] = result
     return result
@@ -114,11 +143,13 @@ def resolve_vanilla_geometry(
 
 def _cache_key(
     subtype_id: str,
+    object_builder_type: str | None,
     game_root: Path,
     sdk_root: Path | None,
-) -> tuple[str, str, str]:
+) -> tuple[str, str, str, str]:
     return (
         subtype_id,
+        object_builder_type or "",
         str(game_root),
         str(sdk_root) if sdk_root is not None else "",
     )
@@ -175,12 +206,69 @@ def _resolve_unknown(
             subtype_id,
             hit.unusable_reason or "vanilla definition is unusable",
         )
-    reason = eligibility_reason(hit.definition)
+    return _bind_eligible_hit(
+        subtype_id,
+        hit.definition,
+        hit.source_relative,
+        game_root=game_root,
+        sdk_root=sdk_root,
+    )
+
+
+def _resolve_empty_subtype(
+    *,
+    object_builder_type: str,
+    game_root: Path,
+    sdk_root: Path | None,
+) -> VanillaResolveResult:
+    try:
+        type_id = type_id_from_object_builder(object_builder_type)
+    except VanillaLookupError as exc:
+        return _unresolved("", str(exc))
+    try:
+        hit = lookup_unique_empty_subtype(
+            type_id,
+            cube_size=CATALOG_CUBE_SIZE_LARGE,
+            game_root=game_root,
+        )
+    except VanillaLookupError as exc:
+        return _unresolved("", str(exc))
+    if hit is None:
+        return _unresolved(
+            "",
+            "empty SubtypeName has no unique vanilla definition for "
+            f"{object_builder_type}",
+        )
+    if hit.definition is None:
+        return _unresolved(
+            "",
+            hit.unusable_reason or "vanilla definition is unusable",
+        )
+    return _bind_eligible_hit(
+        "",
+        hit.definition,
+        hit.source_relative,
+        game_root=game_root,
+        sdk_root=sdk_root,
+        type_id=type_id,
+    )
+
+
+def _bind_eligible_hit(
+    subtype_id: str,
+    definition: TargetedDefinition,
+    source_relative: str,
+    *,
+    game_root: Path,
+    sdk_root: Path | None,
+    type_id: str | None = None,
+) -> VanillaResolveResult:
+    reason = eligibility_reason(definition)
     if reason is not None:
         return _unresolved(subtype_id, reason)
     try:
-        stem = sdk_stem_from_vanilla_model(hit.definition.primary_model)
-        contained_game_model_path(game_root, hit.definition.primary_model)
+        stem = sdk_stem_from_vanilla_model(definition.primary_model)
+        contained_game_model_path(game_root, definition.primary_model)
     except VanillaLookupError as exc:
         return _unresolved(subtype_id, str(exc))
 
@@ -192,13 +280,24 @@ def _resolve_unknown(
             '{"sdk_root": "..."}'
         )
 
-    geometry_id = vanilla_runtime_geometry_id(subtype_id, hit.definition.size)
+    if subtype_id == "":
+        assert type_id is not None
+        try:
+            geometry_id = vanilla_runtime_geometry_id_for_empty_type(
+                type_id, definition.size
+            )
+        except ValueError as exc:
+            return _unresolved(subtype_id, str(exc))
+        placement_key = empty_subtype_placement_key(type_id)
+    else:
+        geometry_id = vanilla_runtime_geometry_id(subtype_id, definition.size)
+        placement_key = subtype_id
     provisional = runtime_sdk_mesh_record(
         subtype_id=subtype_id,
         geometry_id=geometry_id,
         relative_source_stem=stem,
-        definition=hit.definition,
-        definition_source_relative=hit.source_relative,
+        definition=definition,
+        definition_source_relative=source_relative,
         sdk_source_relative=f"{stem}.fbx",
     )
     from se2cad.solidworks.errors import SdkSourceError
@@ -219,11 +318,11 @@ def _resolve_unknown(
         subtype_id=subtype_id,
         geometry_id=geometry_id,
         relative_source_stem=stem,
-        definition=hit.definition,
-        definition_source_relative=hit.source_relative,
+        definition=definition,
+        definition_source_relative=source_relative,
         sdk_source_relative=relative_used,
     )
-    register_runtime_vanilla_record(runtime)
+    register_runtime_vanilla_record(runtime, placement_key=placement_key)
     return VanillaResolveResult(
         kind=VanillaResolveKind.RUNTIME_VANILLA,
         subtype_id=subtype_id,

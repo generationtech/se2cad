@@ -21,6 +21,11 @@ Omitted-field defaults are Space Engineers XML serialization defaults, not
 SE2CAD inventions. See ``_DEFAULT_MIN``, ``_DEFAULT_ORIENTATION``, and
 ``DEFAULT_COLOR_MASK_HSV``.
 
+S2C-11.15.1 accepts an empty ``SubtypeName`` only when a specific
+``MyObjectBuilder_*`` ``xsi:type`` other than ``MyObjectBuilder_CubeBlock``
+is present. The empty subtype is stored as ``""``; it is not rewritten
+into a synthetic SubtypeId. Unidentified empty subtypes still fail closed.
+
 This module does not resolve catalogs, compute CAD transforms, or execute
 blueprint content.
 """
@@ -283,8 +288,18 @@ def _parse_cube_block(
             f"{context}: exactly one SubtypeName is required"
         )
     subtype_id = _text_of(subtype_nodes[0])
-    if subtype_id is None or subtype_id == "":
-        raise MissingRequiredFieldError(f"{context}: SubtypeName is required")
+    if subtype_id is None:
+        subtype_id = ""
+    if subtype_id == "":
+        if (
+            object_builder_type == _CUBE_BLOCK_TYPE
+            or not object_builder_type.startswith("MyObjectBuilder_")
+            or object_builder_type == ""
+        ):
+            raise MissingRequiredFieldError(
+                f"{context}: empty SubtypeName is unidentified without a "
+                "specific object-builder type"
+            )
 
     min_nodes = _children(block, "Min")
     if len(min_nodes) > 1:

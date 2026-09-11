@@ -1255,6 +1255,392 @@ class SolidWorksIntegrationTests(unittest.TestCase):
         with SolidWorksSession(probe_config) as session:
             self.assertEqual(int(session.app.GetDocumentCount), start_documents)
 
+    def test_definition_parse_cleanup_targeted_fixture_assembles_and_reuses(self) -> None:
+        import shutil
+
+        from se2cad.catalog import FILLER_GEOMETRY_ID, load_default_catalog
+        from se2cad.ir import component_name_from_block
+        from se2cad.library import lookup_record
+        from se2cad.library.model import SdkMeshRecipe
+        from se2cad.parser import Direction, parse_blueprint_xml
+        from se2cad.policy import ConversionPolicy, convert_blueprint
+        from se2cad.preflight import compute_conversion_preflight
+        from se2cad.solidworks.appearance import color_mask_hsv_to_rgb, rgb_close
+        from se2cad.solidworks.assemble import generate_assembly_from_ir
+        from se2cad.solidworks.com_bind import com_get
+        from se2cad.solidworks.com_session import (
+            SolidWorksSession,
+            session_environment_report,
+        )
+        from se2cad.solidworks.config import SolidWorksBackendConfig
+        from se2cad.solidworks.transform_pack import (
+            arraydata_translation_m,
+            solidworks_arraydata,
+        )
+        from se2cad.transform.placement import (
+            MILLIMETRES_PER_METRE,
+            occupancy_center_mm,
+            occupied_max,
+        )
+        from se2cad.vanilla import (
+            VANILLA_RUNTIME_EMPTY_TYPE_INFIX,
+            VanillaResolveKind,
+            clear_vanilla_runtime_state,
+            empty_subtype_placement_key,
+            lookup_unique_empty_subtype,
+            resolve_vanilla_geometry,
+            try_load_game_content_root,
+            type_id_from_object_builder,
+        )
+        from se2cad.vanilla.record import lookup_runtime_placement
+
+        parse_gap = (
+            "LadderShaft",
+            "LargeBlockConsoleModule",
+            "LargeBlockInsetWall",
+            "LargeBlockSciFiWall",
+        )
+        empty_builders = (
+            "MyObjectBuilder_GravityGenerator",
+            "MyObjectBuilder_OxygenTank",
+            "MyObjectBuilder_OxygenGenerator",
+        )
+        xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-defparse-probe" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LadderShaft</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LadderShaft</SubtypeName>
+              <Min x="4" y="0" z="0" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockConsoleModule</SubtypeName>
+              <Min x="0" y="4" z="0" />
+              <BlockOrientation Forward="Right" Up="Up" />
+              <ColorMaskHSV x="0.2" y="0.0" z="0.0" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockInsetWall</SubtypeName>
+              <Min x="8" y="0" z="0" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockSciFiWall</SubtypeName>
+              <Min x="0" y="0" z="4" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_GravityGenerator">
+              <SubtypeName></SubtypeName>
+              <Min x="8" y="4" z="0" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_OxygenTank">
+              <SubtypeName></SubtypeName>
+              <Min x="4" y="2" z="8" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_OxygenGenerator">
+              <SubtypeName></SubtypeName>
+              <Min x="8" y="0" z="8" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        clear_vanilla_runtime_state()
+        catalog = load_default_catalog()
+        parsed = parse_blueprint_xml(xml, source="defparse-probe")
+        self.assertEqual(parsed.grid.grid_size.value, "Large")
+        self.assertEqual(len(parsed.grid.blocks), 8)
+        self.assertEqual(
+            [block.subtype_id for block in parsed.grid.blocks],
+            [
+                "LadderShaft",
+                "LadderShaft",
+                "LargeBlockConsoleModule",
+                "LargeBlockInsetWall",
+                "LargeBlockSciFiWall",
+                "",
+                "",
+                "",
+            ],
+        )
+        self.assertEqual(
+            [block.object_builder_type for block in parsed.grid.blocks[5:]],
+            list(empty_builders),
+        )
+        for empty_block in parsed.grid.blocks[5:]:
+            self.assertEqual(empty_block.subtype_id, "")
+            self.assertFalse(empty_block.subtype_id)
+
+        resolved_by_key: dict[str, object] = {}
+        for subtype_id in parse_gap:
+            result = resolve_vanilla_geometry(subtype_id, catalog)
+            self.assertEqual(
+                result.kind,
+                VanillaResolveKind.RUNTIME_VANILLA,
+                msg=f"{subtype_id}: {result.unresolved_reason}",
+            )
+            assert result.runtime is not None
+            self.assertEqual(result.runtime.catalog_entry.subtype_id, subtype_id)
+            self.assertNotIn(VANILLA_RUNTIME_EMPTY_TYPE_INFIX, result.runtime.geometry_id)
+            resolved_by_key[subtype_id] = result.runtime
+        for builder in empty_builders:
+            result = resolve_vanilla_geometry(
+                "", catalog, object_builder_type=builder
+            )
+            self.assertEqual(
+                result.kind,
+                VanillaResolveKind.RUNTIME_VANILLA,
+                msg=f"{builder}: {result.unresolved_reason}",
+            )
+            assert result.runtime is not None
+            type_id = type_id_from_object_builder(builder)
+            game_root = try_load_game_content_root()
+            self.assertIsNotNone(game_root, msg="SE2CAD_GAME_ROOT or local game_root is required")
+            hit = lookup_unique_empty_subtype(
+                type_id, cube_size="Large", game_root=game_root
+            )
+            self.assertIsNotNone(hit)
+            self.assertEqual(result.runtime.catalog_entry.subtype_id, "")
+            self.assertIn(VANILLA_RUNTIME_EMPTY_TYPE_INFIX, result.runtime.geometry_id)
+            self.assertNotEqual(result.runtime.geometry_id, type_id)
+            self.assertNotEqual(result.runtime.catalog_entry.subtype_id, type_id)
+            self.assertIsNotNone(
+                lookup_runtime_placement(empty_subtype_placement_key(type_id))
+            )
+            resolved_by_key[builder] = result.runtime
+        self.assertEqual(len(resolved_by_key), 7)
+
+        preflight = compute_conversion_preflight(parsed, catalog)
+        self.assertEqual(preflight.block_count, 8)
+        self.assertEqual(preflight.supported_count, 8)
+        self.assertEqual(preflight.unknown_count, 0)
+        self.assertEqual(preflight.unsupported_count, 0)
+        self.assertTrue(preflight.all_supported)
+        converted = convert_blueprint(
+            parsed, catalog, ConversionPolicy.STRICT
+        )
+        self.assertEqual(len(converted.ir.grid.blocks), 8)
+        self.assertEqual(converted.filler_count, 0)
+        self.assertNotIn(
+            FILLER_GEOMETRY_ID,
+            [block.geometry_id for block in converted.ir.grid.blocks],
+        )
+        expected_geometry_ids = {
+            runtime.geometry_id for runtime in resolved_by_key.values()
+        }
+        self.assertEqual(len(expected_geometry_ids), 7)
+        actual_geometry_ids = {block.geometry_id for block in converted.ir.grid.blocks}
+        self.assertEqual(actual_geometry_ids, expected_geometry_ids)
+        for block in converted.ir.grid.blocks[5:]:
+            self.assertEqual(block.subtype_id, "")
+            self.assertIn(VANILLA_RUNTIME_EMPTY_TYPE_INFIX, block.geometry_id)
+            self.assertNotIn(block.geometry_id, parse_gap)
+
+        probe_root = self.config.generated_root / "s2c-11.15.1-live"
+        probe_config = SolidWorksBackendConfig(
+            generated_root=probe_root.resolve(),
+            part_template=self.config.part_template,
+            visible=self.config.visible,
+            source="s2c-11.15.1-live",
+        )
+
+        def _stl_prefs(session: object) -> tuple[int, int, bool]:
+            constants = session.constants
+            return (
+                int(
+                    session.app.GetUserPreferenceIntegerValue(
+                        int(constants.swImportStlVrmlModelType)
+                    )
+                ),
+                int(
+                    session.app.GetUserPreferenceIntegerValue(
+                        int(constants.swImportStlVrmlUnits)
+                    )
+                ),
+                bool(
+                    session.app.GetUserPreferenceToggle(
+                        int(constants.swImportAutoRunImportDiagnostics)
+                    )
+                ),
+            )
+
+        try:
+            with SolidWorksSession(probe_config) as session:
+                start_report = session_environment_report(session)
+                docs = com_get(session.app, "GetDocuments") or ()
+                for doc in docs:
+                    path = str(com_get(doc, "GetPathName") or "")
+                    if "s2c-11.15.1-live" in path.replace("\\", "/"):
+                        session.close_doc(doc)
+                start_documents = int(session.app.GetDocumentCount)
+                start_prefs = _stl_prefs(session)
+        except Exception as exc:
+            self.fail(
+                "SolidWorks session is unusable before the targeted "
+                f"S2C-11.15.1 probe: {exc}"
+            )
+        self.assertTrue(
+            start_report["solidworks_revision"],
+            msg=f"empty RevisionNumber; host is unusable: {start_report}",
+        )
+        if probe_root.exists():
+            shutil.rmtree(probe_root)
+        probe_root.mkdir(parents=True)
+        for geometry_id in expected_geometry_ids:
+            leftover = probe_root / f"{geometry_id}.SLDPRT"
+            self.assertFalse(leftover.exists(), msg=leftover)
+
+        first = generate_assembly_from_ir(converted.ir, probe_config)
+        self.assertEqual(first.identity, "se2cad-defparse-probe")
+        self.assertTrue(first.path.is_file())
+        self.assertTrue(first.path.is_relative_to(probe_root.resolve()))
+        self.assertEqual(len(first.placements), 8)
+        self.assertEqual(len(first.after_save), 8)
+        self.assertEqual(len(first.after_reopen), 8)
+        self.assertEqual(first.materialization_report.substituted_geometry_ids, ())
+        self.assertEqual(converted.filler_count, 0)
+        generated = first.materialization_report.untreated.generated
+        reused = first.materialization_report.untreated.reused
+        self.assertEqual(set(generated), expected_geometry_ids)
+        self.assertEqual(reused, ())
+        self.assertEqual(len(generated), 7)
+        self.assertEqual(len(set(generated)), 7)
+
+        ladder_id = resolved_by_key["LadderShaft"].geometry_id
+        ladder_items = [
+            item
+            for item in first.after_reopen
+            if item.placement.geometry_id == ladder_id
+        ]
+        self.assertEqual(len(ladder_items), 2)
+        self.assertEqual(
+            ladder_items[0].placement.part_filename,
+            ladder_items[1].placement.part_filename,
+        )
+        self.assertEqual(ladder_items[0].part_path, ladder_items[1].part_path)
+        self.assertTrue(ladder_items[0].part_path.is_file())
+
+        # Production generate already imported each STL, read the
+        # graphics-body envelope, and reopened the SLDPRT. A second
+        # stacked OpenDoc sweep after that long batch disconnected COM
+        # (RPC_E_DISCONNECTED) on this host; do not repeat it.
+        for geometry_id in generated:
+            part_path = probe_root / f"{geometry_id}.SLDPRT"
+            self.assertTrue(part_path.is_file(), msg=geometry_id)
+            self.assertGreater(part_path.stat().st_size, 10_000, msg=geometry_id)
+            recipe = lookup_record(geometry_id).recipe
+            self.assertIsInstance(recipe, SdkMeshRecipe)
+            occupancy = recipe.occupancy_size
+            self.assertGreaterEqual(min(occupancy.x, occupancy.y, occupancy.z), 1)
+
+        reopen_by_index = {
+            item.placement.source_index: item for item in first.after_reopen
+        }
+        save_by_index = {
+            item.placement.source_index: item for item in first.after_save
+        }
+        self.assertEqual(len(reopen_by_index), 8)
+        for block in converted.ir.grid.blocks:
+            saved = save_by_index[block.source_index]
+            reopened = reopen_by_index[block.source_index]
+            expected = solidworks_arraydata(
+                block.rotation, block.position_mm.as_tuple()
+            )
+            self.assertEqual(reopened.placement.geometry_id, block.geometry_id)
+            self.assertEqual(
+                reopened.placement.part_filename, f"{block.geometry_id}.SLDPRT"
+            )
+            self.assertEqual(reopened.part_path.name, reopened.placement.part_filename)
+            self.assertTrue(reopened.part_path.is_relative_to(probe_root.resolve()))
+            self.assertEqual(reopened.component_name, component_name_from_block(block))
+            self.assertEqual(saved.component_name, reopened.component_name)
+            self.assertEqual(reopened.arraydata, expected)
+            self.assertEqual(saved.arraydata, expected)
+            self.assertEqual(reopened.placement.rotation.determinant(), 1)
+            self.assertTrue(reopened.geometry_applied)
+            self.assertTrue(reopened.appearance_applied)
+            self.assertTrue(
+                rgb_close(
+                    reopened.appearance_rgb,
+                    color_mask_hsv_to_rgb(block.color_mask_hsv),
+                )
+            )
+            self.assertNotEqual(reopened.placement.geometry_id, FILLER_GEOMETRY_ID)
+
+        tank = converted.ir.grid.blocks[6]
+        generator = converted.ir.grid.blocks[7]
+        for block, label in ((tank, "OxygenTank"), (generator, "OxygenGenerator")):
+            recipe = lookup_record(block.geometry_id).recipe
+            self.assertIsInstance(recipe, SdkMeshRecipe)
+            max_cell = occupied_max(block.grid_min, recipe.occupancy_size, block.rotation)
+            center = occupancy_center_mm(block.grid_min, max_cell)
+            min_only = occupancy_center_mm(block.grid_min, block.grid_min)
+            self.assertNotEqual(
+                center.as_tuple(),
+                min_only.as_tuple(),
+                msg=f"{label} occupancy equals Min-cell center",
+            )
+            self.assertEqual(block.position_mm.as_tuple(), center.as_tuple())
+            expected_m = tuple(
+                value / MILLIMETRES_PER_METRE for value in center.as_tuple()
+            )
+            self.assertEqual(
+                arraydata_translation_m(reopen_by_index[block.source_index].arraydata),
+                expected_m,
+            )
+
+        self.assertEqual(
+            converted.ir.grid.blocks[2].forward, Direction.RIGHT
+        )
+        self.assertEqual(first.path.suffix.lower(), ".sldasm")
+
+        warm = generate_assembly_from_ir(converted.ir, probe_config)
+        self.assertEqual(warm.materialization_report.untreated.generated, ())
+        self.assertEqual(
+            set(warm.materialization_report.untreated.reused),
+            expected_geometry_ids,
+        )
+        self.assertEqual(len(warm.after_reopen), 8)
+        self.assertEqual(warm.materialization_report.substituted_geometry_ids, ())
+        warm_by_index = {
+            item.placement.source_index: item for item in warm.after_reopen
+        }
+        for block in converted.ir.grid.blocks:
+            first_item = reopen_by_index[block.source_index]
+            warm_item = warm_by_index[block.source_index]
+            self.assertEqual(warm_item.arraydata, first_item.arraydata)
+            self.assertEqual(warm_item.component_name, first_item.component_name)
+            self.assertEqual(warm_item.appearance_rgb, first_item.appearance_rgb)
+            self.assertEqual(
+                warm_item.placement.geometry_id, first_item.placement.geometry_id
+            )
+            self.assertEqual(warm_item.part_path, first_item.part_path)
+
+        try:
+            with SolidWorksSession(probe_config) as session:
+                end_report = session_environment_report(session)
+                end_documents = int(session.app.GetDocumentCount)
+                end_prefs = _stl_prefs(session)
+        except Exception as exc:
+            self.fail(
+                "SolidWorks session is unusable after the targeted "
+                f"S2C-11.15.1 probe: {exc}"
+            )
+        self.assertEqual(end_documents, start_documents)
+        self.assertEqual(
+            end_report["solidworks_revision"], start_report["solidworks_revision"]
+        )
+        self.assertEqual(end_prefs, start_prefs)
+
 
 if __name__ == "__main__":
     unittest.main()

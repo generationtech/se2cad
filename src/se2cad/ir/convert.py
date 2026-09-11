@@ -18,6 +18,36 @@ from se2cad.transform.rotation import rotation_from_forward_up
 
 _PLACEMENT_LOCK = threading.Lock()
 _RUNTIME_PLACEMENTS: dict[str, BlockPlacementDefinition] = {}
+_MY_OBJECT_BUILDER_PREFIX = "MyObjectBuilder_"
+_EMPTY_PLACEMENT_PREFIX = "empty-type/"
+
+
+def empty_subtype_placement_key(type_id: str) -> str:
+    """Internal placement-cache key. Not a vanilla SubtypeId."""
+    if not isinstance(type_id, str) or type_id == "":
+        raise ValueError("type_id must be a non-empty string")
+    return f"{_EMPTY_PLACEMENT_PREFIX}{type_id}"
+
+
+def runtime_placement_key(
+    subtype_id: str,
+    object_builder_type: str | None = None,
+) -> str:
+    """Choose the transient placement key for one resolved identity."""
+    if isinstance(subtype_id, str) and subtype_id != "":
+        return subtype_id
+    if not isinstance(object_builder_type, str) or object_builder_type == "":
+        raise ValueError(
+            "object_builder_type is required when subtype_id is empty"
+        )
+    type_id = object_builder_type
+    if type_id.startswith(_MY_OBJECT_BUILDER_PREFIX):
+        type_id = type_id[len(_MY_OBJECT_BUILDER_PREFIX) :]
+    if type_id == "":
+        raise ValueError(
+            f"object_builder_type {object_builder_type!r} has an empty TypeId"
+        )
+    return empty_subtype_placement_key(type_id)
 
 
 def register_runtime_placement(
@@ -26,7 +56,7 @@ def register_runtime_placement(
 ) -> None:
     """Remember resolved Size/ModelOffset for one runtime subtype."""
     if not isinstance(subtype_id, str) or subtype_id == "":
-        raise ValueError("subtype_id must be a non-empty string")
+        raise ValueError("placement key must be a non-empty string")
     if not isinstance(placement, BlockPlacementDefinition):
         raise ValueError("placement must be a BlockPlacementDefinition")
     with _PLACEMENT_LOCK:
@@ -57,6 +87,7 @@ def placement_for_resolved_block(
     *,
     catalog_supported: bool,
     runtime_placement: BlockPlacementDefinition | None = None,
+    placement_key: str | None = None,
 ) -> BlockPlacementDefinition:
     """Choose placement metadata without granting new support.
 
@@ -67,12 +98,15 @@ def placement_for_resolved_block(
     """
     if catalog_supported:
         try:
+            if subtype_id == "":
+                raise UnknownSubtypeError("empty subtype is not a packaged identity")
             return placement_from_catalog_entry(catalog.lookup(subtype_id))
         except UnknownSubtypeError:
+            key = placement_key or subtype_id
             found = (
                 runtime_placement
                 if runtime_placement is not None
-                else lookup_runtime_placement(subtype_id)
+                else lookup_runtime_placement(key) if key else None
             )
             if found is None:
                 raise ValueError(

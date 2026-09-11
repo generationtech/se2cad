@@ -693,7 +693,35 @@ This milestone is expected to need more units than the others. It does not requi
 
 **External validation.** Operator-local vanilla definitions and optional official-mesh classification. Live SolidWorks is not required.
 
-**Completion criteria.** The geometry reconstruction study is complete and reproducible. No compatibility category was newly activated. QUALIFIED when the durable report and STATE record the evidence. After qualification, next executable unit is none.
+**Completion criteria.** The geometry reconstruction study is complete and reproducible. No compatibility category was newly activated. QUALIFIED when the durable report and STATE record the evidence. After qualification, next executable unit was none until the human later authorized S2C-11.15.1.
+
+### S2C-11.15.1 — Definition-parse and empty-subtype compatibility cleanup
+
+**Objective.** Close the Salvador compatibility gaps that are not blocked by unknown CubeTopology geometry: bounded vanilla definition-parse patterns that keep four ordinary TriangleMesh identities off the qualified runtime path, and three empty-SubtypeName default-builder cases only when exact vanilla definition evidence proves a unique identity mapping.
+
+**Rationale.** S2C-11.14.1 left 210 Salvador unknowns: 191 CubeTopology plus 16 definition-parse instances and 3 empty-subtype defaults. Those last 19 instances do not need new geometry architecture.
+
+**Prerequisites.** S2C-11.14.1. This unit was inserted by a human-authorized implementation after S2C-11.14.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M11 history, does not start S2C-13.1.1, and does not invent a later CubeTopology, curved, or Small Grid unit.
+
+**Affected systems / expected areas.** Targeted vanilla CubeBlocks lookup; blueprint empty-SubtypeName parse; demand-driven vanilla resolver; transient runtime records; preflight/survey/policy identity keys; focused tests; STATE/PLAN/PROGRAM/architecture/README notes.
+
+**Implementation requirements.**
+
+- Accept the evidenced child X/Y/Z form of Size and ModelOffset while preserving attribute form. Reject mixed, missing, duplicate, or non-numeric axes. Do not parse arbitrary child collections as vectors.
+- Coalesce identical duplicate `BlockTopology` scalars in the targeted lookup path. Conflicting duplicates fail closed. Do not relax unrelated repeated fields.
+- Empty `SubtypeName` may parse only with a specific `MyObjectBuilder_*` other than `MyObjectBuilder_CubeBlock`. Resolution requires exactly one Large empty-SubtypeId vanilla definition for that TypeId. Do not invent a textual SubtypeId.
+- Runtime eligibility remains the existing S2C-11.8/11.9/11.11 rules. Parsing success is not a support grant.
+- Transient records only. Do not bulk-expand the packaged catalog.
+
+**Explicit boundaries / out of scope.** CubeTopology implementation; RoundSlope/RoundCorner; Small Grid; OBJ; generic subpart/animation/mechanical support; bulk catalog expansion; subtype-name guessing; general empty-subtype support.
+
+**Development validation.** Focused parse/identity/runtime tests plus the ordinary suite excluding Small Grid WIP. Big Red preflight remains 136/136. Salvador survey records the actual supported/unknown counts.
+
+**Quality/security assessment focus.** Over-permissive child-vector or duplicate coalescing; empty subtype mapped by builder name alone; first-match or Large/Small collapse; modded definitions in vanilla lookup; synthetic SubtypeId leak; geometry_id collision; catalog mutation; CubeTopology/Small Grid/OBJ activation; filler after builder failure.
+
+**External validation.** Operator-local vanilla definitions. Targeted SolidWorks live probe of newly supported identities when they become runtime-eligible. Full Salvador assembly is optional.
+
+**Completion criteria.** Authorized identities that independently satisfy the existing runtime vanilla rules become supported. Residual unknowns are explained exactly. QUALIFIED when STATE records the evidence. After qualification, next executable unit is none.
 
 ---
 

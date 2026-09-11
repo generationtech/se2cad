@@ -243,6 +243,8 @@ def assert_imported_mesh_envelope(
     The mesh must be millimetre-scaled. It does not have to fill the
     occupancy box. Sub-centimetre envelopes fail closed as a
     forgotten-scale defect. Legitimate multi-cell extent is allowed.
+    A coherent graphics-body envelope is usable; imported SDK meshes
+    are not required to be solid or sheet bodies.
     """
     cell = _UNIT_CELL if occupancy is None else occupancy
     max_axis_m, max_center_m = imported_mesh_envelope_limits(cell)
@@ -263,14 +265,6 @@ def assert_imported_mesh_envelope(
         raise CanonicalPartValidationError(
             "imported SDK mesh is not local to the official model origin: "
             f"center_m={center}"
-        )
-    if (
-        observed.solid_body_count == 0
-        and observed.sheet_body_count == 0
-        and observed.volume_m3 <= 0.0
-    ):
-        raise CanonicalPartValidationError(
-            "imported SDK mesh produced no usable SolidWorks body"
         )
 
 
