@@ -192,6 +192,7 @@ def _generate_sdk_mesh_part(
     try:
         conversion = convert_sdk_mesh_to_stl(recipe, work)
         session.close_named(conversion.intermediate_stl.stem)
+        print(f"SE2CAD_STL_IMPORT geometry_id={geometry_id}", flush=True)
         model = import_stl_as_part(session, conversion.intermediate_stl)
         try:
             after_save = read_imported_part_validation(session, model)

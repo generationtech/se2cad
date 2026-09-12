@@ -86,6 +86,7 @@ class InstallFreeRuntimeTests(unittest.TestCase):
             "sdk_ascii_fbx.py",
             "sdk_fbx_format.py",
             "blender_fbx_to_stl.py",
+            "sdk_fbx_frame.py",
         }
         for directory in _RUNTIME_DIRS:
             for path in (_SRC / directory).glob("*.py"):

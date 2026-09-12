@@ -721,7 +721,36 @@ This milestone is expected to need more units than the others. It does not requi
 
 **External validation.** Operator-local vanilla definitions. Targeted SolidWorks live probe of newly supported identities when they become runtime-eligible. Full Salvador assembly is optional.
 
-**Completion criteria.** Authorized identities that independently satisfy the existing runtime vanilla rules become supported. Residual unknowns are explained exactly. QUALIFIED when STATE records the evidence. After qualification, next executable unit is none.
+**Completion criteria.** Authorized identities that independently satisfy the existing runtime vanilla rules become supported. Residual unknowns are explained exactly. QUALIFIED when STATE records the evidence. After qualification, next executable unit was none until the human later authorized S2C-11.16.1.
+
+### S2C-11.16.1 — Multi-node SDK FBX block-body interpretation and frame preservation
+
+**Objective.** Determine the correct interpretation of official Keen SDK FBX files that contain multiple mesh nodes, then apply the smallest general rule that keeps selected geometry in the Space Engineers block/model frame so a generated SLDPRT is not a dual-frame join of parent and child bodies.
+
+**Rationale.** S2C-DIAG-REALSHIP-ALIGNMENT-1 proved `LargeBlockRemoteControl` placement math is correct while the generated part itself is displaced: Blender applies imported object transforms and joins every mesh, so children inherit a parent-node translation that the parent mesh vertices already cancel. `LargeBlockBatteryBlock` on the same path is already correct. This is a conversion-frame defect, not an occupancy/ModelOffset/IR/Transform2 defect.
+
+**Prerequisites.** S2C-11.15.1. This unit was inserted by a human-authorized research/remediation after S2C-11.15.1 was QUALIFIED and after the human postponed Small Grid. It does not rewrite original M11 history, does not start S2C-13.1.1, and does not invent a later CubeTopology, Small Grid, or OBJ unit.
+
+**Affected systems / expected areas.** Demand-driven official SDK FBX → STL conversion; CAD-neutral imported-mesh frame rule; focused Blender-host and conversion tests; targeted live SolidWorks generate/reopen; Big Red rebuild from a fresh generated root; STATE/PLAN/PROGRAM/README notes.
+
+**Implementation requirements.**
+
+- Establish the mesh-selection/frame rule from local official FBX/MWM/definition evidence and official/public Keen/Autodesk/Blender sources. Do not assume every node belongs, only the parent belongs, or Blender world equals the game render transform.
+- Prefer a general frame-preservation rule over identity-specific exclusion. Do not special-case `RemoteControl` by name unless evidence proves a narrow exception is unavoidable.
+- Keep conversion demand-driven and local to the imported target FBX. Do not modify official SDK files. Do not bake ModelOffset into the mesh.
+- Fail closed when mesh names collide or descendant corrections conflict. Do not invent a correction when a parent translation is neither baked-origin nor ordinary local-space.
+- Do not change occupancy-center math, ModelOffset math, blueprint/IR rotation, or assembly Transform2 unless this unit produces direct contrary evidence.
+- Do not suppress the SolidWorks facet-normal warning. Do not expand CubeTopology, Small Grid, or OBJ.
+
+**Explicit boundaries / out of scope.** Occupancy/ModelOffset/IR/Transform2 redesign; CubeTopology; Small Grid; OBJ; name-heuristic helper dropping; bbox recentering; scanning or converting the entire SDK; facet-normal mesh repair.
+
+**Development validation.** Focused frame-rule and Blender-host tests plus the ordinary suite excluding Small Grid WIP. Big Red preflight remains 136/136. Salvador survey remains 1,237 / 1,046 / 191.
+
+**Quality/security assessment focus.** Overfitting to RemoteControl; unsupported name heuristics; dropping legitimate children; retaining helper geometry without source evidence; changing origin-centered assets; recentering; double or lost transforms; ×1000/axis regression; non-deterministic object order; modifying official FBX; hard-coded paths; generated or Keen assets entering Git.
+
+**External validation.** Targeted live SolidWorks generate/validate/save/close/reopen of remediates RemoteControl and BatteryBlock control, then Big Red assemble from a fresh isolated generated root.
+
+**Completion criteria.** The production rule explains why RemoteControl was wrong and why BatteryBlock was right, does not break sampled good parts, and is recorded with evidence. QUALIFIED when STATE records that evidence. After qualification, next executable unit is none.
 
 ---
 

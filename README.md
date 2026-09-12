@@ -375,7 +375,13 @@ scalars in the targeted lookup path; conflicting duplicates fail
 closed. A bounded vanilla empty-subtype resolution rule is supported
 when the object-builder type and grid context uniquely identify an
 exact empty-subtype vanilla definition. That is not general empty-
-subtype support.
+subtype support. Official multi-node SDK FBX conversion keeps imported
+meshes and, when a parentless mesh is already origin-local while its
+node translation is non-zero and the combined imported world is
+displaced, subtracts that inherited parent translation before join.
+Combined-origin-local files are left unchanged. That is not a
+RemoteControl special case and is not a claim that every real-ship
+alignment defect is fixed.
 
 CAD-neutral **conversion policy** then applies an explicit strict or
 permissive decision. Strict is the default: unknown or unsupported

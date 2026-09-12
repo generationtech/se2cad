@@ -110,6 +110,8 @@ A later 2026-09-11 human-authorized amendment inserted S2C-11.14.1 into M11 afte
 
 A later 2026-09-11 human-authorized amendment inserted S2C-11.15.1 into M11 after S2C-11.14.1 was already QUALIFIED and after the human postponed Small Grid. That unit is a bounded definition-parse and empty-subtype compatibility cleanup. It does not rewrite original M11 history, does not implement CubeTopology, does not implement RoundSlope or RoundCorner, does not start Small Grid or OBJ export, does not add generic subpart/animation support, does not bulk-expand the packaged catalog, and does not invent or begin a later implementation unit. STATE records the exception. Small Grid remains postponed until the human later directs it.
 
+A later 2026-09-11 human-authorized amendment inserted S2C-11.16.1 into M11 after S2C-11.15.1 was already QUALIFIED and after the human postponed Small Grid. That unit is a bounded multi-node official SDK FBX block-body interpretation and frame-preservation remediation. It does not rewrite original M11 history, does not change occupancy-center, ModelOffset, IR rotation, or assembly Transform2 unless contrary evidence appears, does not suppress the SolidWorks facet-normal warning, does not implement CubeTopology, does not start Small Grid or OBJ export, does not special-case one identity by name, and does not invent or begin a later implementation unit. STATE records the exception. Small Grid remains postponed until the human later directs it.
+
 ## Qualification model
 
 Status words are defined in [SE2CAD_ENGINEERING_PROCESS.md](SE2CAD_ENGINEERING_PROCESS.md). STATE is the only live status.

@@ -7,6 +7,7 @@ Not imported by the SE2CAD runtime package.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import math
 import sys
@@ -14,7 +15,7 @@ import traceback
 from pathlib import Path
 
 import bpy
-from mathutils import Euler, Vector
+from mathutils import Euler, Matrix, Vector
 
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:
@@ -66,6 +67,75 @@ def _scene_bbox(objs):
     }
 
 
+def _load_frame_rule():
+    path = Path(__file__).with_name("sdk_fbx_frame.py")
+    spec = importlib.util.spec_from_file_location("se2cad_sdk_fbx_frame", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"could not load FBX frame rule from {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _world_mesh_center_and_size(obj):
+    xs, ys, zs = [], [], []
+    for vert in obj.data.vertices:
+        world = obj.matrix_world @ vert.co
+        xs.append(float(world.x))
+        ys.append(float(world.y))
+        zs.append(float(world.z))
+    if not xs:
+        raise RuntimeError(f"mesh object {obj.name!r} has no vertices")
+    mins = [min(xs), min(ys), min(zs)]
+    maxs = [max(xs), max(ys), max(zs)]
+    return (
+        tuple((mins[i] + maxs[i]) * 0.5 for i in range(3)),
+        tuple(maxs[i] - mins[i] for i in range(3)),
+    )
+
+
+def _neutralize_inherited_root_translations(meshes):
+    frame = _load_frame_rule()
+    records = []
+    for obj in meshes:
+        center, size = _world_mesh_center_and_size(obj)
+        translation = obj.matrix_world.to_translation()
+        records.append(
+            frame.ImportedMeshNode(
+                name=obj.name,
+                parent_name=obj.parent.name if obj.parent is not None else None,
+                world_translation=(
+                    float(translation.x),
+                    float(translation.y),
+                    float(translation.z),
+                ),
+                world_mesh_center=center,
+                world_mesh_size=size,
+            )
+        )
+    try:
+        corrections = frame.inherited_root_translations_to_neutralize(records)
+    except frame.AmbiguousFbxFrameError as exc:
+        raise RuntimeError(f"FBX mesh-frame interpretation is ambiguous: {exc}") from exc
+    applied = []
+    by_name = {obj.name: obj for obj in meshes}
+    for name, translation in corrections.items():
+        obj = by_name[name]
+        delta = Matrix.Translation(
+            (-translation[0], -translation[1], -translation[2])
+        )
+        obj.matrix_world = delta @ obj.matrix_world
+        applied.append(
+            {
+                "name": name,
+                "subtracted_translation_m": list(translation),
+            }
+        )
+    applied.sort(key=lambda item: item["name"])
+    return applied
+
+
 def _select_meshes(meshes) -> None:
     bpy.ops.object.select_all(action="DESELECT")
     for obj in meshes:
@@ -92,6 +162,8 @@ def main(argv: list[str]) -> int:
     if not meshes:
         raise RuntimeError("FBX import produced no mesh objects")
     before = _scene_bbox(meshes)
+    neutralized = _neutralize_inherited_root_translations(meshes)
+    meshes = _mesh_objects()
     if args.apply_object_transforms:
         _select_meshes(meshes)
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
@@ -130,6 +202,7 @@ def main(argv: list[str]) -> int:
         "before_m": before,
         "after_m": after,
         "applied_object_transforms": bool(args.apply_object_transforms),
+        "neutralized_inherited_root_translations": neutralized,
         "additional_scale": args.scale,
         "rotation_xyz_deg": [args.rx, args.ry, args.rz],
         "translation_mm": [args.tx_mm, args.ty_mm, args.tz_mm],

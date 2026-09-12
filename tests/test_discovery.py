@@ -485,6 +485,7 @@ class RuntimeIndependenceTests(unittest.TestCase):
             "sdk_ascii_fbx.py",
             "sdk_fbx_format.py",
             "blender_fbx_to_stl.py",
+            "sdk_fbx_frame.py",
         }
         for directory in runtime_dirs:
             for path in directory.glob("*.py"):

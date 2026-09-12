@@ -1641,6 +1641,148 @@ class SolidWorksIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(end_prefs, start_prefs)
 
+    def test_sdk_fbx_frame_remote_control_and_battery_generate_and_reopen(self) -> None:
+        import shutil
+
+        from se2cad.catalog import load_default_catalog
+        from se2cad.library.model import SdkMeshRecipe
+        from se2cad.parser import parse_blueprint_xml
+        from se2cad.policy import ConversionPolicy, convert_blueprint
+        from se2cad.preflight import compute_conversion_preflight
+        from se2cad.solidworks.assemble import generate_assembly_from_ir
+        from se2cad.solidworks.com_session import (
+            SolidWorksSession,
+            session_environment_report,
+        )
+        from se2cad.solidworks.config import SolidWorksBackendConfig
+        from se2cad.solidworks.generate import generate_canonical_parts
+        from se2cad.solidworks.transform_pack import solidworks_arraydata
+        from se2cad.vanilla import (
+            VanillaResolveKind,
+            clear_vanilla_runtime_state,
+            resolve_vanilla_geometry,
+        )
+
+        xml = """<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ShipBlueprints>
+    <ShipBlueprint>
+      <Id Type="MyObjectBuilder_ShipBlueprintDefinition" Subtype="se2cad-fbx-frame-probe" />
+      <CubeGrids>
+        <CubeGrid>
+          <GridSizeEnum>Large</GridSizeEnum>
+          <CubeBlocks>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockRemoteControl</SubtypeName>
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockBatteryBlock</SubtypeName>
+              <Min x="2" y="0" z="0" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeSymbolB</SubtypeName>
+              <Min x="4" y="0" z="0" />
+            </MyObjectBuilder_CubeBlock>
+            <MyObjectBuilder_CubeBlock>
+              <SubtypeName>LargeBlockFrontLight</SubtypeName>
+              <Min x="0" y="2" z="0" />
+            </MyObjectBuilder_CubeBlock>
+          </CubeBlocks>
+        </CubeGrid>
+      </CubeGrids>
+    </ShipBlueprint>
+  </ShipBlueprints>
+</Definitions>
+"""
+        clear_vanilla_runtime_state()
+        catalog = load_default_catalog()
+        parsed = parse_blueprint_xml(xml, source="fbx-frame-probe")
+        expected = {
+            "LargeBlockRemoteControl": "vanilla_lg_1x1x1_large_block_remote_control",
+            "LargeBlockBatteryBlock": "vanilla_lg_1x1x1_large_block_battery_block",
+            "LargeSymbolB": "vanilla_lg_1x1x1_large_symbol_b",
+            "LargeBlockFrontLight": "vanilla_lg_1x1x1_large_block_front_light",
+        }
+        for subtype_id, geometry_id in expected.items():
+            result = resolve_vanilla_geometry(subtype_id, catalog)
+            self.assertEqual(result.kind, VanillaResolveKind.RUNTIME_VANILLA, msg=subtype_id)
+            assert result.runtime is not None
+            self.assertEqual(result.runtime.geometry_id, geometry_id)
+            self.assertIsInstance(result.runtime.library_record.recipe, SdkMeshRecipe)
+        preflight = compute_conversion_preflight(parsed, catalog)
+        self.assertEqual(preflight.supported_count, 4)
+        self.assertEqual(preflight.unknown_count, 0)
+        converted = convert_blueprint(parsed, catalog, ConversionPolicy.STRICT)
+        self.assertEqual(converted.filler_count, 0)
+        probe_root = self.config.generated_root / "s2c-11.16.1-live"
+        if probe_root.exists():
+            shutil.rmtree(probe_root)
+        probe_config = SolidWorksBackendConfig(
+            generated_root=probe_root.resolve(),
+            part_template=self.config.part_template,
+            visible=self.config.visible,
+            source="s2c-11.16.1-live",
+        )
+        with SolidWorksSession(probe_config) as session:
+            start_report = session_environment_report(session)
+            start_documents = int(session.app.GetDocumentCount)
+            self.assertTrue(str(start_report["solidworks_revision"]).startswith("34"))
+        generated_parts = generate_canonical_parts(
+            probe_config, geometry_ids=tuple(expected.values())
+        )
+        self.assertEqual(len(generated_parts), 4)
+        bounds = {}
+        for part in generated_parts:
+            self.assertTrue(part.locator.generated)
+            bounds[part.locator.identity.geometry_id] = (
+                part.after_reopen.bounding_box_min_m,
+                part.after_reopen.bounding_box_max_m,
+            )
+        first = generate_assembly_from_ir(converted.ir, probe_config)
+        self.assertEqual(len(first.after_reopen), 4)
+        self.assertEqual(first.materialization_report.untreated.generated, ())
+        self.assertEqual(
+            set(first.materialization_report.untreated.reused),
+            set(expected.values()),
+        )
+        remote_min, remote_max = bounds[expected["LargeBlockRemoteControl"]]
+        remote_size = tuple(remote_max[i] - remote_min[i] for i in range(3))
+        self.assertLess(remote_max[0], 1.60)
+        self.assertGreater(remote_min[0], -1.60)
+        self.assertLess(remote_size[0], 3.00)
+        battery_min, battery_max = bounds[expected["LargeBlockBatteryBlock"]]
+        self.assertLess(abs((battery_min[0] + battery_max[0]) / 2.0), 0.15)
+        self.assertLess(abs((battery_min[1] + battery_max[1]) / 2.0), 0.15)
+        self.assertLess(abs((battery_min[2] + battery_max[2]) / 2.0), 0.15)
+        reopen_by_index = {
+            item.placement.source_index: item for item in first.after_reopen
+        }
+        for block in converted.ir.grid.blocks:
+            item = reopen_by_index[block.source_index]
+            self.assertEqual(
+                item.arraydata,
+                solidworks_arraydata(block.rotation, block.position_mm.as_tuple()),
+            )
+            self.assertEqual(item.placement.geometry_id, block.geometry_id)
+        warm = generate_assembly_from_ir(converted.ir, probe_config)
+        self.assertEqual(warm.materialization_report.untreated.generated, ())
+        self.assertEqual(set(warm.materialization_report.untreated.reused), set(expected.values()))
+        self.assertEqual(len(warm.after_reopen), 4)
+        warm_by_index = {
+            item.placement.source_index: item for item in warm.after_reopen
+        }
+        for source_index, first_item in reopen_by_index.items():
+            warm_item = warm_by_index[source_index]
+            self.assertEqual(warm_item.arraydata, first_item.arraydata)
+            self.assertEqual(warm_item.part_path, first_item.part_path)
+        with SolidWorksSession(probe_config) as session:
+            end_documents = int(session.app.GetDocumentCount)
+            end_report = session_environment_report(session)
+        self.assertEqual(end_documents, start_documents)
+        self.assertEqual(
+            end_report["solidworks_revision"], start_report["solidworks_revision"]
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
